@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moj Planer - Bojan v4.0</title>
+    <title>Moj Planer - Bojan v4.1</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -24,7 +24,6 @@
         .main-btn { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.3s; margin-top: 5px; }
         .task-list { margin-top: 20px; text-align: left; }
         
-        /* POPRAVKA DIZAJNA: Kartica i kontrole su sada unutra */
         .task-card { 
             background: #3a4a64; 
             padding: 15px; 
@@ -35,13 +34,39 @@
             display: flex; 
             flex-direction: column; 
             min-height: 100px;
-            overflow: hidden; /* Sprečava curenje elemenata */
+            overflow: hidden;
         }
         .task-card.completed { border-left-color: #7f8c8d; background: #2c3e50; opacity: 0.7; }
-        .task-text { font-size: 16px; margin-bottom: 5px; padding-right: 45px; word-wrap: break-word; color: #fff; display: block; }
         
-        /* NOVA BOJA ZA PONAVLJANJE: Tamno ljubičasta */
+        /* POPRAVKA: Omogućava Enter i nove redove */
+        .task-text { 
+            font-size: 16px; 
+            margin: 8px 0;
+            padding-right: 45px; 
+            word-wrap: break-word; 
+            color: #fff; 
+            display: block;
+            white-space: pre-wrap; 
+        }
+        
         .repeat-tag { font-size: 10px; background: #6c3483; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; display: inline-block; font-weight: bold; }
+
+        /* Stil za ALARM polje */
+        .alarm-box {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 5px;
+            background: rgba(0,0,0,0.2);
+        }
+        /* ŽUTA BOJA ZA AKTIVIRAN ALARM */
+        .alarm-active {
+            background: #f1c40f !important;
+            color: black !important;
+            font-weight: bold;
+            box-shadow: 0 0 10px #f1c40f;
+        }
 
         .controls { 
             position: absolute; 
@@ -106,7 +131,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database().ref('tasks');
 
-    // NOVA KATEGORIJA DODATA: Razno
     const cats = {
         sr: ["Sve", "Kola", "Zdravlje", "Kupovina", "Razonoda", "Stanovanje", "Posao", "Razno"],
         en: ["All", "Car", "Health", "Shopping", "Fun", "Housing", "Work", "Other"]
@@ -117,17 +141,26 @@
     let editId = null;
     let refreshTimer;
 
+    function formatirajDatum(isoString) {
+        if(!isoString) return "---";
+        const d = new Date(isoString);
+        const dan = String(d.getDate()).padStart(2, '0');
+        const mesec = String(d.getMonth() + 1).padStart(2, '0');
+        const god = String(d.getFullYear()).slice(-2);
+        const sat = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${dan}.${mesec}.${god} ${sat}:${min}`;
+    }
+
     function updateLang() {
         currentLang = document.getElementById('langSelect').value;
         localStorage.setItem('planerLang', currentLang);
-        
-        // Da ne bi izgubio filter ako je "All", ali promenio jezik
         const oldIndex = cats[currentLang==='sr'?'en':'sr'].indexOf(currentFilter);
         if(oldIndex !== -1) currentFilter = cats[currentLang][oldIndex];
 
         const langData = {
-            sr: { title: "☁️ Moj Planer", placeholder: "Šta treba uraditi?", save: "Sačuvaj u oblaku", edit: "Izmeni zadatak", repeat: "🔁 Ponavljanje:", refresh: "Osveži:", confirm: "Obriši sve?", noneTime: "---" },
-            en: { title: "☁️ My Planner", placeholder: "What needs to be done?", save: "Save to Cloud", edit: "Edit Task", repeat: "🔁 Repeat:", refresh: "Refresh:", confirm: "Delete all?", noneTime: "---" }
+            sr: { title: "☁️ Moj Planer", placeholder: "Šta treba uraditi?", save: "Sačuvaj u oblaku", edit: "Izmeni zadatak", repeat: "🔁 Ponavljanje:", refresh: "Osveži:", confirm: "Obriši sve?" },
+            en: { title: "☁️ My Planner", placeholder: "What needs to be done?", save: "Save to Cloud", edit: "Edit Task", repeat: "🔁 Repeat:", refresh: "Refresh:", confirm: "Delete all?" }
         };
 
         const d = langData[currentLang];
@@ -212,7 +245,7 @@
         if(!data) return;
 
         const repLabels = { sr: {day:"Dnevno", week:"Nedeljno", month:"Mesečno", year:"Godišnje"}, en: {day:"Daily", week:"Weekly", month:"Monthly", year:"Yearly"} };
-        const d = { sr: {noneTime: "---"}, en: {noneTime: "---"} }[currentLang];
+        const sad = new Date();
 
         Object.keys(data).map(k => ({...data[k], id: k}))
             .filter(t => {
@@ -222,14 +255,20 @@
             })
             .sort((a,b) => a.completed - b.completed)
             .forEach(t => {
-                // POVRATNA PROVERA DA SE IZBEGNE UNDEFINED
                 const repeatLabel = (t.repeat && t.repeat !== 'none' && repLabels[currentLang][t.repeat]) ? repLabels[currentLang][t.repeat] : '';
                 
+                // PROVERA ZA ŽUTI ALARM
+                let alarmClass = "alarm-box";
+                if(t.time && !t.completed) {
+                    const tTime = new Date(t.time);
+                    if(sad >= tTime) alarmClass += " alarm-active";
+                }
+
                 list.innerHTML += `<div class="task-card ${t.completed ? 'completed' : ''}">
                     <span style="font-size:10px; color:#3498db;">${t.created} | ${t.category} ${repeatLabel ? `<span class="repeat-tag">🔁 ${repeatLabel}</span>`:''}</span>
                     <strong class="task-text">${t.text}</strong>
-                    <small>⏰ ${t.time ? t.time.replace('T', ' ') : d.noneTime}</small>
-                    ${t.finishTime ? `<span style="font-size:10px; color:#2ecc71;">✓ ${t.finishTime}</span>` : ''}
+                    <div class="${alarmClass}">⏰ ${formatirajDatum(t.time)}</div>
+                    ${t.finishTime ? `<div style="font-size:10px; color:#2ecc71; margin-top:5px;">✓ ${t.finishTime}</div>` : ''}
                     <div class="controls">
                         <button class="btn-box del-btn" onclick="db.child('${t.id}').remove()">X</button>
                         <button class="btn-box edit-btn" onclick="prepareEdit('${t.id}', ${JSON.stringify(t).replace(/"/g, '&quot;')})">✏️</button>
