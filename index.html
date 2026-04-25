@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moj Planer - Bojan v6.9</title>
+    <title>Moj Planer - Bojan v7.0</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a2a44; color: white; margin: 0; padding: 20px; }
         
-        /* GLAVNI KONTEJNER KOJI DRŽI SVE */
+        /* GLAVNI RASPORED */
         .main-wrapper { 
             display: flex; 
             flex-direction: row; 
@@ -28,34 +28,45 @@
         .day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #3a4a64; border-radius: 8px; font-size: 13px; cursor: pointer; }
         .day.selected { border: 2px solid #3498db; background: #4a5a74; }
         .day.today { background: #2ecc71; color: white; font-weight: bold; }
-        .dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 2px; }
-        .dot.pending { background: #f1c40f; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 2px; background: #f1c40f; }
 
         /* DESNA STRANA - PLANER */
         .planner-column { background: #2a3a54; padding: 25px; border-radius: 20px; width: 100%; max-width: 550px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); box-sizing: border-box; }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 2px solid #3498db; background: white; color: black; font-size: 16px; min-height: 100px; resize: none; box-sizing: border-box; }
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        select, input { padding: 10px; border-radius: 8px; border: 2px solid #3498db; }
+        
+        /* INPUT POLJA */
+        textarea { 
+            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; 
+            border: 2px solid #3498db; background: #1a2a44; color: white; 
+            font-size: 16px; min-height: 100px; resize: none; box-sizing: border-box; 
+        }
+        .input-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        select, input { 
+            flex: 1; min-width: 150px; padding: 10px; border-radius: 8px; 
+            border: 2px solid #3498db; background: #3a4a64; color: white; box-sizing: border-box;
+        }
         .btn-save { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; }
 
-        /* KARTICA ZADATKA - FIKSIRAN DIZAJN */
+        /* KARTICA ZADATKA */
         .task-card { 
             background: #3a4a64; padding: 15px; border-radius: 15px; margin-top: 15px; 
             border-left: 6px solid #3498db; position: relative; display: flex; justify-content: space-between; align-items: center;
         }
-        .task-info { flex-grow: 1; padding-right: 10px; word-wrap: break-word; }
+        .task-info { flex-grow: 1; padding-right: 15px; word-wrap: break-word; overflow-wrap: break-word; max-width: 80%; }
         .task-card.completed { border-left-color: #7f8c8d; opacity: 0.6; }
         
         .task-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
-        .action-btn { width: 36px; height: 36px; border-radius: 8px; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .action-btn { width: 38px; height: 38px; border-radius: 8px; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 
         /* MOBILNA ADAPTACIJA */
         @media (max-width: 950px) {
-            .main-wrapper { flex-direction: column; align-items: center; padding: 10px; }
-            .planner-column { order: 1; width: 100%; }
+            .main-wrapper { flex-direction: column; align-items: center; padding: 5px; }
+            .planner-column { order: 1; width: 100%; padding: 15px; }
             .calendar-column { order: 2; width: 100%; }
+            .input-row { flex-direction: column; }
+            select, input { width: 100%; }
+            .task-info { max-width: 70%; }
         }
     </style>
 </head>
@@ -63,16 +74,16 @@
 
 <div class="main-wrapper">
     <div class="calendar-column">
-        <button onclick="clearFilter()" style="padding:10px; background:#34495e; color:white; border:1px solid #3498db; border-radius:10px; cursor:pointer;">📅 Prikaži sve zadatke</button>
+        <button onclick="clearFilter()" style="padding:10px; background:#34495e; color:white; border:1px solid #3498db; border-radius:10px; cursor:pointer; width:100%;">📅 Prikaži sve zadatke</button>
         <div id="cal1" class="calendar-box"></div>
         <div id="cal2" class="calendar-box"></div>
     </div>
 
     <div class="planner-column">
         <div class="header-row">
-            <button onclick="resetAll()" style="background:#c0392b; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">⚠️ RESET</button>
-            <h2 style="margin:0;">☁️ Moj Planer</h2>
-            <select id="syncInt" onchange="setupSync()" style="padding:4px; border-radius:5px;">
+            <button onclick="resetAll()" style="background:#c0392b; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold;">⚠️ RESET</button>
+            <h3 style="margin:0;">☁️ Moj Planer</h3>
+            <select id="syncInt" onchange="setupSync()" style="min-width:70px; padding:4px;">
                 <option value="1">1 min</option>
                 <option value="60" selected>60 min</option>
             </select>
@@ -106,7 +117,7 @@
 
     function init() {
         document.getElementById('cats').innerHTML = categories.map(c => 
-            `<button onclick="setCat('${c}')" style="padding:6px 12px; border-radius:12px; border:none; background:${filterCat===c?'#3498db':'#3a4a64'}; color:white; cursor:pointer;">${c}</button>`
+            `<button onclick="setCat('${c}')" style="padding:6px 12px; border-radius:12px; border:none; background:${filterCat===c?'#3498db':'#3a4a64'}; color:white; cursor:pointer; font-size:12px; font-weight:bold;">${c}</button>`
         ).join('');
         document.getElementById('taskCat').innerHTML = categories.filter(c => c!=="Sve").map(c => `<option value="${c}">${c}</option>`).join('');
     }
@@ -119,17 +130,15 @@
         const y = d.getFullYear(), m = d.getMonth();
         let h = `<div style="text-align:center; font-weight:bold; margin-bottom:10px;">${months[m]} ${y}</div><div class="calendar-grid">`;
         ["Po","Ut","Sr","Če","Pe","Su","Ne"].forEach(n => h += `<div class="day-name">${n}</div>`);
-        
         const firstDay = new Date(y, m, 1).getDay();
         const start = firstDay === 0 ? 6 : firstDay - 1;
         for(let i=0; i<start; i++) h += `<div></div>`;
-        
         for(let i=1; i<=new Date(y, m+1, 0).getDate(); i++) {
             const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
             const hasTasks = Object.values(allTasks).some(t => t.time && t.time.startsWith(ds));
             const isToday = new Date().toISOString().startsWith(ds) ? 'today' : '';
             const isSel = filterDate === ds ? 'selected' : '';
-            h += `<div class="day ${isToday} ${isSel}" onclick="filterByDate('${ds}')">${i}${hasTasks?'<div class="dot pending"></div>':''}</div>`;
+            h += `<div class="day ${isToday} ${isSel}" onclick="filterByDate('${ds}')">${i}${hasTasks?'<div class="dot"></div>':''}</div>`;
         }
         document.getElementById(id).innerHTML = h + `</div>`;
     }
@@ -178,8 +187,8 @@
                 list.innerHTML += `
                 <div class="task-card ${t.completed?'completed':''}">
                     <div class="task-info">
-                        <div style="font-size:11px; color:#3498db;">${t.category} | ${t.time?t.time.replace('T',' '):'---'}</div>
-                        <div style="font-size:16px; margin-top:5px;">${t.text}</div>
+                        <div style="font-size:11px; color:#3498db; margin-bottom:4px;">${t.category} | ${t.time?t.time.replace('T',' '):'---'}</div>
+                        <div style="font-size:16px; line-height:1.4;">${t.text}</div>
                     </div>
                     <div class="task-actions">
                         <button class="action-btn" style="background:#2ecc71;" onclick="db.child('${k}').update({completed:!${t.completed}})">✓</button>
@@ -191,7 +200,7 @@
         });
     }
 
-    function resetAll() { if(confirm("Obriši sve?")) db.remove(); }
+    function resetAll() { if(confirm("Obriši sve zadatke?")) db.remove(); }
     function setupSync() {
         setInterval(() => db.once('value', s => { allTasks = s.val() || {}; render(); }), document.getElementById('syncInt').value * 60000);
     }
