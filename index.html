@@ -3,127 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moj Planer - Bojan v4.1</title>
+    <title>Moj Planer - Bojan v6.6</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a2a44; color: white; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .container { background: #2a3a54; padding: 20px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; position: relative; }
-        .admin-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
-        .reset-btn { background: #c0392b; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .refresh-config { font-size: 11px; display: flex; align-items: center; gap: 5px; }
-        .refresh-config select { background: #34495e; color: white; border: 1px solid #3498db; border-radius: 4px; padding: 2px; }
-        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .lang-select { background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .categories { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-        .cat-btn { padding: 8px 12px; border-radius: 15px; border: none; background: #3a4a64; color: white; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .cat-btn.active { background: #3498db; box-shadow: 0 0 10px #3498db; }
-        textarea#taskInput { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 2px solid #3498db; box-sizing: border-box; font-size: 16px; min-height: 80px; resize: none; }
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        select, input { width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #3498db; background: white; color: black; box-sizing: border-box; }
-        .main-btn { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.3s; margin-top: 5px; }
-        .task-list { margin-top: 20px; text-align: left; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a2a44; color: white; margin: 0; padding: 20px; }
+        .wrapper { display: flex; flex-direction: row; gap: 20px; justify-content: center; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; }
         
+        /* SIDEBAR KALENDAR */
+        .calendar-sidebar { display: flex; flex-direction: column; gap: 20px; width: 350px; }
+        .calendar-section { background: #2a3a54; padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day-name { font-size: 11px; color: #3498db; font-weight: bold; }
+        .day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #3a4a64; border-radius: 8px; font-size: 13px; cursor: pointer; position: relative; }
+        .day.selected { border: 2px solid #3498db; }
+        .day.today { background: #2ecc71; color: white; font-weight: bold; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 2px; }
+        .dot.pending { background: #f1c40f; }
+        .dot.done { background: #2ecc71; }
+
+        /* KONTEJNER PLANERA */
+        .container { background: #2a3a54; padding: 20px; border-radius: 20px; width: 100%; max-width: 550px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; }
+        .show-all-btn { width: 100%; padding: 10px; background: #34495e; color: white; border: 1px solid #3498db; border-radius: 10px; cursor: pointer; margin-bottom: 10px; }
+        .admin-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
+        .reset-btn { background: #c0392b; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 11px; }
+        
+        textarea#taskInput { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 2px solid #3498db; font-size: 16px; min-height: 100px; resize: none; box-sizing: border-box; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        select, input { width: 100%; padding: 10px; border-radius: 8px; border: 2px solid #3498db; box-sizing: border-box; }
+        .main-btn { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; }
+
+        /* FINALNA POPRAVKA KARTICE */
         .task-card { 
             background: #3a4a64; 
-            padding: 15px; 
+            padding: 15px 65px 15px 15px; /* Povećan desni padding na 65px */
             border-radius: 15px; 
             margin-bottom: 12px; 
             border-left: 6px solid #3498db; 
             position: relative; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 100px;
-            overflow: hidden;
+            text-align: left;
+            min-height: 110px; /* Dovoljno visoko za 3 dugmeta */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        .task-card.completed { border-left-color: #7f8c8d; background: #2c3e50; opacity: 0.7; }
+        .task-card.completed { border-left-color: #7f8c8d; opacity: 0.6; }
         
-        /* POPRAVKA: Omogućava Enter i nove redove */
-        .task-text { 
-            font-size: 16px; 
-            margin: 8px 0;
-            padding-right: 45px; 
-            word-wrap: break-word; 
-            color: #fff; 
-            display: block;
+        .task-title { 
             white-space: pre-wrap; 
-        }
-        
-        .repeat-tag { font-size: 10px; background: #6c3483; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; display: inline-block; font-weight: bold; }
-
-        /* Stil za ALARM polje */
-        .alarm-box {
-            font-size: 12px;
-            padding: 3px 8px;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 5px;
-            background: rgba(0,0,0,0.2);
-        }
-        /* ŽUTA BOJA ZA AKTIVIRAN ALARM */
-        .alarm-active {
-            background: #f1c40f !important;
-            color: black !important;
-            font-weight: bold;
-            box-shadow: 0 0 10px #f1c40f;
+            display: block; 
+            font-weight: bold; 
+            word-wrap: break-word; 
+            line-height: 1.4;
+            color: #fff;
+            margin: 5px 0;
         }
 
+        /* DESNE KONTROLE - REŠEN PROBLEM SA POLA KOCKICE */
         .controls { 
             position: absolute; 
-            right: 10px; 
-            top: 50%; 
-            transform: translateY(-50%); 
+            right: 15px; /* Odmaknuto od same ivice */
+            top: 50%;
+            transform: translateY(-50%);
             display: flex; 
             flex-direction: column; 
-            gap: 5px; 
+            gap: 6px; 
+            z-index: 10;
         }
-        .btn-box { width: 34px; height: 34px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; }
-        .del-btn { background: #e74c3c; color: white; }
-        .edit-btn { background: #3498db; color: white; }
-        .check-btn { background: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; }
-        .check-btn.done { background: #2ecc71; color: white; border: none; }
+        .btn-box { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 8px; 
+            border: none; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 900px) { .wrapper { flex-direction: column; align-items: center; } .calendar-sidebar { width: 100%; } }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="admin-row">
-        <button class="reset-btn" onclick="totalReset()" id="resetBtn">⚠️ RESET</button>
-        <div class="refresh-config">
-            <span id="refreshLbl">Osveži:</span>
-            <select id="refreshInterval" onchange="updateRefreshInterval()">
-                <option value="1">1 min</option>
-                <option value="5">5 min</option>
-                <option value="15">15 min</option>
-                <option value="30">30 min</option>
-                <option value="60">60 min</option>
-            </select>
+
+<div class="wrapper">
+    <div class="calendar-sidebar">
+        <button class="show-all-btn" onclick="clearDateFilter()">📅 Prikaži sve zadatke / Show all</button>
+        <div id="calendarContainer" style="display: flex; flex-direction: column; gap: 20px;"></div>
+    </div>
+
+    <div class="container">
+        <div class="admin-row">
+            <button class="reset-btn" onclick="totalReset()">⚠️ RESET</button>
+            <div style="font-size:11px">
+                Osveži: 
+                <select id="refreshInterval" onchange="updateRefreshInterval()">
+                    <option value="1">1 min</option>
+                    <option value="5">5 min</option>
+                    <option value="15">15 min</option>
+                    <option value="30">30 min</option>
+                    <option value="60">60 min</option>
+                </select>
+            </div>
         </div>
-    </div>
-    <div class="top-row">
         <h2 id="mainTitle">☁️ Moj Planer</h2>
-        <select class="lang-select" id="langSelect" onchange="updateLang()">
-            <option value="sr">SR RS</option>
-            <option value="en">EN US</option>
-        </select>
+        <div id="filterGroup" style="margin-bottom:15px; display:flex; gap:5px; flex-wrap:wrap; justify-content:center;"></div>
+        <textarea id="taskInput" placeholder="Šta treba uraditi?"></textarea>
+        <div class="input-grid">
+            <select id="categorySelect"></select>
+            <input type="datetime-local" id="timeInput">
+        </div>
+        <button class="main-btn" id="saveBtn" onclick="saveTask()">Sačuvaj</button>
+        <div id="taskList" style="margin-top:20px;"></div>
     </div>
-    <div class="categories" id="filterGroup"></div>
-    <textarea id="taskInput" placeholder="Šta treba uraditi?"></textarea>
-    <div class="input-grid">
-        <select id="categorySelect"></select>
-        <input type="datetime-local" id="timeInput">
-    </div>
-    <div style="margin-bottom: 10px; text-align: left; font-size: 13px;">
-        <span id="repeatLbl">🔁 Ponavljanje:</span>
-        <select id="repeatSelect" style="margin-top: 5px;">
-            <option value="none">Bez ponavljanja / No repeat</option>
-            <option value="day">Svaki dan / Every day</option>
-            <option value="week">Svake nedelje / Every week</option>
-            <option value="month">Svaki mesec / Every month</option>
-            <option value="year">Svake godine / Every year</option>
-        </select>
-    </div>
-    <button class="main-btn" id="saveBtn" onclick="saveTask()">Sačuvaj u oblaku</button>
-    <div id="taskList" class="task-list"></div>
 </div>
 
 <script>
@@ -131,174 +126,99 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database().ref('tasks');
 
-    const cats = {
-        sr: ["Sve", "Kola", "Zdravlje", "Kupovina", "Razonoda", "Stanovanje", "Posao", "Razno"],
-        en: ["All", "Car", "Health", "Shopping", "Fun", "Housing", "Work", "Other"]
-    };
-
-    let currentLang = localStorage.getItem('planerLang') || 'sr';
-    let currentFilter = cats[currentLang][0];
+    let currentFilter = "Sve";
+    let selectedDate = null;
+    let currentTasks = {};
     let editId = null;
     let refreshTimer;
 
-    function formatirajDatum(isoString) {
-        if(!isoString) return "---";
-        const d = new Date(isoString);
-        const dan = String(d.getDate()).padStart(2, '0');
-        const mesec = String(d.getMonth() + 1).padStart(2, '0');
-        const god = String(d.getFullYear()).slice(-2);
-        const sat = String(d.getHours()).padStart(2, '0');
-        const min = String(d.getMinutes()).padStart(2, '0');
-        return `${dan}.${mesec}.${god} ${sat}:${min}`;
-    }
-
-    function updateLang() {
-        currentLang = document.getElementById('langSelect').value;
-        localStorage.setItem('planerLang', currentLang);
-        const oldIndex = cats[currentLang==='sr'?'en':'sr'].indexOf(currentFilter);
-        if(oldIndex !== -1) currentFilter = cats[currentLang][oldIndex];
-
-        const langData = {
-            sr: { title: "☁️ Moj Planer", placeholder: "Šta treba uraditi?", save: "Sačuvaj u oblaku", edit: "Izmeni zadatak", repeat: "🔁 Ponavljanje:", refresh: "Osveži:", confirm: "Obriši sve?" },
-            en: { title: "☁️ My Planner", placeholder: "What needs to be done?", save: "Save to Cloud", edit: "Edit Task", repeat: "🔁 Repeat:", refresh: "Refresh:", confirm: "Delete all?" }
-        };
-
-        const d = langData[currentLang];
-        document.getElementById('mainTitle').innerText = d.title;
-        document.getElementById('taskInput').placeholder = d.placeholder;
-        document.getElementById('saveBtn').innerText = editId ? d.edit : d.save;
-        document.getElementById('repeatLbl').innerText = d.repeat;
-        document.getElementById('refreshLbl').innerText = d.refresh;
-
-        init();
-        db.once('value', snap => render(snap.val()));
-    }
+    const cats = ["Sve", "Kola", "Zdravlje", "Kupovina", "Razonoda", "Stanovanje", "Posao", "Razno"];
+    const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
     function init() {
-        document.getElementById('langSelect').value = currentLang;
-        document.getElementById('filterGroup').innerHTML = cats[currentLang].map(c => 
-            `<button class="cat-btn ${currentFilter===c?'active':''}" onclick="filterTasks('${c}')">${c}</button>`
+        document.getElementById('filterGroup').innerHTML = cats.map(c => 
+            `<button style="padding:6px 12px; border-radius:12px; border:none; background:${currentFilter===c?'#3498db':'#3a4a64'}; color:white; cursor:pointer; font-size:12px;" onclick="filterTasks('${c}')">${c}</button>`
         ).join('');
-        
-        const catSelect = document.getElementById('categorySelect');
-        const oldVal = catSelect.value;
-        catSelect.innerHTML = cats[currentLang].filter((c, i) => i !== 0).map(c => 
-            `<option value="${cats['sr'][cats[currentLang].indexOf(c)]}">${c}</option>`
-        ).join('');
-        if(oldVal) catSelect.value = oldVal;
-        
-        const savedInt = localStorage.getItem('planerRefresh') || "30";
-        document.getElementById('refreshInterval').value = savedInt;
+        document.getElementById('categorySelect').innerHTML = cats.filter(c => c!=="Sve").map(c => `<option value="${c}">${c}</option>`).join('');
         updateRefreshInterval();
     }
 
-    function filterTasks(cat) {
-        currentFilter = cat;
-        init();
-        db.once('value', snap => render(snap.val()));
+    function filterTasks(c) { currentFilter = c; render(currentTasks); init(); }
+    function clearDateFilter() { selectedDate = null; render(currentTasks); }
+    function selectDate(d) { selectedDate = d; render(currentTasks); }
+
+    function renderCalendar(offset) {
+        const d = new Date(); d.setMonth(d.getMonth() + offset);
+        const year = d.getFullYear(); const month = d.getMonth();
+        let html = `<div class="calendar-section"><strong>${months[month]} ${year}</strong><div class="calendar-grid">`;
+        ["Po", "Ut", "Sr", "Če", "Pe", "Su", "Ne"].forEach(dn => html += `<div class="day-name">${dn}</div>`);
+        const first = new Date(year, month, 1).getDay();
+        const start = first === 0 ? 6 : first - 1;
+        for(let i=0; i<start; i++) html += `<div></div>`;
+        for(let i=1; i<=new Date(year, month+1, 0).getDate(); i++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            const tasks = Object.values(currentTasks).filter(t => t.time && t.time.startsWith(dateStr));
+            const isToday = new Date().toISOString().startsWith(dateStr) ? 'today' : '';
+            const isSel = selectedDate === dateStr ? 'selected' : '';
+            html += `<div class="day ${isToday} ${isSel}" onclick="selectDate('${dateStr}')">${i}${tasks.length?`<div class="dot ${tasks.some(t=>!t.completed)?'pending':'done'}"></div>`:''}</div>`;
+        }
+        return html + `</div></div>`;
     }
 
     function saveTask() {
         const text = document.getElementById('taskInput').value;
         const time = document.getElementById('timeInput').value;
         const category = document.getElementById('categorySelect').value;
-        const repeat = document.getElementById('repeatSelect').value;
         if(!text.trim()) return;
 
         if(editId) {
-            db.child(editId).update({ text, time, category, repeat });
+            db.child(editId).update({ text, time, category });
             editId = null;
+            document.getElementById('saveBtn').innerText = "Sačuvaj";
         } else {
-            db.push({ text, time, category, repeat, created: new Date().toLocaleString('sr-RS'), completed: false });
+            db.push({ text, time, category, completed: false, created: new Date().toLocaleString('sr-RS') });
         }
         document.getElementById('taskInput').value = '';
         document.getElementById('timeInput').value = '';
-        document.getElementById('repeatSelect').value = 'none';
-        updateLang();
     }
 
-    function toggleComplete(id, task) {
-        const isDone = !task.completed;
-        db.child(id).update({ completed: isDone, finishTime: isDone ? new Date().toLocaleString('sr-RS') : "" });
-
-        if (isDone && task.repeat && task.repeat !== 'none') {
-            let nextDate = task.time ? new Date(task.time) : new Date();
-            if (task.repeat === 'day') nextDate.setDate(nextDate.getDate() + 1);
-            else if (task.repeat === 'week') nextDate.setDate(nextDate.getDate() + 7);
-            else if (task.repeat === 'month') nextDate.setMonth(nextDate.getMonth() + 1);
-            else if (task.repeat === 'year') nextDate.setFullYear(nextDate.getFullYear() + 1);
-
-            db.push({
-                text: task.text,
-                category: task.category,
-                repeat: task.repeat,
-                time: nextDate.toISOString().slice(0, 16),
-                created: new Date().toLocaleString('sr-RS'),
-                completed: false
-            });
-        }
+    function prepareEdit(id, text, time, cat) {
+        editId = id;
+        document.getElementById('taskInput').value = text;
+        document.getElementById('timeInput').value = time || "";
+        document.getElementById('categorySelect').value = cat;
+        document.getElementById('saveBtn').innerText = "Izmeni";
+        window.scrollTo(0,0);
     }
 
     function render(data) {
-        const list = document.getElementById('taskList');
-        list.innerHTML = '';
-        if(!data) return;
-
-        const repLabels = { sr: {day:"Dnevno", week:"Nedeljno", month:"Mesečno", year:"Godišnje"}, en: {day:"Daily", week:"Weekly", month:"Monthly", year:"Yearly"} };
-        const sad = new Date();
-
-        Object.keys(data).map(k => ({...data[k], id: k}))
-            .filter(t => {
-                if (currentFilter === cats[currentLang][0]) return true;
-                const srCat = cats['sr'][cats[currentLang].indexOf(currentFilter)];
-                return t.category === srCat;
-            })
+        currentTasks = data || {};
+        document.getElementById('calendarContainer').innerHTML = renderCalendar(0) + renderCalendar(1);
+        const list = document.getElementById('taskList'); list.innerHTML = '';
+        Object.keys(currentTasks).map(k => ({...currentTasks[k], id: k}))
+            .filter(t => (currentFilter==="Sve" || t.category===currentFilter) && (!selectedDate || (t.time && t.time.startsWith(selectedDate))))
             .sort((a,b) => a.completed - b.completed)
             .forEach(t => {
-                const repeatLabel = (t.repeat && t.repeat !== 'none' && repLabels[currentLang][t.repeat]) ? repLabels[currentLang][t.repeat] : '';
-                
-                // PROVERA ZA ŽUTI ALARM
-                let alarmClass = "alarm-box";
-                if(t.time && !t.completed) {
-                    const tTime = new Date(t.time);
-                    if(sad >= tTime) alarmClass += " alarm-active";
-                }
-
-                list.innerHTML += `<div class="task-card ${t.completed ? 'completed' : ''}">
-                    <span style="font-size:10px; color:#3498db;">${t.created} | ${t.category} ${repeatLabel ? `<span class="repeat-tag">🔁 ${repeatLabel}</span>`:''}</span>
-                    <strong class="task-text">${t.text}</strong>
-                    <div class="${alarmClass}">⏰ ${formatirajDatum(t.time)}</div>
-                    ${t.finishTime ? `<div style="font-size:10px; color:#2ecc71; margin-top:5px;">✓ ${t.finishTime}</div>` : ''}
+                list.innerHTML += `<div class="task-card ${t.completed?'completed':''}">
+                    <div style="font-size:10px; color:#3498db; margin-bottom:4px;">${t.time ? t.time.replace('T',' ') : '---'} | ${t.category}</div>
+                    <span class="task-title">${t.text}</span>
                     <div class="controls">
-                        <button class="btn-box del-btn" onclick="db.child('${t.id}').remove()">X</button>
-                        <button class="btn-box edit-btn" onclick="prepareEdit('${t.id}', ${JSON.stringify(t).replace(/"/g, '&quot;')})">✏️</button>
-                        <button class="btn-box check-btn ${t.completed ? 'done' : ''}" onclick='toggleComplete("${t.id}", ${JSON.stringify(t).replace(/"/g, '&quot;')})'>${t.completed ? '✓' : ''}</button>
+                        <button class="btn-box" style="background:${t.completed?'#2ecc71':'#ecf0f1'}; color:${t.completed?'white':'#2c3e50'}" onclick="db.child('${t.id}').update({completed:!${t.completed}})">✓</button>
+                        <button class="btn-box" style="background:#3498db; color:white" onclick="prepareEdit('${t.id}', \`${t.text}\`, '${t.time}', '${t.category}')">✏️</button>
+                        <button class="btn-box" style="background:#e74c3c; color:white" onclick="db.child('${t.id}').remove()">X</button>
                     </div>
                 </div>`;
             });
     }
 
-    function prepareEdit(id, t) {
-        editId = id;
-        document.getElementById('taskInput').value = t.text;
-        document.getElementById('timeInput').value = t.time || "";
-        document.getElementById('categorySelect').value = t.category;
-        document.getElementById('repeatSelect').value = t.repeat || "none";
-        updateLang();
-        window.scrollTo(0,0);
-    }
-
-    function totalReset() { if(confirm(currentLang==='sr'?"Obriši sve?":"Delete all?")) db.remove(); }
-
     function updateRefreshInterval() {
         if (refreshTimer) clearInterval(refreshTimer);
-        const mins = document.getElementById('refreshInterval').value;
-        localStorage.setItem('planerRefresh', mins);
-        refreshTimer = setInterval(() => db.once('value', snap => render(snap.val())), mins * 60000);
+        refreshTimer = setInterval(() => db.once('value', snap => render(snap.val())), document.getElementById('refreshInterval').value * 60000);
     }
 
+    function totalReset() { if(confirm("Obriši sve?")) db.remove(); }
     db.on('value', snap => render(snap.val()));
-    updateLang();
+    init();
 </script>
 </body>
 </html>
