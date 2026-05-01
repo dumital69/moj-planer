@@ -184,3 +184,189 @@
 </body>
 </html>
 
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moj Planer - Bojan v7.7</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a2a44; color: white; margin: 0; padding: 15px; }
+        .main-wrapper { display: flex; flex-direction: row; gap: 20px; justify-content: center; max-width: 1300px; margin: 0 auto; align-items: flex-start; }
+        .calendar-column { width: 380px; flex-shrink: 0; display: flex; flex-direction: column; gap: 15px; }
+        .calendar-box { background: #2a3a54; padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day-name { font-size: 11px; color: #3498db; font-weight: bold; padding-bottom: 5px; }
+        .day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #3a4a64; border-radius: 8px; font-size: 13px; cursor: pointer; position: relative; }
+        .day.selected { border: 2px solid #3498db; background: #4a5a74; }
+        .day.today { background: #2ecc71; color: white; font-weight: bold; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; background: #f1c40f; box-shadow: 0 0 8px rgba(241, 196, 15, 0.9); }
+        .planner-column { background: #2a3a54; padding: 20px; border-radius: 20px; width: 100%; max-width: 550px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); box-sizing: border-box; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 2px solid #3498db; background: #1a2a44; color: white; font-size: 16px; min-height: 100px; resize: none; box-sizing: border-box; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        select, input { flex: 1; min-width: 140px; padding: 10px; border-radius: 8px; border: 2px solid #3498db; background: #3a4a64; color: white; box-sizing: border-box; }
+        .btn-save { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .task-card { background: #3a4a64; padding: 15px; border-radius: 15px; margin-top: 15px; position: relative; display: flex; flex-direction: column; gap: 10px; border-left: 6px solid #3498db; border-right: 6px solid #3498db; }
+        .task-card.completed { border-left-color: #7f8c8d; border-right-color: #7f8c8d; opacity: 0.6; }
+        .task-text-content { font-size: 16px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+        .task-actions { display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        .action-btn { flex: 1; max-width: 60px; height: 38px; border-radius: 8px; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        @media (max-width: 950px) { .main-wrapper { flex-direction: column; align-items: center; } .planner-column { order: 1; width: 100%; } .calendar-column { order: 2; width: 100%; } .input-row { flex-direction: column; } select, input { width: 100%; } }
+    </style>
+</head>
+<body>
+<div class="main-wrapper">
+    <div class="calendar-column">
+        <button onclick="clearFilter()" style="padding:10px; background:#34495e; color:white; border:1px solid #3498db; border-radius:10px; cursor:pointer; width:100%;">📅 Prikaži sve zadatke</button>
+        <div id="cal1" class="calendar-box"></div>
+        <div id="cal2" class="calendar-box"></div>
+    </div>
+    <div class="planner-column">
+        <div class="header-row">
+            <button onclick="resetAll()" style="background:#c0392b; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold;">⚠️ RESET</button>
+            <h3 style="margin:0;">☁️ Moj Planer</h3>
+            <select id="syncInt" onchange="setupSync()" style="min-width:80px; padding:4px; border: 1px solid #3498db; border-radius: 5px; background: #3a4a64; color: white;">
+                <option value="1">1 min</option><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60" selected>60 min</option>
+            </select>
+        </div>
+        <div id="cats" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:15px; justify-content:center;"></div>
+        <textarea id="taskText" placeholder="Upiši zadatak..."></textarea>
+        <div class="input-row">
+            <select id="taskCat"></select>
+            <input type="datetime-local" id="taskTime">
+            <select id="taskRepeat">
+                <option value="none">Bez ponavljanja</option>
+                <option value="daily">Svaki dan</option>
+                <option value="weekly">Svake nedelje</option>
+                <option value="monthly">Svaki mesec</option>
+                <option value="yearly">Svake godine</option>
+            </select>
+        </div>
+        <button class="btn-save" id="saveBtn" onclick="addTask()">Sačuvaj</button>
+        <div id="taskList"></div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { databaseURL: "https://mojplaner-fa083-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database().ref('tasks');
+
+    let allTasks = {};
+    let filterCat = "Sve", filterDate = null, editKey = null, refreshInterval;
+    const categories = ["Sve", "Kola", "Zdravlje", "Kupovina", "Razonoda", "Stanovanje", "Posao", "Razno"];
+    const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
+
+    function init() {
+        document.getElementById('cats').innerHTML = categories.map(c => `<button onclick="setCat('${c}')" style="padding:6px 12px; border-radius:12px; border:none; background:${filterCat===c?'#3498db':'#3a4a64'}; color:white; cursor:pointer; font-size:12px; font-weight:bold;">${c}</button>`).join('');
+        document.getElementById('taskCat').innerHTML = categories.filter(c => c!=="Sve").map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+    function setCat(c) { filterCat = c; render(); init(); }
+    function clearFilter() { filterDate = null; render(); }
+
+    function renderCalendar(id, offset) {
+        const d = new Date(); d.setMonth(d.getMonth() + offset);
+        const y = d.getFullYear(), m = d.getMonth();
+        let h = `<div style="text-align:center; font-weight:bold; margin-bottom:10px;">${months[m]} ${y}</div><div class="calendar-grid">`;
+        ["Po","Ut","Sr","Če","Pe","Su","Ne"].forEach(n => h += `<div class="day-name">${n}</div>`);
+        const firstDay = new Date(y, m, 1).getDay();
+        const start = (firstDay === 0) ? 6 : firstDay - 1;
+        for(let i=0; i<start; i++) h += `<div></div>`;
+        for(let i=1; i<=new Date(y, m+1, 0).getDate(); i++) {
+            const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+            const hasTasks = Object.values(allTasks).some(t => t.time && t.time.startsWith(ds));
+            const isToday = new Date().toISOString().startsWith(ds) ? 'today' : '';
+            h += `<div class="day ${isToday} ${filterDate===ds?'selected':''}" onclick="filterByDate('${ds}')">${i}${hasTasks?'<div class="dot"></div>':''}</div>`;
+        }
+        document.getElementById(id).innerHTML = h + `</div>`;
+    }
+
+    function filterByDate(ds) { filterDate = ds; render(); }
+
+    function addTask() {
+        const text = document.getElementById('taskText').value, time = document.getElementById('taskTime').value;
+        const category = document.getElementById('taskCat').value, repeat = document.getElementById('taskRepeat').value;
+        if(!text.trim()) return;
+        if(editKey) { db.child(editKey).update({ text, time, category, repeat }); editKey = null; document.getElementById('saveBtn').innerText = "Sačuvaj"; }
+        else { db.push({ text, time, category, repeat, completed: false }); }
+        document.getElementById('taskText').value = ''; document.getElementById('taskTime').value = '';
+    }
+
+    function toggleComplete(k, currentStatus) {
+        const t = allTasks[k];
+        const newStatus = !currentStatus;
+        
+        if (newStatus === true && t.repeat && t.repeat !== 'none' && t.time) {
+            let nextDate = new Date(t.time);
+            if (isNaN(nextDate.getTime())) {
+                const parts = t.time.split('T');
+                const dP = parts[0].split('-');
+                const tP = parts[1].split(':');
+                nextDate = new Date(dP[0], dP[1]-1, dP[2], tP[0], tP[1]);
+            }
+
+            if (t.repeat === 'daily') nextDate.setDate(nextDate.getDate() + 1);
+            else if (t.repeat === 'weekly') nextDate.setDate(nextDate.getDate() + 7);
+            else if (t.repeat === 'monthly') nextDate.setMonth(nextDate.getMonth() + 1);
+            else if (t.repeat === 'yearly') nextDate.setFullYear(nextDate.getFullYear() + 1);
+
+            const pad = (n) => String(n).padStart(2, '0');
+            const newTimeStr = `${nextDate.getFullYear()}-${pad(nextDate.getMonth()+1)}-${pad(nextDate.getDate())}T${pad(nextDate.getHours())}:${pad(nextDate.getMinutes())}`;
+            
+            db.push({
+                text: t.text,
+                category: t.category,
+                time: newTimeStr,
+                repeat: t.repeat,
+                completed: false
+            });
+        }
+        db.child(k).update({ completed: newStatus });
+    }
+
+    function render() {
+        renderCalendar('cal1', 0); renderCalendar('cal2', 1);
+        const list = document.getElementById('taskList'); list.innerHTML = '';
+        Object.keys(allTasks).forEach(k => {
+            const t = allTasks[k];
+            // Ako je završen i ima ponavljanje, sklanjamo ga sa liste da ne pravi gužvu
+            if(t.completed && t.repeat && t.repeat !== 'none') return; 
+
+            if((filterCat==="Sve" || t.category===filterCat) && (!filterDate || (t.time && t.time.startsWith(filterDate)))) {
+                list.innerHTML += `
+                <div class="task-card ${t.completed?'completed':''}">
+                    <div class="task-info">
+                        <div style="font-size:11px; color:#3498db; margin-bottom:6px;">${t.category} | ${t.time?t.time.replace('T',' '):'---'} ${t.repeat!=='none'?'🔄':''}</div>
+                        <div class="task-text-content">${t.text}</div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="action-btn" style="background:#2ecc71;" onclick="toggleComplete('${k}', ${t.completed})">✓</button>
+                        <button class="action-btn" style="background:#3498db;" onclick="prepareEdit('${k}', \`${t.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, '${t.time}', '${t.category}', '${t.repeat}')">✏️</button>
+                        <button class="action-btn" style="background:#e74c3c;" onclick="db.child('${k}').remove()">X</button>
+                    </div>
+                </div>`;
+            }
+        });
+    }
+
+    function prepareEdit(k, t, tm, c, r) {
+        editKey = k; document.getElementById('taskText').value = t;
+        document.getElementById('taskTime').value = tm || "";
+        document.getElementById('taskCat').value = c; document.getElementById('taskRepeat').value = r || "none";
+        document.getElementById('saveBtn').innerText = "Izmeni"; window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function resetAll() { if(confirm("Obriši sve zadatke?")) db.remove(); }
+    function setupSync() {
+        if(refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => { db.once('value', s => { allTasks = s.val() || {}; render(); }); }, document.getElementById('syncInt').value * 60000);
+    }
+    db.on('value', s => { allTasks = s.val() || {}; render(); });
+    init(); setupSync();
+</script>
+</body>
+</html>
+
