@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moj Planer - Bojan v8.3</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Moj Planer - Bojan v8.4</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -30,8 +33,18 @@
         .btn-save { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; }
         
         .task-card { background: #3a4a64; padding: 15px; border-radius: 15px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; border-left: 6px solid #3498db; border-right: 6px solid #3498db; transition: 0.3s; }
-        .task-card.alarm { border-left-color: #f1c40f; border-right-color: #f1c40f; box-shadow: 0 0 15px rgba(241, 196, 15, 0.4); }
-        .task-card.completed { opacity: 0.5; border-left-color: #7f8c8d; border-right-color: #7f8c8d; }
+        .task-card.alarm { border-left-color: #f1c40f; border-right-color: #f1c40f; box-shadow: 0 0 20px rgba(241, 196, 15, 0.6); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { box-shadow: 0 0 15px rgba(241,196,15,0.4); } 50% { box-shadow: 0 0 30px rgba(241,196,15,0.9); } }
+        .alarm-banner { background: #f1c40f; color: #000; font-weight: bold; font-size: 13px; padding: 5px 10px; border-radius: 8px; text-align: center; letter-spacing: 1px; }
+        .task-card.completed { opacity: 0.5; border-left-color: #7f8c8d !important; border-right-color: #7f8c8d !important; }
+
+        .cat-Kola       { border-left-color: #e67e22; border-right-color: #e67e22; }
+        .cat-Zdravlje   { border-left-color: #e74c3c; border-right-color: #e74c3c; }
+        .cat-Kupovina   { border-left-color: #27ae60; border-right-color: #27ae60; }
+        .cat-Razonoda   { border-left-color: #9b59b6; border-right-color: #9b59b6; }
+        .cat-Stanovanje { border-left-color: #f39c12; border-right-color: #f39c12; }
+        .cat-Posao      { border-left-color: #2980b9; border-right-color: #2980b9; }
+        .cat-Razno      { border-left-color: #95a5a6; border-right-color: #95a5a6; }
         
         .date-text { color: #00d2ff; font-weight: bold; }
         .meta-row { font-size: 11px; color: #3498db; }
@@ -48,6 +61,7 @@
 <body>
 <div class="main-wrapper">
     <div class="calendar-column">
+        <button onclick="downloadLatest()" style="padding:10px; background:#27ae60; color:white; border:none; border-radius:10px; cursor:pointer; width:100%; font-weight:bold;">⬇ Preuzmi najnoviju verziju</button>
         <button onclick="clearFilter()" style="padding:10px; background:#34495e; color:white; border:none; border-radius:10px; cursor:pointer; width:100%;">📅 Prikaži sve zadatke</button>
         <div id="cal1" class="calendar-box"></div>
         <div id="cal2" class="calendar-box"></div>
@@ -55,7 +69,7 @@
     <div class="planner-column">
         <div class="header-row">
             <button onclick="resetAll()" style="background:#c0392b; color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">⚠️ RESET</button>
-            <h3 style="margin:0;">☁️ Moj Planer</h3>
+            <h3 style="margin:0;">☁️ Moj Planer <span style="font-size:10px; color:#3498db; font-weight:normal;">v8.4</span></h3>
             <select id="syncInt" onchange="setupSync()" style="background:#3a4a64; color:white; border:1px solid #3498db; border-radius:5px; padding: 2px 5px;">
                 <option value="1">1 min</option>
                 <option value="5" selected>5 min</option>
@@ -83,6 +97,19 @@
 </div>
 
 <script>
+    function downloadLatest() {
+        const url = window.location.href.split('?')[0] + '?v=' + Date.now();
+        fetch(url)
+            .then(r => r.text())
+            .then(html => {
+                const a = document.createElement('a');
+                a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+                a.download = 'MojPlaner.html';
+                a.click();
+            })
+            .catch(() => alert('Greška pri preuzimanju. Proverite internet konekciju.'));
+    }
+
     const firebaseConfig = { databaseURL: "https://mojplaner-fa083-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database().ref('tasks');
@@ -91,10 +118,11 @@
     let filterCat = "Sve", filterDate = null, editKey = null, syncTimer = null;
     const categories = ["Sve", "Kola", "Zdravlje", "Kupovina", "Razonoda", "Stanovanje", "Posao", "Razno"];
     const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
+    const catEmoji = { "Sve":"📋", "Kola":"🚗", "Zdravlje":"💊", "Kupovina":"🛒", "Razonoda":"🎮", "Stanovanje":"🏠", "Posao":"💼", "Razno":"📌" };
 
     function init() {
-        document.getElementById('cats').innerHTML = categories.map(c => `<button onclick="setCat('${c}')" style="padding:6px 12px; border-radius:12px; border:none; background:${filterCat===c?'#3498db':'#3a4a64'}; color:white; cursor:pointer; font-size:12px; font-weight:bold;">${c}</button>`).join('');
-        document.getElementById('taskCat').innerHTML = categories.filter(c => c!=="Sve").map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('cats').innerHTML = categories.map(c => `<button onclick="setCat('${c}')" style="padding:6px 12px; border-radius:12px; border:none; background:${filterCat===c?'#3498db':'#3a4a64'}; color:white; cursor:pointer; font-size:12px; font-weight:bold;">${catEmoji[c]} ${c}</button>`).join('');
+        document.getElementById('taskCat').innerHTML = categories.filter(c => c!=="Sve").map(c => `<option value="${c}">${catEmoji[c]} ${c}</option>`).join('');
         setupSync();
     }
 
@@ -211,10 +239,13 @@
         const active = filtered.filter(k => !allTasks[k].completed);
         const done   = filtered.filter(k =>  allTasks[k].completed);
 
-        // Aktivni: sortiraj po vremenu zadatka (prazno ide na kraj)
+        // Aktivni: bez vremena idu PRVI, zatim sa vremenom hronološki
         active.sort((a, b) => {
-            const ta = allTasks[a].time || "9999";
-            const tb = allTasks[b].time || "9999";
+            const ta = allTasks[a].time;
+            const tb = allTasks[b].time;
+            if (!ta && !tb) return 0;
+            if (!ta) return -1;
+            if (!tb) return 1;
             return ta.localeCompare(tb);
         });
 
@@ -240,9 +271,13 @@
                 ? `<div class="meta-row"><span class="meta-label">Završeno: </span><span class="completed-time">${formatDisplayDate(t.completedAt).replace('date-text','completed-time')}</span></div>`
                 : '';
 
+            const catClass = t.completed ? '' : `cat-${t.category}`;
+            const emoji = catEmoji[t.category] || '';
+            const alarmBanner = isAlarm ? `<div class="alarm-banner">⏰ VREME JE! — ${formatDisplayDate(t.time)}</div>` : '';
             list.innerHTML += `
-            <div class="task-card ${t.completed?'completed':''} ${isAlarm?'alarm':''}">
-                <div class="meta-row">${t.category} | ${formatDisplayDate(t.time)} ${t.repeat && t.repeat!=='none'?'🔄':''}</div>
+            <div class="task-card ${catClass} ${t.completed?'completed':''} ${isAlarm?'alarm':''}">
+                ${alarmBanner}
+                <div class="meta-row">${emoji} ${t.category} | ${isAlarm ? '' : formatDisplayDate(t.time)} ${t.repeat && t.repeat!=='none'?'🔄':''}</div>
                 ${createdLine}
                 ${completedLine}
                 <div class="task-text-content">${t.text}</div>
