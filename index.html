@@ -1,446 +1,621 @@
 <!DOCTYPE html>
 <html lang="sr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Moj Planer - Bojan v8.7</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #000; color: white; margin: 0; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Moj Planer - Nova verzija</title>
 
-        /* =====================================================
-           DESKTOP LAYOUT (> 900px)
-           Stranica se NE skroluje — samo lista zadataka se skroluje
-           Leva kolona: oba kalendara (fiksna)
-           Desna kolona: forma (fiksna) + lista zadataka (skroluje)
-        ===================================================== */
-        .page-wrap {
-            display: flex;
-            height: 100vh;
-            padding: 15px;
-            gap: 20px;
-            max-width: 1300px;
-            margin: 0 auto;
-            overflow: hidden;
-        }
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-        /* Leva kolona — oba kalendara, scrollable samo ako su viši od ekrana */
-        .left-col {
-            width: 350px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #3498db #1a2a44;
-        }
-        .left-col::-webkit-scrollbar { width: 4px; }
-        .left-col::-webkit-scrollbar-thumb { background: #3498db; border-radius: 4px; }
+  <style>
+    * { box-sizing: border-box; }
+    :root{
+      --bg:#060a12;
+      --panel:#132033;
+      --panel2:#18263d;
+      --text:#f4f7fb;
+      --muted:#9fb0c7;
+      --blue:#3498db;
+      --green:#2ecc71;
+      --red:#e74c3c;
+      --yellow:#f1c40f;
+      --shadow:0 16px 38px rgba(0,0,0,.45);
+      --radius:18px;
+    }
+    body{
+      margin:0;
+      font-family:'Segoe UI',sans-serif;
+      background:linear-gradient(180deg,#03070d 0%, #060a12 100%);
+      color:var(--text);
+    }
+    .wrap{
+      max-width:1400px;
+      margin:0 auto;
+      padding:14px;
+      display:grid;
+      grid-template-columns: 330px 1fr;
+      gap:14px;
+      height:100vh;
+      overflow:hidden;
+    }
+    .left,.right{min-width:0}
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      overflow:auto;
+      padding-right:2px;
+    }
+    .panel{
+      background:rgba(19,32,51,.96);
+      border:1px solid rgba(52,152,219,.18);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .top-actions{
+      display:grid;
+      gap:8px;
+      grid-template-columns:1fr 1fr;
+    }
+    .btn{
+      border:none;
+      border-radius:12px;
+      padding:11px 12px;
+      color:#fff;
+      cursor:pointer;
+      font-weight:700;
+      transition:.2s ease;
+      user-select:none;
+    }
+    .btn:active{transform:scale(.98)}
+    .btn.green{background:linear-gradient(180deg,#2ecc71,#22b15a)}
+    .btn.gray{background:linear-gradient(180deg,#34495e,#273647)}
+    .btn.red{background:linear-gradient(180deg,#c0392b,#a5281d)}
+    .btn.blue{background:linear-gradient(180deg,#3498db,#246fb0)}
+    .btn.small{padding:8px 10px;font-size:12px;border-radius:10px}
+    .brand{
+      padding:14px 16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .brand h2{margin:0;font-size:18px}
+    .badge{
+      font-size:11px;
+      color:#9cc9ff;
+      border:1px solid rgba(52,152,219,.35);
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(52,152,219,.08);
+    }
+    .section{
+      padding:14px 16px;
+    }
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+    .chip{
+      border:none;
+      cursor:pointer;
+      border-radius:999px;
+      padding:7px 11px;
+      background:#22344d;
+      color:#fff;
+      font-size:12px;
+      font-weight:700;
+    }
+    .chip.active{background:var(--blue)}
+    .calendar{
+      padding:14px;
+    }
+    .cal-head{
+      text-align:center;
+      font-weight:800;
+      margin-bottom:10px;
+      color:#dbe9ff;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:4px;
+      text-align:center;
+    }
+    .dayname{
+      font-size:11px;
+      color:#7fb7ea;
+      font-weight:800;
+      padding-bottom:3px;
+    }
+    .day{
+      aspect-ratio:1/1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      background:#21324a;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:12px;
+      position:relative;
+      min-height:40px;
+    }
+    .day.today{background:#1f8f4b;font-weight:800}
+    .day.sel{outline:2px solid var(--blue); background:#2b4566}
+    .dot{
+      width:7px;height:7px;border-radius:50%;
+      background:var(--yellow);
+      box-shadow:0 0 4px var(--yellow);
+      margin-top:2px;
+    }
+    .right{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      overflow:hidden;
+    }
+    .form{
+      padding:16px;
+      flex-shrink:0;
+    }
+    .form-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .title{
+      font-size:15px;
+      font-weight:800;
+      margin:0;
+    }
+    textarea, select, input[type="datetime-local"], input[type="text"]{
+      width:100%;
+      border:none;
+      outline:none;
+      border-radius:12px;
+      background:#0f1a2b;
+      color:#fff;
+      padding:11px 12px;
+      border:1px solid rgba(52,152,219,.35);
+      font-size:14px;
+    }
+    textarea{min-height:78px;resize:none}
+    .input-row{
+      display:grid;
+      grid-template-columns: 1.1fr 1.1fr 1.2fr;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    .save-row{
+      display:flex;
+      gap:8px;
+      align-items:stretch;
+    }
+    .save-row .btn{flex:1}
+    #notif-bar{
+      display:none;
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+    .tasks{
+      flex:1;
+      overflow:auto;
+      padding-right:2px;
+    }
+    .toolbar{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .task{
+      background:linear-gradient(180deg,#1a2940,#162338);
+      border:1px solid rgba(255,255,255,.06);
+      border-left:6px solid var(--blue);
+      border-right:6px solid var(--blue);
+      border-radius:16px;
+      padding:12px 12px 11px;
+      margin-bottom:12px;
+      box-shadow:0 10px 20px rgba(0,0,0,.26);
+    }
+    .task.alarm{
+      border-left-color:var(--yellow);
+      border-right-color:var(--yellow);
+      box-shadow:0 0 0 1px rgba(241,196,15,.25), 0 0 22px rgba(241,196,15,.25);
+      animation:pulse 1.6s infinite;
+    }
+    @keyframes pulse{
+      0%,100%{transform:translateY(0);box-shadow:0 0 18px rgba(241,196,15,.20)}
+      50%{transform:translateY(-1px);box-shadow:0 0 28px rgba(241,196,15,.38)}
+    }
+    .task.done{
+      opacity:.55;
+      border-left-color:#7f8c8d!important;
+      border-right-color:#7f8c8d!important;
+      animation:none!important;
+    }
+    .task.head{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      flex-wrap:wrap;
+      font-size:12px;
+      color:#88a7c6;
+      margin-bottom:8px;
+    }
+    .task.text{
+      white-space:pre-wrap;
+      line-height:1.45;
+      font-size:15px;
+      margin-bottom:10px;
+    }
+    .task.meta{
+      font-size:12px;
+      color:#9eb7cf;
+      margin-bottom:8px;
+    }
+    .alarm-banner{
+      background:var(--yellow);
+      color:#000;
+      font-weight:900;
+      border-radius:10px;
+      padding:6px 10px;
+      margin-bottom:8px;
+      text-align:center;
+      font-size:13px;
+    }
+    .actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      border-top:1px solid rgba(255,255,255,.08);
+      padding-top:9px;
+    }
+    .iconbtn{
+      width:44px;
+      height:32px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      color:#fff;
+      font-weight:800;
+    }
+    .cat-Kola{border-left-color:#e67e22;border-right-color:#e67e22}
+    .cat-Zdravlje{border-left-color:#e74c3c;border-right-color:#e74c3c}
+    .cat-Kupovina{border-left-color:#27ae60;border-right-color:#27ae60}
+    .cat-Razonoda{border-left-color:#9b59b6;border-right-color:#9b59b6}
+    .cat-Stanovanje{border-left-color:#f39c12;border-right-color:#f39c12}
+    .cat-Posao{border-left-color:#2980b9;border-right-color:#2980b9}
+    .cat-Razno{border-left-color:#95a5a6;border-right-color:#95a5a6}
 
-        /* Desna kolona — forma gore (fiksna), lista dole (skroluje) */
-        .right-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            min-width: 0;
-            overflow: hidden;
-        }
+    .mobile-cal{display:none}
 
-        /* Forma — fiksna, ne skroluje */
-        .form-section {
-            background: #2a3a54;
-            padding: 18px 20px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            flex-shrink: 0;
-        }
-
-        /* Lista zadataka — skroluje unutar svog prostora */
-        .list-section {
-            flex: 1;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #3498db #1a2a44;
-            padding-right: 4px;
-        }
-        .list-section::-webkit-scrollbar { width: 5px; }
-        .list-section::-webkit-scrollbar-thumb { background: #3498db; border-radius: 4px; }
-
-        /* cal2 na dnu leve kolone — vidljiv samo na desktopu */
-        .cal2-desktop { display: block; }
-        /* cal2 na dnu mobilnog — sakriven na desktopu */
-        .cal2-mobile  { display: none; }
-
-        /* =====================================================
-           MOBILNI LAYOUT (<= 900px)
-           Normalan scroll cele stranice
-           Redosled: cal1 → forma → lista → cal2
-        ===================================================== */
-        @media (max-width: 900px) {
-            body { padding: 12px; }
-            .page-wrap {
-                flex-direction: column;
-                height: auto;
-                overflow: visible;
-                padding: 0;
-                gap: 12px;
-            }
-            .left-col {
-                width: 100%;
-                overflow: visible;
-                order: 1;
-            }
-            /* Na mobilnom sakrijemo cal2 iz leve kolone */
-            .cal2-desktop { display: none; }
-            .cal2-mobile  { display: block; order: 4; }
-
-            .right-col {
-                overflow: visible;
-                order: 2;
-            }
-            .form-section { order: 1; }
-            .list-section {
-                flex: none;
-                overflow: visible;
-                order: 2;
-            }
-            /* Mobile right col */
-            .mobile-list-wrap { order: 3; }
-        }
-
-        /* === KALENDAR === */
-        .calendar-box { background: #2a3a54; padding: 15px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
-        .day-name { font-size: 11px; color: #3498db; font-weight: bold; padding-bottom: 4px; }
-        .day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #3a4a64; border-radius: 7px; font-size: 12px; cursor: pointer; }
-        .day.selected { border: 2px solid #3498db; background: #4a5a74; }
-        .day.today { background: #2ecc71; color: white; font-weight: bold; }
-        .dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 2px; background: #f1c40f; box-shadow: 0 0 4px #f1c40f; }
-
-        /* === FORMA === */
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
-        textarea { width: 100%; padding: 10px 12px; margin-bottom: 8px; border-radius: 10px; border: 2px solid #3498db; background: #1a2a44; color: white; font-size: 15px; min-height: 70px; resize: none; }
-        .input-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-        select, input[type="datetime-local"] { flex: 1; min-width: 110px; padding: 8px 10px; border-radius: 8px; border: 2px solid #3498db; background: #3a4a64; color: white; }
-        .save-row { display: flex; gap: 8px; align-items: stretch; }
-        #notif-bar { display: none; background: #e67e22; color: #fff; font-size: 12px; font-weight: bold; padding: 6px 10px; border-radius: 10px; cursor: pointer; white-space: nowrap; border: none; flex-shrink: 0; }
-        .btn-save { flex: 1; padding: 10px 15px; background: #2ecc71; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
-
-        /* === TASK KARTICE === */
-        .task-card { background: #3a4a64; padding: 13px 15px; border-radius: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; border-left: 6px solid #3498db; border-right: 6px solid #3498db; transition: 0.3s; }
-        .task-card.alarm { border-left-color: #f1c40f; border-right-color: #f1c40f; box-shadow: 0 0 20px rgba(241,196,15,0.6); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%,100% { box-shadow: 0 0 12px rgba(241,196,15,0.4); } 50% { box-shadow: 0 0 28px rgba(241,196,15,0.9); } }
-        .alarm-banner { background: #f1c40f; color: #000; font-weight: bold; font-size: 13px; padding: 5px 10px; border-radius: 7px; text-align: center; letter-spacing: 1px; }
-        .task-card.completed { opacity: 0.5; border-left-color: #7f8c8d !important; border-right-color: #7f8c8d !important; animation: none !important; }
-
-        .cat-Kola       { border-left-color: #e67e22; border-right-color: #e67e22; }
-        .cat-Zdravlje   { border-left-color: #e74c3c; border-right-color: #e74c3c; }
-        .cat-Kupovina   { border-left-color: #27ae60; border-right-color: #27ae60; }
-        .cat-Razonoda   { border-left-color: #9b59b6; border-right-color: #9b59b6; }
-        .cat-Stanovanje { border-left-color: #f39c12; border-right-color: #f39c12; }
-        .cat-Posao      { border-left-color: #2980b9; border-right-color: #2980b9; }
-        .cat-Razno      { border-left-color: #95a5a6; border-right-color: #95a5a6; }
-
-        .date-text { color: #00d2ff; font-weight: bold; }
-        .meta-row { font-size: 11px; color: #3498db; }
-        .meta-label { color: #8899aa; }
-        .completed-time { color: #2ecc71; font-weight: bold; }
-        .task-text-content { font-size: 15px; line-height: 1.4; white-space: pre-wrap; }
-        .task-actions { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; }
-        .action-btn { width: 46px; height: 32px; border-radius: 7px; border: none; cursor: pointer; color: white; font-weight: bold; font-size: 13px; }
-    </style>
+    @media (max-width: 920px){
+      .wrap{
+        grid-template-columns:1fr;
+        height:auto;
+        overflow:visible;
+      }
+      .left,.right{overflow:visible}
+      .mobile-cal{display:block}
+      .desktop-cal2{display:none}
+      .tasks{overflow:visible}
+      .toolbar{grid-template-columns:1fr}
+      .input-row{grid-template-columns:1fr}
+      .save-row{flex-direction:column}
+      #notif-bar{width:100%}
+    }
+  </style>
 </head>
 <body>
-<div class="page-wrap">
+  <div class="wrap">
+    <div class="left">
+      <div class="panel section top-actions" style="padding:12px;">
+        <button class="btn green" onclick="downloadLatest()">⬇ Preuzmi verziju</button>
+        <button class="btn gray" onclick="clearFilter()">📅 Sve stavke</button>
+      </div>
 
-    <!-- LEVA KOLONA: dugmad + tekući mesec + sledeći mesec (desktop) -->
-    <div class="left-col">
-        <button onclick="downloadLatest()" style="padding:9px; background:#27ae60; color:white; border:none; border-radius:10px; cursor:pointer; width:100%; font-weight:bold;">⬇ Preuzmi najnoviju verziju</button>
-        <button onclick="clearFilter()" style="padding:9px; background:#34495e; color:white; border:none; border-radius:10px; cursor:pointer; width:100%;">📅 Prikaži sve zadatke</button>
-        <div id="cal1" class="calendar-box"></div>
-        <!-- cal2 ostaje u levoj koloni samo na desktopu -->
-        <div id="cal2" class="calendar-box cal2-desktop"></div>
+      <div class="panel calendar" id="cal1"></div>
+      <div class="panel calendar desktop-cal2" id="cal2"></div>
+      <div class="panel calendar mobile-cal" id="cal2m"></div>
     </div>
 
-    <!-- DESNA KOLONA: forma (gore, fiksna) + lista zadataka (skroluje) -->
-    <div class="right-col">
-
-        <!-- FORMA -->
-        <div class="form-section">
-            <div class="header-row">
-                <button onclick="resetAll()" style="background:#c0392b; color:white; border:none; padding:7px 11px; border-radius:8px; cursor:pointer;">⚠️ RESET</button>
-                <h3 style="margin:0; font-size:15px;">☁️ Moj Planer <span style="font-size:10px; color:#3498db; font-weight:normal;">v8.7</span></h3>
-                <select id="syncInt" onchange="setupSync()" style="background:#3a4a64; color:white; border:1px solid #3498db; border-radius:5px; padding: 2px 5px; font-size:12px;">
-                    <option value="1">1 min</option>
-                    <option value="5" selected>5 min</option>
-                    <option value="15">15 min</option>
-                    <option value="30">30 min</option>
-                    <option value="60">60 min</option>
-                </select>
-            </div>
-            <div id="cats" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:12px; justify-content:center;"></div>
-            <textarea id="taskText" placeholder="Šta treba uraditi?"></textarea>
-            <div class="input-row">
-                <select id="taskCat"></select>
-                <input type="datetime-local" id="taskTime">
-                <select id="taskRepeat">
-                    <option value="none">Bez ponavljanja</option>
-                    <option value="daily">Svaki dan</option>
-                    <option value="weekly">Svake nedelje</option>
-                    <option value="monthly">Svaki mesec</option>
-                    <option value="yearly">Svake godine</option>
-                </select>
-            </div>
-            <div class="save-row">
-                <button id="notif-bar" onclick="requestNotifPermission()">🔔 Notifikacije</button>
-                <button class="btn-save" id="saveBtn" onclick="addTask()">💾 Sačuvaj</button>
-            </div>
+    <div class="right">
+      <div class="panel form">
+        <div class="form-top">
+          <button class="btn red small" onclick="resetAll()">⚠️ RESET</button>
+          <h3 class="title">☁️ Moj Planer <span class="badge">Nova verzija</span></h3>
+          <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px" onchange="setupSync()">
+            <option value="1">1 min</option>
+            <option value="5" selected>5 min</option>
+            <option value="15">15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">60 min</option>
+          </select>
         </div>
 
-        <!-- LISTA ZADATAKA — skroluje se unutar desne kolone -->
-        <div class="list-section">
-            <div id="taskList"></div>
+        <div id="cats" class="chips" style="margin-bottom:10px;"></div>
+
+        <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="render()" style="margin-bottom:8px;" />
+        <textarea id="taskText" placeholder="Šta treba uraditi?"></textarea>
+
+        <div class="input-row">
+          <select id="taskCat"></select>
+          <input type="datetime-local" id="taskTime" />
+          <select id="taskRepeat">
+            <option value="none">Bez ponavljanja</option>
+            <option value="daily">Svaki dan</option>
+            <option value="weekly">Svake nedelje</option>
+            <option value="monthly">Svaki mesec</option>
+            <option value="yearly">Svake godine</option>
+          </select>
         </div>
 
+        <div class="save-row">
+          <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
+          <button id="saveBtn" class="btn green" onclick="addTask()">💾 Sačuvaj</button>
+        </div>
+      </div>
+
+      <div class="panel section" style="padding:14px 14px 6px;">
+        <div class="toolbar">
+          <button class="btn blue" onclick="sortMode='time'; render()">⏱ Po vremenu</button>
+          <button class="btn blue" onclick="sortMode='created'; render()">🆕 Novo prvo</button>
+          <button class="btn gray" onclick="toggleDone = !toggleDone; render()">✅ Sakrij gotove</button>
+        </div>
+      </div>
+
+      <div class="tasks panel section" id="taskList" style="padding:14px;"></div>
     </div>
+  </div>
 
-    <!-- cal2 na mobilnom — prikazuje se ispod liste, sakriven na desktopu -->
-    <div id="cal2m" class="calendar-box cal2-mobile"></div>
-
-</div>
 <script>
-    function downloadLatest() {
-        const url = window.location.href.split('?')[0] + '?v=' + Date.now();
-        fetch(url)
-            .then(r => r.text())
-            .then(html => {
-                const a = document.createElement('a');
-                a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-                a.download = 'MojPlaner.html';
-                a.click();
-            })
-            .catch(() => alert('Greška pri preuzimanju. Proverite internet konekciju.'));
+const firebaseConfig = { databaseURL: "https://mojplaner-fa083-default-rtdb.firebaseio.com/" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref('tasks');
+
+let allTasks = {};
+let filterCat = "Sve";
+let filterDate = null;
+let editKey = null;
+let syncTimer = null;
+let notifiedTasks = new Set();
+let sortMode = 'time';
+let toggleDone = false;
+
+const categories = ["Sve","Kola","Zdravlje","Kupovina","Razonoda","Stanovanje","Posao","Razno"];
+const months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
+const days = ["Po","Ut","Sr","Če","Pe","Su","Ne"];
+const catEmoji = { "Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","Razonoda":"🎮","Stanovanje":"🏠","Posao":"💼","Razno":"📌" };
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function dateToISO(date){ return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
+function displayDate(iso){
+  if(!iso) return 'Bez vremena';
+  const [d,t=''] = iso.split('T');
+  const [y,m,dd] = d.split('-');
+  return `${dd}.${m}.${y}. ${t ? 'u ' + t.slice(0,5) : ''}`.trim();
+}
+function getSearch(){ return (document.getElementById('quickSearch').value || '').trim().toLowerCase(); }
+
+function requestNotifPermission(){
+  if(!('Notification' in window)) return;
+  Notification.requestPermission().then(p => { updateNotifBar(); if(p==='granted') checkAndNotify(); });
+}
+function updateNotifBar(){
+  const bar = document.getElementById('notif-bar');
+  if(!('Notification' in window)){ bar.style.display='none'; return; }
+  if(Notification.permission === 'default'){
+    bar.style.display='inline-block'; bar.textContent='🔔 Notifikacije'; bar.className='btn blue';
+    bar.onclick = requestNotifPermission;
+  }else if(Notification.permission === 'denied'){
+    bar.style.display='inline-block'; bar.textContent='🔕 Blokirano'; bar.className='btn gray';
+    bar.onclick = null;
+  }else{
+    bar.style.display='inline-block'; bar.textContent='🔔 Aktivne'; bar.className='btn green';
+    bar.onclick = null;
+  }
+}
+function checkAndNotify(){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date();
+  Object.keys(allTasks).forEach(k=>{
+    const t = allTasks[k];
+    if(t.completed){ notifiedTasks.delete(k); return; }
+    if(t.time && !notifiedTasks.has(k) && new Date(t.time) <= now){
+      notifiedTasks.add(k);
+      try{ new Notification('⏰ Moj Planer', { body: `${catEmoji[t.category]||''} ${t.text}` }); }catch(e){}
     }
+  });
+}
+setInterval(checkAndNotify, 60000);
 
-    const firebaseConfig = { databaseURL: "https://mojplaner-fa083-default-rtdb.firebaseio.com/" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database().ref('tasks');
+function renderCats(){
+  document.getElementById('cats').innerHTML = categories.map(c => `
+    <button class="chip ${filterCat===c?'active':''}" onclick="setCat('${c}')">${catEmoji[c]} ${c}</button>
+  `).join('');
+  document.getElementById('taskCat').innerHTML = categories.filter(c=>c!=='Sve').map(c => `<option value="${c}">${catEmoji[c]} ${c}</option>`).join('');
+}
 
-    let allTasks = {};
-    let filterCat = "Sve", filterDate = null, editKey = null, syncTimer = null;
-    let notifiedTasks = new Set();
+function initCalendars(){
+  renderCalendar('cal1', 0);
+  renderCalendar('cal2', 1);
+  renderCalendar('cal2m', 1);
+}
+function renderCalendar(id, offset){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const d = new Date();
+  d.setMonth(d.getMonth()+offset);
+  const y = d.getFullYear(), m = d.getMonth();
+  const first = new Date(y,m,1).getDay();
+  const start = first===0 ? 6 : first-1;
+  let html = `<div class="cal-head">${months[m]} ${y}</div><div class="grid">`;
+  days.forEach(x => html += `<div class="dayname">${x}</div>`);
+  for(let i=0;i<start;i++) html += `<div></div>`;
+  const monthDays = new Date(y,m+1,0).getDate();
+  for(let i=1;i<=monthDays;i++){
+    const ds = `${y}-${pad(m+1)}-${pad(i)}`;
+    const has = Object.values(allTasks).some(t => t.time && t.time.startsWith(ds) && !t.completed);
+    const today = new Date().toISOString().split('T')[0] === ds;
+    const sel = filterDate === ds;
+    html += `<div class="day ${today?'today':''} ${sel?'sel':''}" onclick="filterByDate('${ds}')">${i}${has?'<div class="dot"></div>':''}</div>`;
+  }
+  html += `</div>`;
+  el.innerHTML = html;
+}
 
-    const categories = ["Sve", "Kola", "Zdravlje", "Kupovina", "Razonoda", "Stanovanje", "Posao", "Razno"];
-    const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
-    const catEmoji = { "Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","Razonoda":"🎮","Stanovanje":"🏠","Posao":"💼","Razno":"📌" };
+function setupSync(){
+  if(syncTimer) clearInterval(syncTimer);
+  syncTimer = setInterval(render, parseInt(document.getElementById('syncInt').value,10) * 60000);
+}
 
-    // === NOTIFIKACIJE ===
-    function requestNotifPermission() {
-        if (!('Notification' in window)) return;
-        Notification.requestPermission().then(p => { updateNotifBar(); if (p === 'granted') checkAndNotify(); });
-    }
+function setCat(c){ filterCat = c; filterDate = null; render(); }
+function clearFilter(){ filterCat = 'Sve'; filterDate = null; render(); }
+function filterByDate(ds){ filterDate = ds; render(); }
 
-    function updateNotifBar() {
-        const bar = document.getElementById('notif-bar');
-        if (!('Notification' in window)) { bar.style.display = 'none'; return; }
-        if (Notification.permission === 'default') {
-            bar.style.display = 'inline-block'; bar.style.background = '#e67e22';
-            bar.title = 'Klikni da dozvoliš obaveštenja'; bar.textContent = '🔔 Notifikacije';
-            bar.onclick = requestNotifPermission;
-        } else if (Notification.permission === 'denied') {
-            bar.style.display = 'inline-block'; bar.style.background = '#7f8c8d';
-            bar.title = 'Blokirano — promeni u podešavanjima browsera'; bar.textContent = '🔕 Blokirano';
-            bar.onclick = null;
-        } else {
-            bar.style.display = 'inline-block'; bar.style.background = '#27ae60';
-            bar.title = 'Notifikacije su uključene ✓'; bar.textContent = '🔔 Aktivne';
-            bar.onclick = null;
-        }
-    }
+function addTask(){
+  const text = document.getElementById('taskText').value.trim();
+  const time = document.getElementById('taskTime').value;
+  const category = document.getElementById('taskCat').value;
+  const repeat = document.getElementById('taskRepeat').value;
+  if(!text) return;
 
-    function checkAndNotify() {
-        if (!('Notification' in window) || Notification.permission !== 'granted') return;
-        const now = new Date();
-        Object.keys(allTasks).forEach(k => {
-            const t = allTasks[k];
-            if (t.completed) { notifiedTasks.delete(k); return; }
-            if (t.time && !notifiedTasks.has(k) && new Date(t.time) <= now) {
-                notifiedTasks.add(k);
-                try { new Notification('⏰ Moj Planer — Vreme je!', { body: (catEmoji[t.category]||'') + ' ' + t.text }); } catch(e) {}
-            }
-        });
-    }
-    setInterval(checkAndNotify, 60000);
+  const payload = { text, time, category, repeat, completed:false, createdAt: dateToISO(new Date()) };
 
-    // === INIT ===
-    function init() {
-        document.getElementById('cats').innerHTML = categories.map(c =>
-            `<button onclick="setCat('${c}')" style="padding:5px 10px; border-radius:12px; border:none; background:${filterCat===c?'#3498db':'#3a4a64'}; color:white; cursor:pointer; font-size:12px; font-weight:bold;">${catEmoji[c]} ${c}</button>`
-        ).join('');
-        document.getElementById('taskCat').innerHTML = categories.filter(c=>c!=="Sve").map(c =>
-            `<option value="${c}">${catEmoji[c]} ${c}</option>`
-        ).join('');
-        setupSync();
-        updateNotifBar();
-    }
+  if(editKey){
+    db.child(editKey).update({ text, time, category, repeat });
+    editKey = null;
+    document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
+  }else{
+    db.push(payload);
+  }
 
-    function setupSync() {
-        if(syncTimer) clearInterval(syncTimer);
-        syncTimer = setInterval(render, parseInt(document.getElementById('syncInt').value) * 60000);
-    }
+  document.getElementById('taskText').value = '';
+  document.getElementById('taskTime').value = '';
+  document.getElementById('taskRepeat').value = 'none';
+}
 
-    function setCat(c) { filterCat = c; render(); init(); }
-    function clearFilter() { filterDate = null; render(); }
+function toggleComplete(key){
+  const t = allTasks[key];
+  if(!t) return;
+  if(t.repeat && t.repeat !== 'none' && t.time){
+    let nd = new Date(t.time);
+    if(t.repeat==='daily') nd.setDate(nd.getDate()+1);
+    else if(t.repeat==='weekly') nd.setDate(nd.getDate()+7);
+    else if(t.repeat==='monthly') nd.setMonth(nd.getMonth()+1);
+    else if(t.repeat==='yearly') nd.setFullYear(nd.getFullYear()+1);
+    db.push({ text:t.text, category:t.category, time:dateToISO(nd), repeat:t.repeat, completed:false, createdAt:t.createdAt||'' });
+    db.child(key).remove();
+  }else{
+    if(!t.completed) db.child(key).update({ completed:true, completedAt:dateToISO(new Date()) });
+    else db.child(key).update({ completed:false, completedAt:'' });
+  }
+}
 
-    function formatDisplayDate(isoStr) {
-        if(!isoStr) return "Bez vremena";
-        const [datePart, timePart] = isoStr.split('T');
-        const [y, m, d] = datePart.split('-');
-        const time = timePart ? timePart.substring(0,5) : '';
-        return `<span class="date-text">${d}.${m}.${y}. u ${time}</span>`;
-    }
+function duplicateTask(key){
+  const t = allTasks[key];
+  if(!t) return;
+  db.push({
+    text: t.text,
+    time: t.time || '',
+    category: t.category || 'Razno',
+    repeat: t.repeat || 'none',
+    completed: false,
+    createdAt: dateToISO(new Date())
+  });
+}
 
-    function dateToISO(date) {
-        const pad = n => String(n).padStart(2,'0');
-        return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-    }
+function prepareEdit(k){
+  const t = allTasks[k];
+  if(!t) return;
+  editKey = k;
+  document.getElementById('taskText').value = t.text || '';
+  document.getElementById('taskTime').value = t.time || '';
+  document.getElementById('taskCat').value = t.category || 'Razno';
+  document.getElementById('taskRepeat').value = t.repeat || 'none';
+  document.getElementById('saveBtn').textContent = '✏️ Izmeni';
+  document.getElementById('taskText').focus();
+}
 
-    function renderCalendar(id, offset) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const d = new Date(); d.setMonth(d.getMonth() + offset);
-        const y = d.getFullYear(), m = d.getMonth();
-        let h = `<div style="text-align:center; font-weight:bold; margin-bottom:10px;">${months[m]} ${y}</div><div class="calendar-grid">`;
-        ["Po","Ut","Sr","Če","Pe","Su","Ne"].forEach(n => h += `<div class="day-name">${n}</div>`);
-        const firstDay = new Date(y,m,1).getDay();
-        const start = firstDay===0 ? 6 : firstDay-1;
-        for(let i=0;i<start;i++) h += `<div></div>`;
-        for(let i=1; i<=new Date(y,m+1,0).getDate(); i++) {
-            const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-            const hasTasks = Object.values(allTasks).some(t => t.time && t.time.startsWith(ds) && !t.completed);
-            const isToday = new Date().toISOString().split('T')[0]===ds ? 'today' : '';
-            h += `<div class="day ${isToday} ${filterDate===ds?'selected':''}" onclick="filterByDate('${ds}')">${i}${hasTasks?'<div class="dot"></div>':''}</div>`;
-        }
-        el.innerHTML = h + `</div>`;
-    }
+function resetAll(){ if(confirm('Obrisati sve zadatke?')) db.remove(); }
+function downloadLatest(){
+  const html = document.documentElement.outerHTML;
+  const a = document.createElement('a');
+  a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+  a.download = 'MojPlaner.html';
+  a.click();
+}
 
-    function filterByDate(ds) { filterDate = ds; render(); }
+function render(){
+  initCalendars();
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  const now = new Date();
+  const q = getSearch();
 
-    function addTask() {
-        const text = document.getElementById('taskText').value;
-        const time = document.getElementById('taskTime').value;
-        const category = document.getElementById('taskCat').value;
-        const repeat = document.getElementById('taskRepeat').value;
-        if(!text.trim()) return;
-        if(editKey) {
-            db.child(editKey).update({ text, time, category, repeat });
-            editKey = null;
-            document.getElementById('saveBtn').innerText = "💾 Sačuvaj";
-        } else {
-            db.push({ text, time, category, repeat, completed: false, createdAt: dateToISO(new Date()) });
-        }
-        document.getElementById('taskText').value = '';
-        document.getElementById('taskTime').value = '';
-    }
+  let keys = Object.keys(allTasks).filter(k=>{
+    const t = allTasks[k];
+    if(!t) return false;
+    if(filterCat !== 'Sve' && t.category !== filterCat) return false;
+    if(filterDate && !(t.time && t.time.startsWith(filterDate))) return false;
+    if(q && !(String(t.text||'').toLowerCase().includes(q) || String(t.category||'').toLowerCase().includes(q))) return false;
+    if(toggleDone && t.completed) return false;
+    return true;
+  });
 
-    function toggleComplete(key) {
-        const t = allTasks[key];
-        if (!t) return;
-        if (t.repeat && t.repeat !== 'none' && t.time) {
-            let nd = new Date(t.time);
-            if (t.repeat==='daily')   nd.setDate(nd.getDate()+1);
-            else if (t.repeat==='weekly')  nd.setDate(nd.getDate()+7);
-            else if (t.repeat==='monthly') nd.setMonth(nd.getMonth()+1);
-            else if (t.repeat==='yearly')  nd.setFullYear(nd.getFullYear()+1);
-            db.push({ text:t.text, category:t.category, time:dateToISO(nd), repeat:t.repeat, completed:false, createdAt:t.createdAt||'' });
-            db.child(key).remove();
-        } else {
-            if (!t.completed) db.child(key).update({ completed:true, completedAt:dateToISO(new Date()) });
-            else              db.child(key).update({ completed:false, completedAt:'' });
-        }
-    }
+  const sortFn = sortMode === 'created'
+    ? (a,b) => (allTasks[b].createdAt||'').localeCompare(allTasks[a].createdAt||'')
+    : (a,b) => (allTasks[a].time||'9999').localeCompare(allTasks[b].time||'9999');
 
-    function render() {
-        renderCalendar('cal1', 0);
-        renderCalendar('cal2', 1);    // desktop leva kolona
-        renderCalendar('cal2m', 1);   // mobilni dno
-        const list = document.getElementById('taskList');
-        list.innerHTML = '';
-        const now = new Date();
+  const active = keys.filter(k=>!allTasks[k].completed).sort(sortFn);
+  const done = keys.filter(k=>allTasks[k].completed).sort(sortFn);
 
-        const filtered = Object.keys(allTasks).filter(k => {
-            const t = allTasks[k];
-            return (filterCat==="Sve" || t.category===filterCat) &&
-                   (!filterDate || (t.time && t.time.startsWith(filterDate)));
-        });
+  [...active, ...done].forEach(k=>{
+    const t = allTasks[k];
+    const isAlarm = t.time && !t.completed && new Date(t.time) <= now;
+    const emoji = catEmoji[t.category] || '';
+    const catClass = t.completed ? '' : `cat-${t.category}`;
+    const alarm = isAlarm ? `<div class="alarm-banner">⏰ VREME JE — ${displayDate(t.time)}</div>` : '';
+    const created = t.createdAt ? `<div class="task.meta">Postavljeno: ${displayDate(t.createdAt)}</div>` : '';
+    const completed = t.completed && t.completedAt ? `<div class="task.meta">Završeno: ${displayDate(t.completedAt)}</div>` : '';
 
-        const active = filtered.filter(k => !allTasks[k].completed);
-        const done   = filtered.filter(k =>  allTasks[k].completed);
+    list.innerHTML += `
+      <div class="task ${catClass} ${t.completed?'done':''} ${isAlarm?'alarm':''}">
+        ${alarm}
+        <div class="task.head">
+          <div>${emoji} ${t.category || 'Razno'}</div>
+          <div>${t.repeat && t.repeat !== 'none' ? '🔄 ' : ''}${t.time ? displayDate(t.time) : 'Bez vremena'}</div>
+        </div>
+        ${created}
+        ${completed}
+        <div class="task text">${t.text || ''}</div>
+        <div class="actions">
+          <button class="iconbtn" style="background:${t.completed?'#7f8c8d':'#2ecc71'}" onclick="toggleComplete('${k}')">${t.completed?'↩':'✓'}</button>
+          <button class="iconbtn" style="background:#3498db" onclick="prepareEdit('${k}')">✏️</button>
+          <button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask('${k}')">⎘</button>
+          <button class="iconbtn" style="background:#e74c3c" onclick="db.child('${k}').remove()">✕</button>
+        </div>
+      </div>
+    `;
+  });
 
-        active.sort((a,b) => {
-            const ta=allTasks[a].time, tb=allTasks[b].time;
-            if(!ta&&!tb) return 0; if(!ta) return -1; if(!tb) return 1;
-            return ta.localeCompare(tb);
-        });
-        done.sort((a,b) => {
-            const ta=allTasks[a].completedAt||allTasks[a].time||"9999";
-            const tb=allTasks[b].completedAt||allTasks[b].time||"9999";
-            return ta.localeCompare(tb);
-        });
+  updateNotifBar();
+  checkAndNotify();
+}
 
-        [...active,...done].forEach(k => {
-            const t = allTasks[k];
-            const isAlarm = t.time && !t.completed && new Date(t.time) <= now;
-            const emoji = catEmoji[t.category] || '';
-            const createdLine = t.createdAt
-                ? `<div class="meta-row"><span class="meta-label">Postavljeno: </span>${formatDisplayDate(t.createdAt)}</div>` : '';
-            const completedLine = t.completed && t.completedAt
-                ? `<div class="meta-row"><span class="meta-label">Završeno: </span><span class="completed-time">${formatDisplayDate(t.completedAt).replace('date-text','completed-time')}</span></div>` : '';
-            const alarmBanner = isAlarm ? `<div class="alarm-banner">⏰ VREME JE! — ${formatDisplayDate(t.time)}</div>` : '';
-            const catClass = t.completed ? '' : `cat-${t.category}`;
-
-            list.innerHTML += `
-            <div class="task-card ${catClass} ${t.completed?'completed':''} ${isAlarm?'alarm':''}">
-                ${alarmBanner}
-                <div class="meta-row">${emoji} ${t.category} | ${isAlarm?'':formatDisplayDate(t.time)} ${t.repeat&&t.repeat!=='none'?'🔄':''}</div>
-                ${createdLine}${completedLine}
-                <div class="task-text-content">${t.text}</div>
-                <div class="task-actions">
-                    <button class="action-btn" style="background:${t.completed?'#7f8c8d':'#2ecc71'};" onclick="toggleComplete('${k}')">${t.completed?'↩':'✓'}</button>
-                    <button class="action-btn" style="background:#3498db;" onclick="prepareEdit('${k}')">✏️</button>
-                    <button class="action-btn" style="background:#e74c3c;" onclick="db.child('${k}').remove()">✕</button>
-                </div>
-            </div>`;
-        });
-
-        checkAndNotify();
-    }
-
-    function prepareEdit(k) {
-        const t = allTasks[k];
-        editKey = k;
-        document.getElementById('taskText').value = t.text;
-        document.getElementById('taskTime').value = t.time || "";
-        document.getElementById('taskCat').value = t.category;
-        document.getElementById('taskRepeat').value = t.repeat || "none";
-        document.getElementById('saveBtn').innerText = "✏️ Izmeni";
-        // Na mobilnom scroll na vrh, na desktopu scroll lista na vrh
-        const ls = document.querySelector('.list-section');
-        if (ls && ls.scrollHeight > ls.clientHeight) ls.scrollTop = 0;
-        else window.scrollTo({top:0, behavior:'smooth'});
-    }
-
-    function resetAll() { if(confirm("Obrisati sve zadatke?")) db.remove(); }
-
-    db.on('value', s => { allTasks = s.val() || {}; render(); });
-    init();
+db.on('value', s => { allTasks = s.val() || {}; render(); });
+renderCats();
+setupSync();
+updateNotifBar();
+render();
 </script>
-<script src="https://replit-cdn.com/replit-pill/replit-pill.global.js" data-repl-id="08a43774-5f3b-492f-ba29-d8d9655b8ce9"></script></body>
+</body>
 </html>
