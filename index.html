@@ -7,10 +7,8 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Moj Planer - Nova verzija</title>
-
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
   <style>
     * { box-sizing: border-box; }
     :root{
@@ -77,27 +75,7 @@
     .btn.red{background:linear-gradient(180deg,#c0392b,#a5281d)}
     .btn.blue{background:linear-gradient(180deg,#3498db,#246fb0)}
     .btn.small{padding:8px 10px;font-size:12px;border-radius:10px}
-    .brand{
-      padding:14px 16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .brand h2{margin:0;font-size:18px}
-    .badge{
-      font-size:11px;
-      color:#9cc9ff;
-      border:1px solid rgba(52,152,219,.35);
-      padding:4px 8px;
-      border-radius:999px;
-      background:rgba(52,152,219,.08);
-    }
-    .section{
-      padding:14px 16px;
-    }
-    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .section{ padding:14px 16px; }
     .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
     .chip{
       border:none;
@@ -110,9 +88,7 @@
       font-weight:700;
     }
     .chip.active{background:var(--blue)}
-    .calendar{
-      padding:14px;
-    }
+    .calendar{ padding:14px; }
     .cal-head{
       text-align:center;
       font-weight:800;
@@ -294,9 +270,26 @@
     .cat-Stanovanje{border-left-color:#f39c12;border-right-color:#f39c12}
     .cat-Posao{border-left-color:#2980b9;border-right-color:#2980b9}
     .cat-Razno{border-left-color:#95a5a6;border-right-color:#95a5a6}
-
     .mobile-cal{display:none}
-
+    .vis-toggle{
+      font-size:12px;
+      color:#dbe9ff;
+      margin-top:-4px;
+      margin-bottom:10px;
+      text-align:center;
+      opacity:.9;
+    }
+    .offline{
+      display:none;
+      margin-bottom:8px;
+      background:#8e44ad;
+      color:#fff;
+      text-align:center;
+      padding:8px 10px;
+      border-radius:10px;
+      font-size:12px;
+      font-weight:800;
+    }
     @media (max-width: 920px){
       .wrap{
         grid-template-columns:1fr;
@@ -331,7 +324,7 @@
       <div class="panel form">
         <div class="form-top">
           <button class="btn red small" onclick="resetAll()">⚠️ RESET</button>
-          <h3 class="title">☁️ Moj Planer <span class="badge">Nova verzija</span></h3>
+          <h3 class="title">☁️ Moj Planer <span style="font-size:10px; color:#3498db; font-weight:normal;">Nova verzija</span></h3>
           <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px" onchange="setupSync()">
             <option value="1">1 min</option>
             <option value="5" selected>5 min</option>
@@ -341,7 +334,10 @@
           </select>
         </div>
 
+        <div class="offline" id="offlineBar">Rad bez interneta uključen — sinhronizacija kasnije.</div>
+
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
+        <div class="vis-toggle" id="doneInfo">Gotovi zadaci: vidljivi</div>
 
         <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="render()" style="margin-bottom:8px;" />
         <textarea id="taskText" placeholder="Šta treba uraditi?"></textarea>
@@ -355,12 +351,13 @@
             <option value="weekly">Svake nedelje</option>
             <option value="monthly">Svaki mesec</option>
             <option value="yearly">Svake godine</option>
+            <option value="weekdays">Radni dani (pon-pet)</option>
           </select>
         </div>
 
         <div class="save-row">
           <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
-          <button id="saveBtn" class="btn green" onclick="addTask()">💾 Sačuvaj</button>
+          <button class="btn green" id="saveBtn" onclick="addTask()">💾 Sačuvaj</button>
         </div>
       </div>
 
@@ -389,6 +386,8 @@ let syncTimer = null;
 let notifiedTasks = new Set();
 let sortMode = 'time';
 let toggleDone = false;
+let offlineMode = !navigator.onLine;
+let localQueue = JSON.parse(localStorage.getItem('mp_queue') || '[]');
 
 const categories = ["Sve","Kola","Zdravlje","Kupovina","Razonoda","Stanovanje","Posao","Razno"];
 const months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
@@ -437,10 +436,42 @@ function checkAndNotify(){
 }
 setInterval(checkAndNotify, 60000);
 
+function updateOfflineBar(){
+  const el = document.getElementById('offlineBar');
+  el.style.display = offlineMode ? 'block' : 'none';
+}
+
+window.addEventListener('online', async () => {
+  offlineMode = false;
+  updateOfflineBar();
+  await flushQueue();
+  render();
+});
+window.addEventListener('offline', () => {
+  offlineMode = true;
+  updateOfflineBar();
+  render();
+});
+
+function queueOp(type, payload){
+  localQueue.push({ type, payload, at: dateToISO(new Date()) });
+  localStorage.setItem('mp_queue', JSON.stringify(localQueue));
+}
+
+async function flushQueue(){
+  if(!navigator.onLine || !localQueue.length) return;
+  const q = [...localQueue];
+  localQueue = [];
+  localStorage.removeItem('mp_queue');
+  for(const op of q){
+    if(op.type === 'push') await db.push(op.payload);
+    if(op.type === 'update' && op.payload.key) await db.child(op.payload.key).update(op.payload.data);
+    if(op.type === 'remove' && op.payload.key) await db.child(op.payload.key).remove();
+  }
+}
+
 function renderCats(){
-  document.getElementById('cats').innerHTML = categories.map(c => `
-    <button class="chip ${filterCat===c?'active':''}" onclick="setCat('${c}')">${catEmoji[c]} ${c}</button>
-  `).join('');
+  document.getElementById('cats').innerHTML = categories.map(c => `<button class="chip ${filterCat===c?'active':''}" onclick="setCat('${c}')">${catEmoji[c]} ${c}</button>`).join('');
   document.getElementById('taskCat').innerHTML = categories.filter(c=>c!=='Sve').map(c => `<option value="${c}">${catEmoji[c]} ${c}</option>`).join('');
 }
 
@@ -487,15 +518,17 @@ function addTask(){
   const category = document.getElementById('taskCat').value;
   const repeat = document.getElementById('taskRepeat').value;
   if(!text) return;
-
   const payload = { text, time, category, repeat, completed:false, createdAt: dateToISO(new Date()) };
 
   if(editKey){
-    db.child(editKey).update({ text, time, category, repeat });
+    const data = { text, time, category, repeat };
+    if(offlineMode) queueOp('update', { key: editKey, data });
+    else db.child(editKey).update(data);
     editKey = null;
     document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
   }else{
-    db.push(payload);
+    if(offlineMode) queueOp('push', payload);
+    else db.push(payload);
   }
 
   document.getElementById('taskText').value = '';
@@ -503,34 +536,45 @@ function addTask(){
   document.getElementById('taskRepeat').value = 'none';
 }
 
+function shiftRepeatTime(t){
+  if(!t.time) return t.time || '';
+  let nd = new Date(t.time);
+  if(t.repeat==='daily') nd.setDate(nd.getDate()+1);
+  else if(t.repeat==='weekly') nd.setDate(nd.getDate()+7);
+  else if(t.repeat==='monthly') nd.setMonth(nd.getMonth()+1);
+  else if(t.repeat==='yearly') nd.setFullYear(nd.getFullYear()+1);
+  else if(t.repeat==='weekdays'){
+    do { nd.setDate(nd.getDate()+1); } while([0,6].includes(nd.getDay()));
+  }
+  return dateToISO(nd);
+}
+
 function toggleComplete(key){
   const t = allTasks[key];
   if(!t) return;
   if(t.repeat && t.repeat !== 'none' && t.time){
-    let nd = new Date(t.time);
-    if(t.repeat==='daily') nd.setDate(nd.getDate()+1);
-    else if(t.repeat==='weekly') nd.setDate(nd.getDate()+7);
-    else if(t.repeat==='monthly') nd.setMonth(nd.getMonth()+1);
-    else if(t.repeat==='yearly') nd.setFullYear(nd.getFullYear()+1);
-    db.push({ text:t.text, category:t.category, time:dateToISO(nd), repeat:t.repeat, completed:false, createdAt:t.createdAt||'' });
-    db.child(key).remove();
+    const nextTime = shiftRepeatTime(t);
+    const pushData = { text:t.text, category:t.category, time:nextTime, repeat:t.repeat, completed:false, createdAt:t.createdAt||'' };
+    if(offlineMode){
+      queueOp('push', pushData);
+      queueOp('remove', { key });
+    }else{
+      db.push(pushData);
+      db.child(key).remove();
+    }
   }else{
-    if(!t.completed) db.child(key).update({ completed:true, completedAt:dateToISO(new Date()) });
-    else db.child(key).update({ completed:false, completedAt:'' });
+    const data = !t.completed ? { completed:true, completedAt:dateToISO(new Date()) } : { completed:false, completedAt:'' };
+    if(offlineMode) queueOp('update', { key, data });
+    else db.child(key).update(data);
   }
 }
 
 function duplicateTask(key){
   const t = allTasks[key];
   if(!t) return;
-  db.push({
-    text: t.text,
-    time: t.time || '',
-    category: t.category || 'Razno',
-    repeat: t.repeat || 'none',
-    completed: false,
-    createdAt: dateToISO(new Date())
-  });
+  const data = { text:t.text, time:t.time || '', category:t.category || 'Razno', repeat:t.repeat || 'none', completed:false, createdAt:dateToISO(new Date()) };
+  if(offlineMode) queueOp('push', data);
+  else db.push(data);
 }
 
 function prepareEdit(k){
@@ -545,7 +589,7 @@ function prepareEdit(k){
   document.getElementById('taskText').focus();
 }
 
-function resetAll(){ if(confirm('Obrisati sve zadatke?')) db.remove(); }
+function resetAll(){ if(confirm('Obrisati sve zadatke?')) { if(offlineMode) queueOp('removeall', {}); db.remove(); } }
 function downloadLatest(){
   const html = document.documentElement.outerHTML;
   const a = document.createElement('a');
@@ -556,6 +600,7 @@ function downloadLatest(){
 
 function render(){
   initCalendars();
+  updateOfflineBar();
   const list = document.getElementById('taskList');
   list.innerHTML = '';
   const now = new Date();
@@ -575,8 +620,17 @@ function render(){
     ? (a,b) => (allTasks[b].createdAt||'').localeCompare(allTasks[a].createdAt||'')
     : (a,b) => (allTasks[a].time||'9999').localeCompare(allTasks[b].time||'9999');
 
-  const active = keys.filter(k=>!allTasks[k].completed).sort(sortFn);
+  const active = keys.filter(k=>!allTasks[k].completed).sort((a,b)=>{
+    const ta = allTasks[a].time || '';
+    const tb = allTasks[b].time || '';
+    const aAl = ta && new Date(ta) <= now;
+    const bAl = tb && new Date(tb) <= now;
+    if(aAl !== bAl) return aAl ? -1 : 1;
+    return sortFn(a,b);
+  });
   const done = keys.filter(k=>allTasks[k].completed).sort(sortFn);
+
+  document.getElementById('doneInfo').textContent = toggleDone ? 'Gotovi zadaci: skriveni' : 'Gotovi zadaci: vidljivi';
 
   [...active, ...done].forEach(k=>{
     const t = allTasks[k];
@@ -590,12 +644,8 @@ function render(){
     list.innerHTML += `
       <div class="task ${catClass} ${t.completed?'done':''} ${isAlarm?'alarm':''}">
         ${alarm}
-        <div class="task.head">
-          <div>${emoji} ${t.category || 'Razno'}</div>
-          <div>${t.repeat && t.repeat !== 'none' ? '🔄 ' : ''}${t.time ? displayDate(t.time) : 'Bez vremena'}</div>
-        </div>
-        ${created}
-        ${completed}
+        <div class="task.head"><div>${emoji} ${t.category || 'Razno'}</div><div>${t.repeat && t.repeat !== 'none' ? '🔄 ' : ''}${t.time ? displayDate(t.time) : 'Bez vremena'}</div></div>
+        ${created}${completed}
         <div class="task text">${t.text || ''}</div>
         <div class="actions">
           <button class="iconbtn" style="background:${t.completed?'#7f8c8d':'#2ecc71'}" onclick="toggleComplete('${k}')">${t.completed?'↩':'✓'}</button>
@@ -607,7 +657,6 @@ function render(){
     `;
   });
 
-  updateNotifBar();
   checkAndNotify();
 }
 
@@ -615,6 +664,7 @@ db.on('value', s => { allTasks = s.val() || {}; render(); });
 renderCats();
 setupSync();
 updateNotifBar();
+updateOfflineBar();
 render();
 </script>
 </body>
