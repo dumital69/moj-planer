@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Moj Planer</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Moj Planer - Nova verzija</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
@@ -23,7 +26,7 @@
     }
     body{
       margin:0;
-      font-family:Segoe UI,sans-serif;
+      font-family:'Segoe UI',sans-serif;
       background:linear-gradient(180deg,#03070d 0%, #060a12 100%);
       color:var(--text);
     }
@@ -32,14 +35,19 @@
       margin:0 auto;
       padding:14px;
       display:grid;
-      grid-template-columns:330px 1fr;
+      grid-template-columns: 330px 1fr;
       gap:14px;
       height:100vh;
       overflow:hidden;
     }
-    .left,.right{ min-width:0; }
-    .left{ display:flex; flex-direction:column; gap:12px; overflow:auto; padding-right:2px; }
-    .right{ display:flex; flex-direction:column; gap:14px; overflow:hidden; }
+    .left,.right{min-width:0}
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      overflow:auto;
+      padding-right:2px;
+    }
     .panel{
       background:rgba(19,32,51,.96);
       border:1px solid rgba(52,152,219,.18);
@@ -50,7 +58,6 @@
       display:grid;
       gap:8px;
       grid-template-columns:1fr 1fr;
-      padding:12px;
     }
     .btn{
       border:none;
@@ -62,14 +69,14 @@
       transition:.2s ease;
       user-select:none;
     }
-    .btn:active{ transform:scale(.98); }
-    .btn.green{ background:linear-gradient(180deg,#2ecc71,#22b15a); }
-    .btn.gray{ background:linear-gradient(180deg,#34495e,#273647); }
-    .btn.red{ background:linear-gradient(180deg,#c0392b,#a5281d); }
-    .btn.blue{ background:linear-gradient(180deg,#3498db,#246fb0); }
-    .btn.small{ padding:8px 10px; font-size:12px; border-radius:10px; }
+    .btn:active{transform:scale(.98)}
+    .btn.green{background:linear-gradient(180deg,#2ecc71,#22b15a)}
+    .btn.gray{background:linear-gradient(180deg,#34495e,#273647)}
+    .btn.red{background:linear-gradient(180deg,#c0392b,#a5281d)}
+    .btn.blue{background:linear-gradient(180deg,#3498db,#246fb0)}
+    .btn.small{padding:8px 10px;font-size:12px;border-radius:10px}
     .section{ padding:14px 16px; }
-    .chips{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
+    .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
     .chip{
       border:none;
       cursor:pointer;
@@ -80,7 +87,7 @@
       font-size:12px;
       font-weight:700;
     }
-    .chip.active{ background:var(--blue); }
+    .chip.active{background:var(--blue)}
     .calendar{ padding:14px; }
     .cal-head{
       text-align:center;
@@ -88,7 +95,12 @@
       margin-bottom:10px;
       color:#dbe9ff;
     }
-    .grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:4px;
+      text-align:center;
+    }
     .dayname{
       font-size:11px;
       color:#7fb7ea;
@@ -108,17 +120,24 @@
       position:relative;
       min-height:40px;
     }
-    .day.today{ background:#1f8f4b; font-weight:800; }
-    .day.sel{ outline:2px solid var(--blue); background:#2b4566; }
+    .day.today{background:#1f8f4b;font-weight:800}
+    .day.sel{outline:2px solid var(--blue); background:#2b4566}
     .dot{
-      width:7px;
-      height:7px;
-      border-radius:50%;
+      width:7px;height:7px;border-radius:50%;
       background:var(--yellow);
       box-shadow:0 0 4px var(--yellow);
       margin-top:2px;
     }
-    .form{ padding:16px; }
+    .right{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      overflow:hidden;
+    }
+    .form{
+      padding:16px;
+      flex-shrink:0;
+    }
     .form-top{
       display:flex;
       justify-content:space-between;
@@ -143,13 +162,10 @@
       border:1px solid rgba(52,152,219,.35);
       font-size:14px;
     }
-    textarea{
-      min-height:78px;
-      resize:none;
-    }
+    textarea{min-height:78px;resize:none}
     .input-row{
       display:grid;
-      grid-template-columns:1.1fr 1.1fr 1.2fr;
+      grid-template-columns: 1.1fr 1.1fr 1.2fr;
       gap:8px;
       margin-bottom:8px;
     }
@@ -158,12 +174,20 @@
       gap:8px;
       align-items:stretch;
     }
-    .save-row .btn{ flex:1; }
-    .notif-bar{ display:none; white-space:nowrap; flex-shrink:0; }
-    .tasks{ flex:1; overflow:auto; padding-right:2px; }
+    .save-row .btn{flex:1}
+    #notif-bar{
+      display:none;
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+    .tasks{
+      flex:1;
+      overflow:auto;
+      padding-right:2px;
+    }
     .toolbar{
       display:grid;
-      grid-template-columns:1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap:8px;
       margin-bottom:10px;
     }
@@ -184,8 +208,8 @@
       animation:pulse 1.6s infinite;
     }
     @keyframes pulse{
-      0%,100%{ transform:translateY(0); box-shadow:0 0 18px rgba(241,196,15,.20); }
-      50%{ transform:translateY(-1px); box-shadow:0 0 28px rgba(241,196,15,.38); }
+      0%,100%{transform:translateY(0);box-shadow:0 0 18px rgba(241,196,15,.20)}
+      50%{transform:translateY(-1px);box-shadow:0 0 28px rgba(241,196,15,.38)}
     }
     .task.done{
       opacity:.55;
@@ -193,7 +217,7 @@
       border-right-color:#7f8c8d!important;
       animation:none!important;
     }
-    .task-head{
+    .task.head{
       display:flex;
       justify-content:space-between;
       gap:8px;
@@ -202,13 +226,13 @@
       color:#88a7c6;
       margin-bottom:8px;
     }
-    .task-text{
+    .task.text{
       white-space:pre-wrap;
       line-height:1.45;
       font-size:15px;
       margin-bottom:10px;
     }
-    .task-meta{
+    .task.meta{
       font-size:12px;
       color:#9eb7cf;
       margin-bottom:8px;
@@ -239,13 +263,14 @@
       color:#fff;
       font-weight:800;
     }
-    .cat-Hobi{ border-left-color:#e67e22; border-right-color:#e67e22; }
-    .cat-Zdravlje{ border-left-color:#e74c3c; border-right-color:#e74c3c; }
-    .cat-Kupovina{ border-left-color:#27ae60; border-right-color:#27ae60; }
-    .cat-Dom{ border-left-color:#f39c12; border-right-color:#f39c12; }
-    .cat-Posao{ border-left-color:#2980b9; border-right-color:#2980b9; }
-    .cat-Razno{ border-left-color:#95a5a6; border-right-color:#95a5a6; }
-    .mobile-cal{ display:none; }
+    .cat-Kola{border-left-color:#e67e22;border-right-color:#e67e22}
+    .cat-Zdravlje{border-left-color:#e74c3c;border-right-color:#e74c3c}
+    .cat-Kupovina{border-left-color:#27ae60;border-right-color:#27ae60}
+    .cat-Razonoda{border-left-color:#9b59b6;border-right-color:#9b59b6}
+    .cat-Stanovanje{border-left-color:#f39c12;border-right-color:#f39c12}
+    .cat-Posao{border-left-color:#2980b9;border-right-color:#2980b9}
+    .cat-Razno{border-left-color:#95a5a6;border-right-color:#95a5a6}
+    .mobile-cal{display:none}
     .vis-toggle{
       font-size:12px;
       color:#dbe9ff;
@@ -265,25 +290,29 @@
       font-size:12px;
       font-weight:800;
     }
-    @media (max-width:920px){
-      .wrap{ grid-template-columns:1fr; height:auto; overflow:visible; }
-      .left,.right{ overflow:visible; }
-      .mobile-cal{ display:block; }
-      .desktop-cal2{ display:none; }
-      .tasks{ overflow:visible; }
-      .toolbar{ grid-template-columns:1fr; }
-      .input-row{ grid-template-columns:1fr; }
-      .save-row{ flex-direction:column; }
-      .notif-bar{ width:100%; }
+    @media (max-width: 920px){
+      .wrap{
+        grid-template-columns:1fr;
+        height:auto;
+        overflow:visible;
+      }
+      .left,.right{overflow:visible}
+      .mobile-cal{display:block}
+      .desktop-cal2{display:none}
+      .tasks{overflow:visible}
+      .toolbar{grid-template-columns:1fr}
+      .input-row{grid-template-columns:1fr}
+      .save-row{flex-direction:column}
+      #notif-bar{width:100%}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="left">
-      <div class="panel top-actions">
-        <button class="btn green" onclick="downloadLatest()">Preuzmi HTML</button>
-        <button class="btn gray" onclick="clearFilter()">Sve stavke</button>
+      <div class="panel section top-actions" style="padding:12px;">
+        <button class="btn green" onclick="downloadLatest()">⬇ Preuzmi verziju</button>
+        <button class="btn gray" onclick="clearFilter()">📅 Sve stavke</button>
       </div>
 
       <div class="panel calendar" id="cal1"></div>
@@ -294,9 +323,9 @@
     <div class="right">
       <div class="panel form">
         <div class="form-top">
-          <button class="btn red small" onclick="resetAll()">RESET</button>
-          <h3 class="title">Moj Planer <span style="font-size:10px;color:#3498db;font-weight:normal;">Poboljšana verzija</span></h3>
-          <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px;" onchange="setupSync()">
+          <button class="btn red small" onclick="resetAll()">⚠️ RESET</button>
+          <h3 class="title">☁️ Moj Planer <span style="font-size:10px; color:#3498db; font-weight:normal;">Nova verzija</span></h3>
+          <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px" onchange="setupSync()">
             <option value="1">1 min</option>
             <option value="5" selected>5 min</option>
             <option value="15">15 min</option>
@@ -306,11 +335,12 @@
         </div>
 
         <div class="offline" id="offlineBar">Rad bez interneta uključen — sinhronizacija kasnije.</div>
+
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
         <div class="vis-toggle" id="doneInfo">Gotovi zadaci: vidljivi</div>
 
-        <input id="quickSearch" type="text" placeholder="Pretraga..." oninput="render()" style="margin-bottom:8px;" />
-        <textarea id="taskText" placeholder="Unesi zadatak..."></textarea>
+        <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="render()" style="margin-bottom:8px;" />
+        <textarea id="taskText" placeholder="Šta treba uraditi?"></textarea>
 
         <div class="input-row">
           <select id="taskCat"></select>
@@ -326,16 +356,16 @@
         </div>
 
         <div class="save-row">
-          <button id="notif-bar" class="btn blue notif-bar" onclick="requestNotifPermission()">Notifikacije</button>
-          <button class="btn green" id="saveBtn" onclick="addTask()">Sačuvaj</button>
+          <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
+          <button class="btn green" id="saveBtn" onclick="addTask()">💾 Sačuvaj</button>
         </div>
       </div>
 
       <div class="panel section" style="padding:14px 14px 6px;">
         <div class="toolbar">
-          <button class="btn blue" onclick="sortMode='time'; render()">Po vremenu</button>
-          <button class="btn blue" onclick="sortMode='created'; render()">Novo prvo</button>
-          <button class="btn gray" onclick="toggleDone=!toggleDone; render()">Sakrij gotove</button>
+          <button class="btn blue" onclick="sortMode='time'; render()">⏱ Po vremenu</button>
+          <button class="btn blue" onclick="sortMode='created'; render()">🆕 Novo prvo</button>
+          <button class="btn gray" onclick="toggleDone = !toggleDone; render()">✅ Sakrij gotove</button>
         </div>
       </div>
 
@@ -343,382 +373,299 @@
     </div>
   </div>
 
-  <script>
-    const firebaseConfig = {
-      databaseURL: "https://mojplaner-fa083-default-rtdb.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database().ref("tasks");
+<script>
+const firebaseConfig = { databaseURL: "https://mojplaner-fa083-default-rtdb.firebaseio.com/" };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref('tasks');
 
-    let allTasks = {};
-    let filterCat = "Sve";
-    let filterDate = null;
-    let editKey = null;
-    let syncTimer = null;
-    let notifiedTasks = new Set();
-    let sortMode = "time";
-    let toggleDone = false;
-    let offlineMode = !navigator.onLine;
-    let localQueue = JSON.parse(localStorage.getItem("mpqueue") || "[]");
+let allTasks = {};
+let filterCat = "Sve";
+let filterDate = null;
+let editKey = null;
+let syncTimer = null;
+let notifiedTasks = new Set();
+let sortMode = 'time';
+let toggleDone = false;
+let offlineMode = !navigator.onLine;
+let localQueue = JSON.parse(localStorage.getItem('mp_queue') || '[]');
 
-    const categories = ["Sve","Kola","Zdravlje","Kupovina","Hobi","Dom","Posao","Razno"];
-    const months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
-    const days = ["Po","Ut","Sr","Če","Pe","Su","Ne"];
-    const catEmoji = {
-      Sve:"📌",
-      Kola:"🚗",
-      Zdravlje:"❤️",
-      Kupovina:"🛒",
-      Hobi:"🎨",
-      Dom:"🏠",
-      Posao:"💼",
-      Razno:"📎"
-    };
+const categories = ["Sve","Kola","Zdravlje","Kupovina","Razonoda","Stanovanje","Posao","Razno"];
+const months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
+const days = ["Po","Ut","Sr","Če","Pe","Su","Ne"];
+const catEmoji = { "Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","Razonoda":"🎮","Stanovanje":"🏠","Posao":"💼","Razno":"📌" };
 
-    function pad(n){ return String(n).padStart(2,"0"); }
-    function dateToISO(date){
-      return date.getFullYear()+"-"+pad(date.getMonth()+1)+"-"+pad(date.getDate())+"T"+pad(date.getHours())+":"+pad(date.getMinutes());
+function pad(n){ return String(n).padStart(2,'0'); }
+function dateToISO(date){ return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
+function displayDate(iso){
+  if(!iso) return 'Bez vremena';
+  const [d,t=''] = iso.split('T');
+  const [y,m,dd] = d.split('-');
+  return `${dd}.${m}.${y}. ${t ? 'u ' + t.slice(0,5) : ''}`.trim();
+}
+function getSearch(){ return (document.getElementById('quickSearch').value || '').trim().toLowerCase(); }
+
+function requestNotifPermission(){
+  if(!('Notification' in window)) return;
+  Notification.requestPermission().then(p => { updateNotifBar(); if(p==='granted') checkAndNotify(); });
+}
+function updateNotifBar(){
+  const bar = document.getElementById('notif-bar');
+  if(!('Notification' in window)){ bar.style.display='none'; return; }
+  if(Notification.permission === 'default'){
+    bar.style.display='inline-block'; bar.textContent='🔔 Notifikacije'; bar.className='btn blue';
+    bar.onclick = requestNotifPermission;
+  }else if(Notification.permission === 'denied'){
+    bar.style.display='inline-block'; bar.textContent='🔕 Blokirano'; bar.className='btn gray';
+    bar.onclick = null;
+  }else{
+    bar.style.display='inline-block'; bar.textContent='🔔 Aktivne'; bar.className='btn green';
+    bar.onclick = null;
+  }
+}
+function checkAndNotify(){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date();
+  Object.keys(allTasks).forEach(k=>{
+    const t = allTasks[k];
+    if(t.completed){ notifiedTasks.delete(k); return; }
+    if(t.time && !notifiedTasks.has(k) && new Date(t.time) <= now){
+      notifiedTasks.add(k);
+      try{ new Notification('⏰ Moj Planer', { body: `${catEmoji[t.category]||''} ${t.text}` }); }catch(e){}
     }
-    function displayDate(iso){
-      if(!iso) return "Bez vremena";
-      const [d,t] = iso.split("T");
-      const [y,m,dd] = d.split("-");
-      return dd+"."+m+"."+y+". " + (t ? "u "+t.slice(0,5) : "");
+  });
+}
+setInterval(checkAndNotify, 60000);
+
+function updateOfflineBar(){
+  const el = document.getElementById('offlineBar');
+  el.style.display = offlineMode ? 'block' : 'none';
+}
+
+window.addEventListener('online', async () => {
+  offlineMode = false;
+  updateOfflineBar();
+  await flushQueue();
+  render();
+});
+window.addEventListener('offline', () => {
+  offlineMode = true;
+  updateOfflineBar();
+  render();
+});
+
+function queueOp(type, payload){
+  localQueue.push({ type, payload, at: dateToISO(new Date()) });
+  localStorage.setItem('mp_queue', JSON.stringify(localQueue));
+}
+
+async function flushQueue(){
+  if(!navigator.onLine || !localQueue.length) return;
+  const q = [...localQueue];
+  localQueue = [];
+  localStorage.removeItem('mp_queue');
+  for(const op of q){
+    if(op.type === 'push') await db.push(op.payload);
+    if(op.type === 'update' && op.payload.key) await db.child(op.payload.key).update(op.payload.data);
+    if(op.type === 'remove' && op.payload.key) await db.child(op.payload.key).remove();
+  }
+}
+
+function renderCats(){
+  document.getElementById('cats').innerHTML = categories.map(c => `<button class="chip ${filterCat===c?'active':''}" onclick="setCat('${c}')">${catEmoji[c]} ${c}</button>`).join('');
+  document.getElementById('taskCat').innerHTML = categories.filter(c=>c!=='Sve').map(c => `<option value="${c}">${catEmoji[c]} ${c}</option>`).join('');
+}
+
+function initCalendars(){
+  renderCalendar('cal1', 0);
+  renderCalendar('cal2', 1);
+  renderCalendar('cal2m', 1);
+}
+function renderCalendar(id, offset){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const d = new Date();
+  d.setMonth(d.getMonth()+offset);
+  const y = d.getFullYear(), m = d.getMonth();
+  const first = new Date(y,m,1).getDay();
+  const start = first===0 ? 6 : first-1;
+  let html = `<div class="cal-head">${months[m]} ${y}</div><div class="grid">`;
+  days.forEach(x => html += `<div class="dayname">${x}</div>`);
+  for(let i=0;i<start;i++) html += `<div></div>`;
+  const monthDays = new Date(y,m+1,0).getDate();
+  for(let i=1;i<=monthDays;i++){
+    const ds = `${y}-${pad(m+1)}-${pad(i)}`;
+    const has = Object.values(allTasks).some(t => t.time && t.time.startsWith(ds) && !t.completed);
+    const today = new Date().toISOString().split('T')[0] === ds;
+    const sel = filterDate === ds;
+    html += `<div class="day ${today?'today':''} ${sel?'sel':''}" onclick="filterByDate('${ds}')">${i}${has?'<div class="dot"></div>':''}</div>`;
+  }
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+function setupSync(){
+  if(syncTimer) clearInterval(syncTimer);
+  syncTimer = setInterval(render, parseInt(document.getElementById('syncInt').value,10) * 60000);
+}
+
+function setCat(c){ filterCat = c; filterDate = null; render(); }
+function clearFilter(){ filterCat = 'Sve'; filterDate = null; render(); }
+function filterByDate(ds){ filterDate = ds; render(); }
+
+function addTask(){
+  const text = document.getElementById('taskText').value.trim();
+  const time = document.getElementById('taskTime').value;
+  const category = document.getElementById('taskCat').value;
+  const repeat = document.getElementById('taskRepeat').value;
+  if(!text) return;
+  const payload = { text, time, category, repeat, completed:false, createdAt: dateToISO(new Date()) };
+
+  if(editKey){
+    const data = { text, time, category, repeat };
+    if(offlineMode) queueOp('update', { key: editKey, data });
+    else db.child(editKey).update(data);
+    editKey = null;
+    document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
+  }else{
+    if(offlineMode) queueOp('push', payload);
+    else db.push(payload);
+  }
+
+  document.getElementById('taskText').value = '';
+  document.getElementById('taskTime').value = '';
+  document.getElementById('taskRepeat').value = 'none';
+}
+
+function shiftRepeatTime(t){
+  if(!t.time) return t.time || '';
+  let nd = new Date(t.time);
+  if(t.repeat==='daily') nd.setDate(nd.getDate()+1);
+  else if(t.repeat==='weekly') nd.setDate(nd.getDate()+7);
+  else if(t.repeat==='monthly') nd.setMonth(nd.getMonth()+1);
+  else if(t.repeat==='yearly') nd.setFullYear(nd.getFullYear()+1);
+  else if(t.repeat==='weekdays'){
+    do { nd.setDate(nd.getDate()+1); } while([0,6].includes(nd.getDay()));
+  }
+  return dateToISO(nd);
+}
+
+function toggleComplete(key){
+  const t = allTasks[key];
+  if(!t) return;
+  if(t.repeat && t.repeat !== 'none' && t.time){
+    const nextTime = shiftRepeatTime(t);
+    const pushData = { text:t.text, category:t.category, time:nextTime, repeat:t.repeat, completed:false, createdAt:t.createdAt||'' };
+    if(offlineMode){
+      queueOp('push', pushData);
+      queueOp('remove', { key });
+    }else{
+      db.push(pushData);
+      db.child(key).remove();
     }
-    function getSearch(){
-      return document.getElementById("quickSearch").value.trim().toLowerCase();
-    }
+  }else{
+    const data = !t.completed ? { completed:true, completedAt:dateToISO(new Date()) } : { completed:false, completedAt:'' };
+    if(offlineMode) queueOp('update', { key, data });
+    else db.child(key).update(data);
+  }
+}
 
-    function requestNotifPermission(){
-      if(!("Notification" in window)) return;
-      Notification.requestPermission().then(p=>{
-        updateNotifBar();
-        if(p==="granted") checkAndNotify();
-      });
-    }
+function duplicateTask(key){
+  const t = allTasks[key];
+  if(!t) return;
+  const data = { text:t.text, time:t.time || '', category:t.category || 'Razno', repeat:t.repeat || 'none', completed:false, createdAt:dateToISO(new Date()) };
+  if(offlineMode) queueOp('push', data);
+  else db.push(data);
+}
 
-    function updateNotifBar(){
-      const bar = document.getElementById("notif-bar");
-      if(!("Notification" in window)){
-        bar.style.display="none";
-        return;
-      }
-      if(Notification.permission==="default"){
-        bar.style.display="inline-block";
-        bar.textContent="Notifikacije";
-        bar.className="btn blue notif-bar";
-        bar.onclick=requestNotifPermission;
-      }else if(Notification.permission==="denied"){
-        bar.style.display="inline-block";
-        bar.textContent="Blokirano";
-        bar.className="btn gray notif-bar";
-        bar.onclick=null;
-      }else{
-        bar.style.display="inline-block";
-        bar.textContent="Aktivne";
-        bar.className="btn green notif-bar";
-        bar.onclick=null;
-      }
-    }
+function prepareEdit(k){
+  const t = allTasks[k];
+  if(!t) return;
+  editKey = k;
+  document.getElementById('taskText').value = t.text || '';
+  document.getElementById('taskTime').value = t.time || '';
+  document.getElementById('taskCat').value = t.category || 'Razno';
+  document.getElementById('taskRepeat').value = t.repeat || 'none';
+  document.getElementById('saveBtn').textContent = '✏️ Izmeni';
+  document.getElementById('taskText').focus();
+}
 
-    function checkAndNotify(){
-      if(!("Notification" in window) || Notification.permission!=="granted") return;
-      const now = new Date();
-      Object.keys(allTasks).forEach(k=>{
-        const t = allTasks[k];
-        if(!t) return;
-        if(t.completed){
-          notifiedTasks.delete(k);
-          return;
-        }
-        if(t.time && !notifiedTasks.has(k) && new Date(t.time) <= now){
-          notifiedTasks.add(k);
-          try{
-            new Notification("Moj Planer", { body: (catEmoji[t.category] || "📌") + " " + t.text });
-          }catch(e){}
-        }
-      });
-    }
-    setInterval(checkAndNotify, 60000);
+function resetAll(){ if(confirm('Obrisati sve zadatke?')) { if(offlineMode) queueOp('removeall', {}); db.remove(); } }
+function downloadLatest(){
+  const html = document.documentElement.outerHTML;
+  const a = document.createElement('a');
+  a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+  a.download = 'MojPlaner.html';
+  a.click();
+}
 
-    function updateOfflineBar(){
-      const el = document.getElementById("offlineBar");
-      el.style.display = offlineMode ? "block" : "none";
-    }
+function render(){
+  initCalendars();
+  updateOfflineBar();
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  const now = new Date();
+  const q = getSearch();
 
-    window.addEventListener("online", async ()=>{
-      offlineMode = false;
-      updateOfflineBar();
-      await flushQueue();
-      render();
-    });
+  let keys = Object.keys(allTasks).filter(k=>{
+    const t = allTasks[k];
+    if(!t) return false;
+    if(filterCat !== 'Sve' && t.category !== filterCat) return false;
+    if(filterDate && !(t.time && t.time.startsWith(filterDate))) return false;
+    if(q && !(String(t.text||'').toLowerCase().includes(q) || String(t.category||'').toLowerCase().includes(q))) return false;
+    if(toggleDone && t.completed) return false;
+    return true;
+  });
 
-    window.addEventListener("offline", ()=>{
-      offlineMode = true;
-      updateOfflineBar();
-      render();
-    });
+  const sortFn = sortMode === 'created'
+    ? (a,b) => (allTasks[b].createdAt||'').localeCompare(allTasks[a].createdAt||'')
+    : (a,b) => (allTasks[a].time||'9999').localeCompare(allTasks[b].time||'9999');
 
-    function queueOp(type, payload){
-      localQueue.push({ type, payload, at: dateToISO(new Date()) });
-      localStorage.setItem("mpqueue", JSON.stringify(localQueue));
-    }
+  const active = keys.filter(k=>!allTasks[k].completed).sort((a,b)=>{
+    const ta = allTasks[a].time || '';
+    const tb = allTasks[b].time || '';
+    const aAl = ta && new Date(ta) <= now;
+    const bAl = tb && new Date(tb) <= now;
+    if(aAl !== bAl) return aAl ? -1 : 1;
+    return sortFn(a,b);
+  });
+  const done = keys.filter(k=>allTasks[k].completed).sort(sortFn);
 
-    async function flushQueue(){
-      if(!navigator.onLine || !localQueue.length) return;
-      const q = [...localQueue];
-      localQueue = [];
-      localStorage.removeItem("mpqueue");
-      for(const op of q){
-        if(op.type==="push") await db.push(op.payload);
-        if(op.type==="update") await db.child(op.payload.key).update(op.payload.data);
-        if(op.type==="remove") await db.child(op.payload.key).remove();
-        if(op.type==="removeall") await db.remove();
-      }
-    }
+  document.getElementById('doneInfo').textContent = toggleDone ? 'Gotovi zadaci: skriveni' : 'Gotovi zadaci: vidljivi';
 
-    function renderCats(){
-      document.getElementById("cats").innerHTML = categories.map(c =>
-        `<button class="chip ${filterCat===c ? "active" : ""}" onclick="setCat('${c}')">${catEmoji[c]} ${c}</button>`
-      ).join("");
-      document.getElementById("taskCat").innerHTML = categories.filter(c=>c!=="Sve").map(c =>
-        `<option value="${c}">${catEmoji[c]} ${c}</option>`
-      ).join("");
-    }
+  [...active, ...done].forEach(k=>{
+    const t = allTasks[k];
+    const isAlarm = t.time && !t.completed && new Date(t.time) <= now;
+    const emoji = catEmoji[t.category] || '';
+    const catClass = t.completed ? '' : `cat-${t.category}`;
+    const alarm = isAlarm ? `<div class="alarm-banner">⏰ VREME JE — ${displayDate(t.time)}</div>` : '';
+    const created = t.createdAt ? `<div class="task.meta">Postavljeno: ${displayDate(t.createdAt)}</div>` : '';
+    const completed = t.completed && t.completedAt ? `<div class="task.meta">Završeno: ${displayDate(t.completedAt)}</div>` : '';
 
-    function initCalendars(){
-      renderCalendar("cal1", 0);
-      renderCalendar("cal2", 1);
-      renderCalendar("cal2m", 1);
-    }
+    list.innerHTML += `
+      <div class="task ${catClass} ${t.completed?'done':''} ${isAlarm?'alarm':''}">
+        ${alarm}
+        <div class="task.head"><div>${emoji} ${t.category || 'Razno'}</div><div>${t.repeat && t.repeat !== 'none' ? '🔄 ' : ''}${t.time ? displayDate(t.time) : 'Bez vremena'}</div></div>
+        ${created}${completed}
+        <div class="task text">${t.text || ''}</div>
+        <div class="actions">
+          <button class="iconbtn" style="background:${t.completed?'#7f8c8d':'#2ecc71'}" onclick="toggleComplete('${k}')">${t.completed?'↩':'✓'}</button>
+          <button class="iconbtn" style="background:#3498db" onclick="prepareEdit('${k}')">✏️</button>
+          <button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask('${k}')">⎘</button>
+          <button class="iconbtn" style="background:#e74c3c" onclick="db.child('${k}').remove()">✕</button>
+        </div>
+      </div>
+    `;
+  });
 
-    function renderCalendar(id, offset){
-      const el = document.getElementById(id);
-      if(!el) return;
-      const d = new Date();
-      d.setMonth(d.getMonth()+offset);
-      const y = d.getFullYear();
-      const m = d.getMonth();
-      const first = new Date(y,m,1).getDay();
-      const start = first===0 ? 6 : first-1;
-      let html = `<div class="cal-head">${months[m]} ${y}</div><div class="grid">`;
-      days.forEach(x => html += `<div class="dayname">${x}</div>`);
-      for(let i=0;i<start;i++) html += `<div></div>`;
-      const monthDays = new Date(y,m+1,0).getDate();
-      for(let i=1;i<=monthDays;i++){
-        const ds = `${y}-${pad(m+1)}-${pad(i)}`;
-        const has = Object.values(allTasks).some(t=> t && t.time && t.time.startsWith(ds) && !t.completed);
-        const today = new Date().toISOString().split("T")[0]===ds;
-        const sel = filterDate===ds;
-        html += `<div class="day ${today ? "today" : ""} ${sel ? "sel" : ""}" onclick="filterByDate('${ds}')">${i}${has ? '<div class="dot"></div>' : ''}</div>`;
-      }
-      html += `</div>`;
-      el.innerHTML = html;
-    }
+  checkAndNotify();
+}
 
-    function setupSync(){
-      if(syncTimer) clearInterval(syncTimer);
-      syncTimer = setInterval(render, parseInt(document.getElementById("syncInt").value,10) * 60000);
-    }
-
-    function setCat(c){
-      filterCat = c;
-      filterDate = null;
-      render();
-    }
-    function clearFilter(){
-      filterCat = "Sve";
-      filterDate = null;
-      render();
-    }
-    function filterByDate(ds){
-      filterDate = ds;
-      render();
-    }
-
-    function addTask(){
-      const text = document.getElementById("taskText").value.trim();
-      const time = document.getElementById("taskTime").value;
-      const category = document.getElementById("taskCat").value;
-      const repeat = document.getElementById("taskRepeat").value;
-      if(!text) return;
-
-      const payload = { text, time, category, repeat, completed:false, createdAt:dateToISO(new Date()) };
-
-      if(editKey){
-        const data = { text, time, category, repeat };
-        if(offlineMode) queueOp("update", { key:editKey, data });
-        else db.child(editKey).update(data);
-        editKey = null;
-        document.getElementById("saveBtn").textContent = "Sačuvaj";
-      }else{
-        if(offlineMode) queueOp("push", payload);
-        else db.push(payload);
-      }
-
-      document.getElementById("taskText").value = "";
-      document.getElementById("taskTime").value = "";
-      document.getElementById("taskRepeat").value = "none";
-      render();
-    }
-
-    function shiftRepeatTime(t){
-      if(!t.time) return t.time;
-      let nd = new Date(t.time);
-      if(t.repeat==="daily") nd.setDate(nd.getDate()+1);
-      else if(t.repeat==="weekly") nd.setDate(nd.getDate()+7);
-      else if(t.repeat==="monthly") nd.setMonth(nd.getMonth()+1);
-      else if(t.repeat==="yearly") nd.setFullYear(nd.getFullYear()+1);
-      else if(t.repeat==="weekdays"){
-        do{ nd.setDate(nd.getDate()+1); } while([0,6].includes(nd.getDay()));
-      }
-      return dateToISO(nd);
-    }
-
-    function toggleComplete(key){
-      const t = allTasks[key];
-      if(!t) return;
-
-      if(t.repeat && t.repeat!=="none" && t.time){
-        const nextTime = shiftRepeatTime(t);
-        const pushData = {
-          text:t.text,
-          category:t.category,
-          time:nextTime,
-          repeat:t.repeat,
-          completed:false,
-          createdAt:t.createdAt
-        };
-        if(offlineMode){
-          queueOp("push", pushData);
-          queueOp("remove", { key });
-        }else{
-          db.push(pushData);
-          db.child(key).remove();
-        }
-      }else{
-        const data = !t.completed ? { completed:true, completedAt:dateToISO(new Date()) } : { completed:false, completedAt:null };
-        if(offlineMode) queueOp("update", { key, data });
-        else db.child(key).update(data);
-      }
-    }
-
-    function duplicateTask(key){
-      const t = allTasks[key];
-      if(!t) return;
-      const data = {
-        text:t.text,
-        time:t.time,
-        category:t.category || "Razno",
-        repeat:t.repeat || "none",
-        completed:false,
-        createdAt:dateToISO(new Date())
-      };
-      if(offlineMode) queueOp("push", data);
-      else db.push(data);
-    }
-
-    function prepareEdit(k){
-      const t = allTasks[k];
-      if(!t) return;
-      editKey = k;
-      document.getElementById("taskText").value = t.text || "";
-      document.getElementById("taskTime").value = t.time || "";
-      document.getElementById("taskCat").value = t.category || "Razno";
-      document.getElementById("taskRepeat").value = t.repeat || "none";
-      document.getElementById("saveBtn").textContent = "Izmeni";
-      document.getElementById("taskText").focus();
-    }
-
-    function resetAll(){
-      if(!confirm("Obrisati sve zadatke?")) return;
-      if(offlineMode) queueOp("removeall", {});
-      else db.remove();
-    }
-
-    function downloadLatest(){
-      const html = document.documentElement.outerHTML;
-      const a = document.createElement("a");
-      a.href = "data:text/html;charset=utf-8," + encodeURIComponent(html);
-      a.download = "MojPlaner.html";
-      a.click();
-    }
-
-    function render(){
-      initCalendars();
-      updateOfflineBar();
-      const list = document.getElementById("taskList");
-      list.innerHTML = "";
-      const now = new Date();
-      const q = getSearch();
-
-      let keys = Object.keys(allTasks).filter(k=>{
-        const t = allTasks[k];
-        if(!t) return false;
-        if(filterCat!=="Sve" && t.category!==filterCat) return false;
-        if(filterDate && (!t.time || !t.time.startsWith(filterDate))) return false;
-        if(q && !String(t.text).toLowerCase().includes(q) && !String(t.category).toLowerCase().includes(q)) return false;
-        if(toggleDone && t.completed) return false;
-        return true;
-      });
-
-      const sortFn = sortMode==="created"
-        ? (a,b)=> (allTasks[b].createdAt || "").localeCompare(allTasks[a].createdAt || "")
-        : (a,b)=> (allTasks[a].time || "9999").localeCompare(allTasks[b].time || "9999");
-
-      const active = keys.filter(k=> !allTasks[k].completed).sort((a,b)=>{
-        const ta = allTasks[a].time;
-        const tb = allTasks[b].time;
-        const aAl = ta ? new Date(ta) < now : false;
-        const bAl = tb ? new Date(tb) < now : false;
-        if(aAl !== bAl) return aAl ? -1 : 1;
-        return sortFn(a,b);
-      });
-      const done = keys.filter(k=> allTasks[k].completed).sort(sortFn);
-
-      document.getElementById("doneInfo").textContent = toggleDone ? "Gotovi zadaci skriveni" : "Gotovi zadaci vidljivi";
-
-      [...active, ...done].forEach(k=>{
-        const t = allTasks[k];
-        if(!t) return;
-        const isAlarm = t.time && !t.completed && new Date(t.time) <= now;
-        const emoji = catEmoji[t.category] || "📌";
-        const alarm = isAlarm ? `<div class="alarm-banner">VREME JE: ${displayDate(t.time)}</div>` : "";
-        const created = t.createdAt ? `<div class="task-meta">Postavljeno: ${displayDate(t.createdAt)}</div>` : "";
-        const completed = t.completed && t.completedAt ? `<div class="task-meta">Završeno: ${displayDate(t.completedAt)}</div>` : "";
-
-        list.innerHTML += `
-          <div class="task ${t.category ? "cat-"+t.category : ""} ${t.completed ? "done" : ""} ${isAlarm ? "alarm" : ""}">
-            ${alarm}
-            <div class="task-head">
-              <div>${emoji} ${t.category || "Razno"}</div>
-              <div>${t.repeat && t.repeat!=="none" ? t.repeat : ""} ${t.time ? displayDate(t.time) : "Bez vremena"}</div>
-            </div>
-            ${created}
-            ${completed}
-            <div class="task-text">${t.text || ""}</div>
-            <div class="actions">
-              <button class="iconbtn" style="background:${t.completed ? "#7f8c8d" : "#2ecc71"}" onclick="toggleComplete('${k}')">${t.completed ? "↩" : "✓"}</button>
-              <button class="iconbtn" style="background:#3498db" onclick="prepareEdit('${k}')">✎</button>
-              <button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask('${k}')">⧉</button>
-              <button class="iconbtn" style="background:#e74c3c" onclick="offlineMode ? queueOp('remove',{key:'${k}'}) : db.child('${k}').remove()">🗑</button>
-            </div>
-          </div>`;
-      });
-
-      checkAndNotify();
-    }
-
-    db.on("value", s=>{
-      allTasks = s.val() || {};
-      render();
-    });
-
-    renderCats();
-    setupSync();
-    updateNotifBar();
-    updateOfflineBar();
-    render();
-  </script>
+db.on('value', s => { allTasks = s.val() || {}; render(); });
+renderCats();
+setupSync();
+updateNotifBar();
+updateOfflineBar();
+render();
+</script>
 </body>
 </html>
