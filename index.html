@@ -266,8 +266,8 @@
     .cat-Kola{border-left-color:#e67e22;border-right-color:#e67e22}
     .cat-Zdravlje{border-left-color:#e74c3c;border-right-color:#e74c3c}
     .cat-Kupovina{border-left-color:#27ae60;border-right-color:#27ae60}
-    .cat-Razonoda{border-left-color:#9b59b6;border-right-color:#9b59b6}
-    .cat-Stanovanje{border-left-color:#f39c12;border-right-color:#f39c12}
+    .cat-Hobi{border-left-color:#9b59b6;border-right-color:#9b59b6}
+    .cat-Dom{border-left-color:#f39c12;border-right-color:#f39c12}
     .cat-Posao{border-left-color:#2980b9;border-right-color:#2980b9}
     .cat-Razno{border-left-color:#95a5a6;border-right-color:#95a5a6}
     .mobile-cal{display:none}
@@ -310,8 +310,7 @@
 <body>
   <div class="wrap">
     <div class="left">
-      <div class="panel section top-actions" style="padding:12px;">
-        <button class="btn green" onclick="downloadLatest()">⬇ Preuzmi verziju</button>
+      <div class="panel section top-actions" style="padding:12px;grid-template-columns:1fr;">
         <button class="btn gray" onclick="clearFilter()">📅 Sve stavke</button>
       </div>
 
@@ -337,7 +336,7 @@
         <div class="offline" id="offlineBar">Rad bez interneta uključen — sinhronizacija kasnije.</div>
 
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
-        <div class="vis-toggle" id="doneInfo">Gotovi zadaci: vidljivi</div>
+        <div class="vis-toggle" id="doneInfo"></div>
 
         <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="render()" style="margin-bottom:8px;" />
         <textarea id="taskText" placeholder="Šta treba uraditi?"></textarea>
@@ -365,7 +364,7 @@
         <div class="toolbar">
           <button class="btn blue" onclick="sortMode='time'; render()">⏱ Po vremenu</button>
           <button class="btn blue" onclick="sortMode='created'; render()">🆕 Novo prvo</button>
-          <button class="btn gray" onclick="toggleDone = !toggleDone; render()">✅ Sakrij gotove</button>
+          <button class="btn gray" id="archiveBtn" onclick="showArchive = !showArchive; render()">🗂 Arhiva</button>
         </div>
       </div>
 
@@ -386,13 +385,14 @@ let syncTimer = null;
 let notifiedTasks = new Set();
 let sortMode = 'time';
 let toggleDone = false;
+let showArchive = false;
 let offlineMode = !navigator.onLine;
 let localQueue = JSON.parse(localStorage.getItem('mp_queue') || '[]');
 
-const categories = ["Sve","Kola","Zdravlje","Kupovina","Razonoda","Stanovanje","Posao","Razno"];
+const categories = ["Sve","Kola","Zdravlje","Kupovina","Hobi","Dom","Posao","Razno"];
 const months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
 const days = ["Po","Ut","Sr","Če","Pe","Su","Ne"];
-const catEmoji = { "Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","Razonoda":"🎮","Stanovanje":"🏠","Posao":"💼","Razno":"📌" };
+const catEmoji = { "Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","Hobi":"🎮","Dom":"🏠","Posao":"💼","Razno":"📌" };
 
 function pad(n){ return String(n).padStart(2,'0'); }
 function dateToISO(date){ return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
@@ -418,7 +418,7 @@ function updateNotifBar(){
     bar.style.display='inline-block'; bar.textContent='🔕 Blokirano'; bar.className='btn gray';
     bar.onclick = null;
   }else{
-    bar.style.display='inline-block'; bar.textContent='🔔 Aktivne'; bar.className='btn green';
+    bar.style.display='inline-block'; bar.textContent='🔔 AKTIVNE PUSH NOTIFIKACIJE'; bar.className='btn green';
     bar.onclick = null;
   }
 }
@@ -590,13 +590,6 @@ function prepareEdit(k){
 }
 
 function resetAll(){ if(confirm('Obrisati sve zadatke?')) { if(offlineMode) queueOp('removeall', {}); db.remove(); } }
-function downloadLatest(){
-  const html = document.documentElement.outerHTML;
-  const a = document.createElement('a');
-  a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-  a.download = 'MojPlaner.html';
-  a.click();
-}
 
 function render(){
   initCalendars();
@@ -606,19 +599,56 @@ function render(){
   const now = new Date();
   const q = getSearch();
 
+  const archBtn = document.getElementById('archiveBtn');
+  if(archBtn) archBtn.textContent = showArchive ? '📋 Aktivni' : '🗂 Arhiva';
+  document.getElementById('doneInfo').textContent = showArchive ? '📦 Prikazana ARHIVA (završeni zadaci)' : '';
+
   let keys = Object.keys(allTasks).filter(k=>{
     const t = allTasks[k];
     if(!t) return false;
     if(filterCat !== 'Sve' && t.category !== filterCat) return false;
     if(filterDate && !(t.time && t.time.startsWith(filterDate))) return false;
     if(q && !(String(t.text||'').toLowerCase().includes(q) || String(t.category||'').toLowerCase().includes(q))) return false;
-    if(toggleDone && t.completed) return false;
     return true;
   });
 
-  const sortFn = sortMode === 'created'
-    ? (a,b) => (allTasks[b].createdAt||'').localeCompare(allTasks[a].createdAt||'')
-    : (a,b) => (allTasks[a].time||'9999').localeCompare(allTasks[b].time||'9999');
+  const sortByTime = (a,b) => {
+    const ta = allTasks[a].time || '';
+    const tb = allTasks[b].time || '';
+    if(!ta && !tb) return 0;
+    if(!ta) return 1;
+    if(!tb) return -1;
+    return ta.localeCompare(tb);
+  };
+  const sortByCreated = (a,b) => (allTasks[b].createdAt||'').localeCompare(allTasks[a].createdAt||'');
+  const sortFn = sortMode === 'created' ? sortByCreated : sortByTime;
+
+  if(showArchive){
+    const done = keys.filter(k=>allTasks[k].completed).sort((a,b)=>
+      (allTasks[b].completedAt||'').localeCompare(allTasks[a].completedAt||'')
+    );
+    if(done.length === 0){
+      list.innerHTML = '<div style="text-align:center;color:#9fb0c7;padding:30px;font-size:14px;">Arhiva je prazna.</div>';
+    }
+    done.forEach(k=>{
+      const t = allTasks[k];
+      const emoji = catEmoji[t.category] || '';
+      const completed = t.completedAt ? `<div class="task.meta">Završeno: ${displayDate(t.completedAt)}</div>` : '';
+      const created = t.createdAt ? `<div class="task.meta">Postavljeno: ${displayDate(t.createdAt)}</div>` : '';
+      list.innerHTML += `
+        <div class="task done cat-${t.category}">
+          <div class="task.head"><div>${emoji} ${t.category || 'Razno'}</div><div>${t.time ? displayDate(t.time) : 'Bez vremena'}</div></div>
+          ${created}${completed}
+          <div class="task text">${t.text || ''}</div>
+          <div class="actions">
+            <button class="iconbtn" style="background:#7f8c8d" onclick="toggleComplete('${k}')">↩</button>
+            <button class="iconbtn" style="background:#e74c3c" onclick="db.child('${k}').remove()">✕</button>
+          </div>
+        </div>
+      `;
+    });
+    return;
+  }
 
   const active = keys.filter(k=>!allTasks[k].completed).sort((a,b)=>{
     const ta = allTasks[a].time || '';
@@ -628,27 +658,27 @@ function render(){
     if(aAl !== bAl) return aAl ? -1 : 1;
     return sortFn(a,b);
   });
-  const done = keys.filter(k=>allTasks[k].completed).sort(sortFn);
 
-  document.getElementById('doneInfo').textContent = toggleDone ? 'Gotovi zadaci: skriveni' : 'Gotovi zadaci: vidljivi';
+  if(active.length === 0){
+    list.innerHTML = '<div style="text-align:center;color:#9fb0c7;padding:30px;font-size:14px;">Nema aktivnih zadataka.</div>';
+  }
 
-  [...active, ...done].forEach(k=>{
+  active.forEach(k=>{
     const t = allTasks[k];
     const isAlarm = t.time && !t.completed && new Date(t.time) <= now;
     const emoji = catEmoji[t.category] || '';
-    const catClass = t.completed ? '' : `cat-${t.category}`;
+    const catClass = `cat-${t.category}`;
     const alarm = isAlarm ? `<div class="alarm-banner">⏰ VREME JE — ${displayDate(t.time)}</div>` : '';
     const created = t.createdAt ? `<div class="task.meta">Postavljeno: ${displayDate(t.createdAt)}</div>` : '';
-    const completed = t.completed && t.completedAt ? `<div class="task.meta">Završeno: ${displayDate(t.completedAt)}</div>` : '';
 
     list.innerHTML += `
-      <div class="task ${catClass} ${t.completed?'done':''} ${isAlarm?'alarm':''}">
+      <div class="task ${catClass} ${isAlarm?'alarm':''}">
         ${alarm}
         <div class="task.head"><div>${emoji} ${t.category || 'Razno'}</div><div>${t.repeat && t.repeat !== 'none' ? '🔄 ' : ''}${t.time ? displayDate(t.time) : 'Bez vremena'}</div></div>
-        ${created}${completed}
+        ${created}
         <div class="task text">${t.text || ''}</div>
         <div class="actions">
-          <button class="iconbtn" style="background:${t.completed?'#7f8c8d':'#2ecc71'}" onclick="toggleComplete('${k}')">${t.completed?'↩':'✓'}</button>
+          <button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete('${k}')">✓</button>
           <button class="iconbtn" style="background:#3498db" onclick="prepareEdit('${k}')">✏️</button>
           <button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask('${k}')">⎘</button>
           <button class="iconbtn" style="background:#e74c3c" onclick="db.child('${k}').remove()">✕</button>
