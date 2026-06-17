@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Moj Planer - Nova verzija</title>
+  <title>Moj Planer</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -17,8 +17,8 @@
       --blue:#3498db; --green:#2ecc71; --red:#e74c3c; --yellow:#f1c40f;
       --shadow:0 16px 38px rgba(0,0,0,.45); --radius:18px;
     }
-    body{ margin:0; font-family:'Segoe UI',sans-serif; background:linear-gradient(180deg,#03070d 0%, #060a12 100%); color:var(--text); }
-    .wrap{ max-width:1400px; margin:0 auto; padding:14px; display:grid; grid-template-columns: 330px 1fr; gap:14px; height:100vh; overflow:hidden; }
+    body{ margin:0; font-family:'Segoe UI',sans-serif; background:linear-gradient(180deg,#03070d 0%,#060a12 100%); color:var(--text); }
+    .wrap{ max-width:1400px; margin:0 auto; padding:14px; display:grid; grid-template-columns:330px 1fr; gap:14px; height:100vh; overflow:hidden; }
     .left,.right{min-width:0}
     .left{ display:flex; flex-direction:column; gap:12px; overflow:auto; padding-right:2px; }
     .panel{ background:rgba(19,32,51,.96); border:1px solid rgba(52,152,219,.18); border-radius:var(--radius); box-shadow:var(--shadow); }
@@ -40,22 +40,22 @@
     .dayname{ font-size:11px; color:#7fb7ea; font-weight:800; padding-bottom:3px; }
     .day{ aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; flex-direction:column; background:#21324a; border-radius:10px; cursor:pointer; font-size:12px; position:relative; min-height:40px; }
     .day.today{background:#1f8f4b;font-weight:800}
-    .day.sel{outline:2px solid var(--blue); background:#2b4566}
-    .dot{ width:7px;height:7px;border-radius:50%; background:var(--yellow); box-shadow:0 0 4px var(--yellow); margin-top:2px; }
+    .day.sel{outline:2px solid var(--blue);background:#2b4566}
+    .dot{ width:7px;height:7px;border-radius:50%;background:var(--yellow);box-shadow:0 0 4px var(--yellow);margin-top:2px; }
     .right{ display:flex; flex-direction:column; gap:14px; overflow:hidden; }
     .form{ padding:16px; flex-shrink:0; }
     .form-top{ display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
     .title{ font-size:15px; font-weight:800; margin:0; }
-    textarea, select, input[type="datetime-local"], input[type="text"]{ width:100%; border:none; outline:none; border-radius:12px; background:#0f1a2b; color:#fff; padding:11px 12px; border:1px solid rgba(52,152,219,.35); font-size:14px; }
+    textarea,select,input[type="datetime-local"],input[type="text"]{ width:100%; border:none; outline:none; border-radius:12px; background:#0f1a2b; color:#fff; padding:11px 12px; border:1px solid rgba(52,152,219,.35); font-size:14px; }
     textarea{min-height:78px;resize:none}
-    .input-row{ display:grid; grid-template-columns: 1.1fr 1.1fr 1.2fr; gap:8px; margin-bottom:8px; }
+    .input-row{ display:grid; grid-template-columns:1.1fr 1.1fr 1.2fr; gap:8px; margin-bottom:8px; }
     .save-row{ display:flex; gap:8px; align-items:stretch; }
     .save-row .btn{flex:1}
     #notif-bar{ display:none; white-space:nowrap; flex-shrink:0; }
     .tasks{ flex:1; overflow:auto; padding-right:2px; }
-    .toolbar{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
+    .toolbar{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
     .task{ background:linear-gradient(180deg,#1a2940,#162338); border:1px solid rgba(255,255,255,.06); border-left:6px solid var(--blue); border-right:6px solid var(--blue); border-radius:16px; padding:12px 12px 11px; margin-bottom:12px; box-shadow:0 10px 20px rgba(0,0,0,.26); }
-    .task.alarm{ border-left-color:var(--yellow); border-right-color:var(--yellow); box-shadow:0 0 0 1px rgba(241,196,15,.25), 0 0 22px rgba(241,196,15,.25); animation:pulse 1.6s infinite; }
+    .task.alarm{ border-left-color:var(--yellow); border-right-color:var(--yellow); box-shadow:0 0 0 1px rgba(241,196,15,.25),0 0 22px rgba(241,196,15,.25); animation:pulse 1.6s infinite; }
     @keyframes pulse{ 0%,100%{transform:translateY(0);box-shadow:0 0 18px rgba(241,196,15,.20)} 50%{transform:translateY(-1px);box-shadow:0 0 28px rgba(241,196,15,.38)} }
     .task.done{ opacity:.55; border-left-color:#7f8c8d!important; border-right-color:#7f8c8d!important; animation:none!important; }
     .task.head{ display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12px; color:#88a7c6; margin-bottom:8px; }
@@ -74,17 +74,22 @@
     .mobile-cal{display:none}
     .vis-toggle{ font-size:12px; color:#dbe9ff; margin-top:-4px; margin-bottom:10px; text-align:center; opacity:.9; }
     .offline{ display:none; margin-bottom:8px; background:#8e44ad; color:#fff; text-align:center; padding:8px 10px; border-radius:10px; font-size:12px; font-weight:800; }
-    #loginOverlay{ position:fixed;inset:0;z-index:9999; background:linear-gradient(180deg,#03070d 0%,#060a12 100%); display:flex;align-items:center;justify-content:center;padding:20px; }
-    .login-box{ background:rgba(19,32,51,.98); border:1px solid rgba(52,152,219,.3); border-radius:22px; padding:32px 28px; width:100%;max-width:380px; box-shadow:0 24px 60px rgba(0,0,0,.6); }
-    .login-title{ text-align:center;font-size:22px;font-weight:800; margin:0 0 6px;color:#f4f7fb; }
-    .login-sub{ text-align:center;font-size:13px;color:#9fb0c7; margin:0 0 24px; }
-    .login-box input{ width:100%;margin-bottom:12px;padding:13px 14px; background:#0f1a2b;border:1px solid rgba(52,152,219,.35); border-radius:12px;color:#fff;font-size:15px;outline:none; }
+
+    /* ===== LOGIN EKRAN ===== */
+    #loginOverlay{ position:fixed;inset:0;z-index:9999;background:linear-gradient(180deg,#03070d 0%,#060a12 100%);display:flex;align-items:center;justify-content:center;padding:20px; }
+    .login-box{ background:rgba(19,32,51,.98);border:1px solid rgba(52,152,219,.3);border-radius:22px;padding:32px 28px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.6); }
+    .login-title{ text-align:center;font-size:22px;font-weight:800;margin:0 0 6px;color:#f4f7fb; }
+    .login-sub{ text-align:center;font-size:13px;color:#9fb0c7;margin:0 0 24px; }
+    .login-box input{ width:100%;margin-bottom:12px;padding:13px 14px;background:#0f1a2b;border:1px solid rgba(52,152,219,.35);border-radius:12px;color:#fff;font-size:15px;outline:none; }
     .login-box input:focus{border-color:#3498db;}
-    .login-err{ color:#e74c3c;font-size:13px;text-align:center; margin-bottom:10px;min-height:18px;font-weight:600; }
-    .login-switch{ text-align:center;font-size:13px;color:#9fb0c7; margin-top:14px;cursor:pointer; }
-    .login-switch span{color:#3498db;font-weight:700;text-decoration:underline;}
-    @media (max-width: 920px){
-      .wrap{ grid-template-columns:1fr; height:auto; overflow:visible; }
+    .login-err{ color:#e74c3c;font-size:13px;text-align:center;margin-bottom:10px;min-height:18px;font-weight:600; }
+    .login-ok{ color:#2ecc71;font-size:13px;text-align:center;margin-bottom:10px;min-height:18px;font-weight:600; }
+    .login-switch{ text-align:center;font-size:13px;color:#9fb0c7;margin-top:10px;cursor:pointer; }
+    .login-switch span{color:#3498db;font-weight:700;text-decoration:underline;cursor:pointer;}
+    .forgot-link{ text-align:center;font-size:12px;color:#7fb7ea;margin-top:8px;cursor:pointer;text-decoration:underline; }
+
+    @media (max-width:920px){
+      .wrap{grid-template-columns:1fr;height:auto;overflow:visible;}
       .left,.right{overflow:visible}
       .mobile-cal{display:block}
       .desktop-cal2{display:none}
@@ -98,31 +103,35 @@
 </head>
 <body>
 
+  <!-- LOGIN EKRAN -->
   <div id="loginOverlay">
     <div class="login-box">
-      <h2 class="login-title">☁️ Moj Planer</h2>
+      <h2 class="login-title">&#x2601;&#xFE0F; Moj Planer</h2>
       <p class="login-sub" id="loginSubtitle">Prijavite se da nastavite</p>
       <input type="email" id="loginEmail" placeholder="Email adresa" autocomplete="email" />
-      <input type="password" id="loginPass" placeholder="Šifra" autocomplete="current-password" />
-      <input type="password" id="loginPass2" placeholder="Ponovite šifru" autocomplete="new-password" style="display:none" />
+      <input type="password" id="loginPass" placeholder="Sifra" autocomplete="current-password" />
+      <input type="password" id="loginPass2" placeholder="Ponovite sifru" autocomplete="new-password" style="display:none" />
       <div class="login-err" id="loginErr"></div>
+      <div class="login-ok" id="loginOk"></div>
       <button class="btn green" id="loginBtn" style="width:100%;padding:13px;font-size:15px;" onclick="doAuth()">Prijavi se</button>
       <div class="login-switch" id="loginToggle">Nemate nalog? <span onclick="toggleAuthMode()">Registrujte se</span></div>
+      <div class="forgot-link" id="forgotLink" onclick="doForgotPassword()">Zaboravili ste sifru?</div>
     </div>
   </div>
 
+  <!-- MIGRACIJA STARIH ZADATAKA -->
   <div id="migrationBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:8888;background:linear-gradient(90deg,#8e44ad,#6c3483);color:#fff;padding:14px 20px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
-    <div style="font-size:14px;font-weight:700;">📦 Pronađeni su stari zadaci bez naloga (<span id="migrationCount">?</span> kom.) — prebaciti na vaš nalog?</div>
+    <div style="font-size:14px;font-weight:700;">&#x1F4E6; Pronadjeni su stari zadaci bez naloga (<span id="migrationCount">?</span> kom.) &mdash; prebaciti na vas nalog?</div>
     <div style="display:flex;gap:8px;">
-      <button class="btn green small" onclick="doMigrate()">✅ Prebaci</button>
-      <button class="btn gray small" onclick="skipMigrate()">⏭ Preskoči</button>
+      <button class="btn green small" onclick="doMigrate()">&#x2705; Prebaci</button>
+      <button class="btn gray small" onclick="skipMigrate()">&#x23ED; Preskoce</button>
     </div>
   </div>
 
   <div class="wrap">
     <div class="left">
       <div class="panel section top-actions" style="padding:12px;grid-template-columns:1fr;">
-        <button class="btn gray" onclick="clearFilter()">📅 Sve stavke</button>
+        <button class="btn gray" onclick="clearFilter()">&#x1F4C5; Sve stavke</button>
       </div>
       <div class="panel calendar" id="cal1"></div>
       <div class="panel calendar desktop-cal2" id="cal2"></div>
@@ -132,9 +141,9 @@
     <div class="right">
       <div class="panel form">
         <div class="form-top">
-          <button class="btn red small" onclick="resetAll()">⚠️ RESET</button>
-          <h3 class="title">☁️ Moj Planer <span style="font-size:10px;color:#3498db;font-weight:normal;" id="userEmailLabel"></span></h3>
-          <button class="btn gray small" onclick="doSignOut()" title="Odjava" style="padding:6px 10px;">🚪</button>
+          <button class="btn red small" onclick="resetAll()">&#x26A0;&#xFE0F; RESET</button>
+          <h3 class="title">&#x2601;&#xFE0F; Moj Planer <span style="font-size:10px;color:#3498db;font-weight:normal;" id="userEmailLabel"></span></h3>
+          <button class="btn gray small" onclick="doSignOut()" title="Odjava" style="padding:6px 10px;">&#x1F6AA;</button>
           <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px" onchange="setupSync()">
             <option value="1">1 min</option>
             <option value="5" selected>5 min</option>
@@ -143,11 +152,11 @@
             <option value="60">60 min</option>
           </select>
         </div>
-        <div class="offline" id="offlineBar">Rad bez interneta uključen — sinhronizacija kasnije.</div>
+        <div class="offline" id="offlineBar">Rad bez interneta ukljucen &mdash; sinhronizacija kasnije.</div>
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
         <div class="vis-toggle" id="doneInfo"></div>
         <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="render()" style="margin-bottom:8px;" />
-        <textarea id="taskText" placeholder="Šta treba uraditi?"></textarea>
+        <textarea id="taskText" placeholder="Sta treba uraditi?"></textarea>
         <div class="input-row">
           <select id="taskCat"></select>
           <input type="datetime-local" id="taskTime" />
@@ -161,16 +170,16 @@
           </select>
         </div>
         <div class="save-row">
-          <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
-          <button class="btn green" id="saveBtn" onclick="addTask()">💾 Sačuvaj</button>
+          <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">&#x1F514; Notifikacije</button>
+          <button class="btn green" id="saveBtn" onclick="addTask()">&#x1F4BE; Sacuvaj</button>
         </div>
       </div>
 
       <div class="panel section" style="padding:14px 14px 6px;">
         <div class="toolbar">
-          <button class="btn blue" onclick="sortMode='time'; render()">⏱ Po vremenu</button>
-          <button class="btn blue" onclick="sortMode='created'; render()">🆕 Novo prvo</button>
-          <button class="btn gray" id="archiveBtn" onclick="showArchive = !showArchive; render()">🗂 Arhiva</button>
+          <button class="btn blue" onclick="sortMode='time';render()">&#x23F1; Po vremenu</button>
+          <button class="btn blue" onclick="sortMode='created';render()">&#x1F195; Novo prvo</button>
+          <button class="btn gray" id="archiveBtn" onclick="showArchive=!showArchive;render()">&#x1F5C2; Arhiva</button>
         </div>
       </div>
 
@@ -179,7 +188,15 @@
   </div>
 
 <script>
-const firebaseConfig = { databaseURL: "https://mojplaner-fa083-default-rtdb.firebaseio.com/" };
+const firebaseConfig = {
+  apiKey: "AIzaSyAa0GQFNVeaz1vFxaxCXvYO4-jWkZcMNng",
+  authDomain: "mojplaner-fa083.firebaseapp.com",
+  databaseURL: "https://mojplaner-fa083-default-rtdb.firebaseio.com",
+  projectId: "mojplaner-fa083",
+  storageBucket: "mojplaner-fa083.firebasestorage.app",
+  messagingSenderId: "497880664790",
+  appId: "1:497880664790:web:b5ee81a413f55ac79e1777"
+};
 firebase.initializeApp(firebaseConfig);
 
 let dbRef = null;
@@ -189,15 +206,19 @@ let isRegisterMode = false;
 
 const auth = firebase.auth();
 
+// ===== AUTH LOGIKA =====
+
 function toggleAuthMode(){
   isRegisterMode = !isRegisterMode;
   document.getElementById('loginSubtitle').textContent = isRegisterMode ? 'Napravite novi nalog' : 'Prijavite se da nastavite';
   document.getElementById('loginBtn').textContent = isRegisterMode ? 'Registruj se' : 'Prijavi se';
   document.getElementById('loginPass2').style.display = isRegisterMode ? 'block' : 'none';
+  document.getElementById('forgotLink').style.display = isRegisterMode ? 'none' : 'block';
   document.getElementById('loginToggle').innerHTML = isRegisterMode
-    ? 'Već imate nalog? <span onclick="toggleAuthMode()">Prijavite se</span>'
+    ? 'Vec imate nalog? <span onclick="toggleAuthMode()">Prijavite se</span>'
     : 'Nemate nalog? <span onclick="toggleAuthMode()">Registrujte se</span>';
   document.getElementById('loginErr').textContent = '';
+  document.getElementById('loginOk').textContent = '';
 }
 
 function doAuth(){
@@ -205,11 +226,14 @@ function doAuth(){
   const pass  = document.getElementById('loginPass').value;
   const pass2 = document.getElementById('loginPass2').value;
   const errEl = document.getElementById('loginErr');
+  const okEl  = document.getElementById('loginOk');
   errEl.textContent = '';
-  if(!email || !pass){ errEl.textContent = 'Unesite email i šifru.'; return; }
+  okEl.textContent = '';
+
+  if(!email || !pass){ errEl.textContent = 'Unesite email i sifru.'; return; }
   if(isRegisterMode){
-    if(pass.length < 6){ errEl.textContent = 'Šifra mora imati najmanje 6 karaktera.'; return; }
-    if(pass !== pass2){ errEl.textContent = 'Šifre se ne poklapaju.'; return; }
+    if(pass.length < 6){ errEl.textContent = 'Sifra mora imati najmanje 6 karaktera.'; return; }
+    if(pass !== pass2){ errEl.textContent = 'Sifre se ne poklapaju.'; return; }
     auth.createUserWithEmailAndPassword(email, pass)
       .catch(e => { errEl.textContent = translateAuthError(e.code); });
   } else {
@@ -218,16 +242,36 @@ function doAuth(){
   }
 }
 
+function doForgotPassword(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const errEl = document.getElementById('loginErr');
+  const okEl  = document.getElementById('loginOk');
+  errEl.textContent = '';
+  okEl.textContent = '';
+
+  if(!email){
+    errEl.textContent = 'Unesite vas email pa kliknite "Zaboravili ste sifru?".';
+    return;
+  }
+  auth.sendPasswordResetEmail(email)
+    .then(() => {
+      okEl.textContent = 'Email za reset sifre je poslat! Proverite sanducic.';
+    })
+    .catch(e => {
+      errEl.textContent = translateAuthError(e.code);
+    });
+}
+
 function translateAuthError(code){
   const map = {
-    'auth/user-not-found':'Korisnik nije pronađen.',
-    'auth/wrong-password':'Pogrešna šifra.',
-    'auth/invalid-email':'Neispravna email adresa.',
-    'auth/email-already-in-use':'Email je već u upotrebi.',
-    'auth/too-many-requests':'Previše pokušaja. Pokušajte kasnije.',
-    'auth/invalid-credential':'Pogrešan email ili šifra.',
+    'auth/user-not-found': 'Korisnik nije pronadjen.',
+    'auth/wrong-password': 'Pogresna sifra.',
+    'auth/invalid-email': 'Neispravna email adresa.',
+    'auth/email-already-in-use': 'Email je vec u upotrebi.',
+    'auth/too-many-requests': 'Previse pokusaja. Pokusajte kasnije.',
+    'auth/invalid-credential': 'Pogresan email ili sifra.',
   };
-  return map[code] || 'Greška: ' + code;
+  return map[code] || 'Greska: ' + code;
 }
 
 auth.onAuthStateChanged(user => {
@@ -242,7 +286,7 @@ auth.onAuthStateChanged(user => {
     updateOfflineBar();
     render();
     registerServiceWorker();
-    checkOldTasks(user.uid);
+    checkOldTasks();
   } else {
     currentUser = null;
     document.getElementById('loginOverlay').style.display = 'flex';
@@ -251,309 +295,381 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-function checkOldTasks(uid){
-  const oldRef = firebase.database().ref('tasks');
-  oldRef.once('value', snap => {
+function checkOldTasks(){
+  firebase.database().ref('tasks').once('value', snap => {
     const old = snap.val();
     if(!old || Object.keys(old).length === 0) return;
     const bar = document.getElementById('migrationBar');
-    if(bar){ bar.style.display='flex'; document.getElementById('migrationCount').textContent = Object.keys(old).length; }
+    if(bar){
+      bar.style.display = 'flex';
+      document.getElementById('migrationCount').textContent = Object.keys(old).length;
+    }
   });
 }
 
 function doMigrate(){
-  const oldRef = firebase.database().ref('tasks');
-  oldRef.once('value', snap => {
-    const old = snap.val(); if(!old) return;
+  firebase.database().ref('tasks').once('value', snap => {
+    const old = snap.val();
+    if(!old) return;
     const newRef = firebase.database().ref('users/' + currentUser.uid + '/tasks');
     newRef.once('value', newSnap => {
-      const existingCount = Object.keys(newSnap.val()||{}).length;
+      const existingCount = Object.keys(newSnap.val() || {}).length;
       const oldCount = Object.keys(old).length;
-      if(!confirm('Prebaciti ' + oldCount + ' starih zadataka na vaš nalog?\n\nVeć imate ' + existingCount + ' zadataka — stari će biti DODATI uz postojeće.')) return;
+      if(!confirm('Prebaciti ' + oldCount + ' starih zadataka na vas nalog?\n\nVec imate ' + existingCount + ' zadataka - stari ce biti DODATI.')) return;
       const updates = {};
-      Object.entries(old).forEach(([k,v]) => { updates[k]=v; });
+      Object.entries(old).forEach(([k, v]) => { updates[k] = v; });
       newRef.update(updates).then(() => {
-        oldRef.remove();
-        document.getElementById('migrationBar').style.display='none';
-        alert('✅ Zadaci su uspešno prebačeni!');
+        firebase.database().ref('tasks').remove();
+        document.getElementById('migrationBar').style.display = 'none';
+        alert('Zadaci su uspesno prebaceni!');
       });
     });
   });
 }
 
 function skipMigrate(){
-  if(confirm('Preskočiti migraciju?\n\nStari zadaci ostaju u bazi ali neće biti vidljivi.')){
-    document.getElementById('migrationBar').style.display='none';
-  }
+  if(confirm('Preskociti migraciju?\nStari zadaci nece biti vidljivi.'))
+    document.getElementById('migrationBar').style.display = 'none';
 }
 
 function getDb(){ return dbRef; }
 
-let filterCat="Sve", filterDate=null, editKey=null, syncTimer=null;
-let notifiedTasks=new Set(), sortMode='time', showArchive=false;
-let offlineMode=!navigator.onLine;
-let localQueue=JSON.parse(localStorage.getItem('mp_queue')||'[]');
+// ===== GLOBALNE PROMENLJIVE =====
 
-const categories=["Sve","Kola","Zdravlje","Kupovina","Hobi","Dom","Posao","Razno"];
-const months=["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
-const days=["Po","Ut","Sr","Če","Pe","Su","Ne"];
-const catEmoji={"Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","Hobi":"🎮","Dom":"🏠","Posao":"💼","Razno":"📌"};
+let filterCat = "Sve";
+let filterDate = null;
+let editKey = null;
+let syncTimer = null;
+let notifiedTasks = new Set();
+let sortMode = 'time';
+let showArchive = false;
+let offlineMode = !navigator.onLine;
+let localQueue = JSON.parse(localStorage.getItem('mp_queue') || '[]');
+
+const categories = ["Sve","Kola","Zdravlje","Kupovina","Hobi","Dom","Posao","Razno"];
+const months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
+const days = ["Po","Ut","Sr","Ce","Pe","Su","Ne"];
+const catEmoji = {"Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","Hobi":"🎮","Dom":"🏠","Posao":"💼","Razno":"📌"};
+
+// ===== POMOCNE FUNKCIJE =====
 
 function pad(n){ return String(n).padStart(2,'0'); }
-function dateToISO(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function dateToISO(date){ return date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate())+'T'+pad(date.getHours())+':'+pad(date.getMinutes()); }
 function displayDate(iso){
   if(!iso) return 'Bez vremena';
-  const [d,t=''] = iso.split('T'); const [y,m,dd]=d.split('-');
-  return `${dd}.${m}.${y}. ${t?'u '+t.slice(0,5):''}`.trim();
+  var parts = iso.split('T');
+  var d = parts[0]; var t = parts[1] || '';
+  var dp = d.split('-');
+  return dp[2]+'.'+dp[1]+'.'+dp[0]+'. '+(t ? 'u '+t.slice(0,5) : '');
 }
-function getSearch(){ return (document.getElementById('quickSearch').value||'').trim().toLowerCase(); }
+function getSearch(){ return (document.getElementById('quickSearch').value || '').trim().toLowerCase(); }
+
+// ===== NOTIFIKACIJE =====
 
 function requestNotifPermission(){
   if(!('Notification' in window)) return;
-  Notification.requestPermission().then(p=>{ updateNotifBar(); if(p==='granted') checkAndNotify(); });
+  Notification.requestPermission().then(function(p){ updateNotifBar(); if(p==='granted') checkAndNotify(); });
 }
 function updateUserLabel(){
-  const el=document.getElementById('userEmailLabel');
-  if(el && currentUser) el.textContent=currentUser.email;
+  var el = document.getElementById('userEmailLabel');
+  if(el && currentUser) el.textContent = currentUser.email;
 }
 function updateNotifBar(){
-  const bar=document.getElementById('notif-bar');
+  var bar = document.getElementById('notif-bar');
   if(!('Notification' in window)){ bar.style.display='none'; return; }
-  if(Notification.permission==='default'){ bar.style.display='inline-block'; bar.textContent='🔔 Notifikacije'; bar.className='btn blue'; bar.onclick=requestNotifPermission; }
-  else if(Notification.permission==='denied'){ bar.style.display='inline-block'; bar.textContent='🔕 Blokirano'; bar.className='btn gray'; bar.onclick=null; }
-  else{ bar.style.display='inline-block'; bar.textContent='🔔 AKTIVNE PUSH NOTIFIKACIJE'; bar.className='btn green'; bar.onclick=null; }
+  if(Notification.permission === 'default'){
+    bar.style.display='inline-block'; bar.textContent='Notifikacije'; bar.className='btn blue';
+    bar.onclick = requestNotifPermission;
+  } else if(Notification.permission === 'denied'){
+    bar.style.display='inline-block'; bar.textContent='Blokirano'; bar.className='btn gray';
+    bar.onclick = null;
+  } else {
+    bar.style.display='inline-block'; bar.textContent='PUSH NOTIFIKACIJE AKTIVNE'; bar.className='btn green';
+    bar.onclick = null;
+  }
 }
 
 async function showPushNotification(title, body, tag){
-  const opts={body, icon:'/favicon.ico', badge:'/favicon.ico', tag:tag||title, renotify:true};
+  var opts = { body: body, icon: '/favicon.ico', tag: tag || title, renotify: true };
   if('serviceWorker' in navigator){
-    try{ const reg=await navigator.serviceWorker.ready; await reg.showNotification(title,opts); return; }catch(e){}
+    try{
+      var reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(title, opts);
+      return;
+    } catch(e){}
   }
-  try{ new Notification(title,opts); }catch(e){}
+  try{ new Notification(title, opts); } catch(e){}
 }
 
 function checkAndNotify(){
-  if(!('Notification' in window)||Notification.permission!=='granted') return;
-  const now=new Date(); const in24h=new Date(now.getTime()+86400000);
-  Object.keys(allTasks).forEach(k=>{
-    const t=allTasks[k];
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  var now = new Date();
+  var in24h = new Date(now.getTime() + 24*60*60*1000);
+  Object.keys(allTasks).forEach(function(k){
+    var t = allTasks[k];
     if(t.completed){ notifiedTasks.delete(k); notifiedTasks.delete(k+'_sutra'); return; }
     if(!t.time) return;
-    const tt=new Date(t.time);
-    if(!notifiedTasks.has(k)&&tt<=now){ notifiedTasks.add(k); showPushNotification('⏰ Moj Planer — VREME JE!',`${catEmoji[t.category]||''} ${t.text}`,'alarm_'+k); }
-    const sk=k+'_sutra';
-    if(!notifiedTasks.has(sk)&&tt>now&&tt<=in24h){ notifiedTasks.add(sk); showPushNotification('📅 Sutra vas čeka zadatak',`${catEmoji[t.category]||''} ${t.text}  ·  ${displayDate(t.time)}`,'sutra_'+k); }
+    var tt = new Date(t.time);
+    if(!notifiedTasks.has(k) && tt <= now){
+      notifiedTasks.add(k);
+      showPushNotification('Moj Planer - VREME JE!', (catEmoji[t.category]||'') + ' ' + t.text, 'alarm_'+k);
+    }
+    var sk = k+'_sutra';
+    if(!notifiedTasks.has(sk) && tt > now && tt <= in24h){
+      notifiedTasks.add(sk);
+      showPushNotification('Sutra vas ceka zadatak', (catEmoji[t.category]||'') + ' ' + t.text + ' - ' + displayDate(t.time), 'sutra_'+k);
+    }
   });
 }
-setInterval(checkAndNotify,60000);
+setInterval(checkAndNotify, 60000);
 
-function updateOfflineBar(){ document.getElementById('offlineBar').style.display=offlineMode?'block':'none'; }
-window.addEventListener('online',async()=>{ offlineMode=false; updateOfflineBar(); await flushQueue(); render(); });
-window.addEventListener('offline',()=>{ offlineMode=true; updateOfflineBar(); render(); });
+// ===== OFFLINE =====
 
-function queueOp(type,payload){ localQueue.push({type,payload}); localStorage.setItem('mp_queue',JSON.stringify(localQueue)); }
+function updateOfflineBar(){
+  document.getElementById('offlineBar').style.display = offlineMode ? 'block' : 'none';
+}
+window.addEventListener('online', async function(){
+  offlineMode = false; updateOfflineBar(); await flushQueue(); render();
+});
+window.addEventListener('offline', function(){
+  offlineMode = true; updateOfflineBar(); render();
+});
+function queueOp(type, payload){
+  localQueue.push({ type: type, payload: payload });
+  localStorage.setItem('mp_queue', JSON.stringify(localQueue));
+}
 async function flushQueue(){
-  if(!navigator.onLine||!localQueue.length) return;
-  const q=[...localQueue]; localQueue=[]; localStorage.removeItem('mp_queue');
-  for(const op of q){
-    if(op.type==='push') await getDb().push(op.payload);
-    if(op.type==='update'&&op.payload.key) await getDb().child(op.payload.key).update(op.payload.data);
-    if(op.type==='remove'&&op.payload.key) await getDb().child(op.payload.key).remove();
+  if(!navigator.onLine || !localQueue.length) return;
+  var q = localQueue.slice();
+  localQueue = [];
+  localStorage.removeItem('mp_queue');
+  for(var i=0;i<q.length;i++){
+    var op = q[i];
+    if(op.type === 'push') await getDb().push(op.payload);
+    if(op.type === 'update' && op.payload.key) await getDb().child(op.payload.key).update(op.payload.data);
+    if(op.type === 'remove' && op.payload.key) await getDb().child(op.payload.key).remove();
   }
 }
 
+// ===== KALENDAR =====
+
 function renderCats(){
-  document.getElementById('cats').innerHTML=categories.map(c=>`<button class="chip ${filterCat===c?'active':''}" onclick="setCat('${c}')">${catEmoji[c]} ${c}</button>`).join('');
-  document.getElementById('taskCat').innerHTML=categories.filter(c=>c!=='Sve').map(c=>`<option value="${c}">${catEmoji[c]} ${c}</option>`).join('');
+  document.getElementById('cats').innerHTML = categories.map(function(c){
+    return '<button class="chip '+(filterCat===c?'active':'')+'" onclick="setCat(\''+c+'\')">'+catEmoji[c]+' '+c+'</button>';
+  }).join('');
+  document.getElementById('taskCat').innerHTML = categories.filter(function(c){ return c!=='Sve'; }).map(function(c){
+    return '<option value="'+c+'">'+catEmoji[c]+' '+c+'</option>';
+  }).join('');
 }
 
 function initCalendars(){ renderCalendar('cal1',0); renderCalendar('cal2',1); renderCalendar('cal2m',1); }
-function renderCalendar(id,offset){
-  const el=document.getElementById(id); if(!el) return;
-  const d=new Date(); d.setMonth(d.getMonth()+offset);
-  const y=d.getFullYear(),m=d.getMonth();
-  const first=new Date(y,m,1).getDay(), start=first===0?6:first-1;
-  let html=`<div class="cal-head">${months[m]} ${y}</div><div class="grid">`;
-  days.forEach(x=>html+=`<div class="dayname">${x}</div>`);
-  for(let i=0;i<start;i++) html+=`<div></div>`;
-  const md=new Date(y,m+1,0).getDate();
-  for(let i=1;i<=md;i++){
-    const ds=`${y}-${pad(m+1)}-${pad(i)}`;
-    const has=Object.values(allTasks).some(t=>t.time&&t.time.startsWith(ds)&&!t.completed);
-    const today=new Date().toISOString().split('T')[0]===ds, sel=filterDate===ds;
-    html+=`<div class="day ${today?'today':''} ${sel?'sel':''}" onclick="filterByDate('${ds}')">${i}${has?'<div class="dot"></div>':''}</div>`;
+function renderCalendar(id, offset){
+  var el = document.getElementById(id);
+  if(!el) return;
+  var d = new Date(); d.setMonth(d.getMonth()+offset);
+  var y = d.getFullYear(), m = d.getMonth();
+  var first = new Date(y,m,1).getDay();
+  var start = first===0 ? 6 : first-1;
+  var html = '<div class="cal-head">'+months[m]+' '+y+'</div><div class="grid">';
+  days.forEach(function(x){ html += '<div class="dayname">'+x+'</div>'; });
+  for(var i=0;i<start;i++) html += '<div></div>';
+  var md = new Date(y,m+1,0).getDate();
+  for(var i=1;i<=md;i++){
+    var ds = y+'-'+pad(m+1)+'-'+pad(i);
+    var has = Object.values(allTasks).some(function(t){ return t.time && t.time.startsWith(ds) && !t.completed; });
+    var today = new Date().toISOString().split('T')[0] === ds;
+    var sel = filterDate === ds;
+    html += '<div class="day '+(today?'today':'')+' '+(sel?'sel':'')+'" onclick="filterByDate(\''+ds+'\')">'+i+(has?'<div class="dot"></div>':'')+'</div>';
   }
-  html+=`</div>`; el.innerHTML=html;
+  html += '</div>';
+  el.innerHTML = html;
 }
+
+// ===== SYNC =====
 
 function setupSync(){
   if(syncTimer) clearInterval(syncTimer);
-  syncTimer=setInterval(render,parseInt(document.getElementById('syncInt').value,10)*60000);
+  syncTimer = setInterval(render, parseInt(document.getElementById('syncInt').value,10)*60000);
 }
-
 function setCat(c){ filterCat=c; filterDate=null; render(); }
 function clearFilter(){ filterCat='Sve'; filterDate=null; render(); }
 function filterByDate(ds){ filterDate=ds; render(); }
 
+// ===== ZADACI =====
+
 function addTask(){
-  const text=document.getElementById('taskText').value.trim();
-  const time=document.getElementById('taskTime').value;
-  const category=document.getElementById('taskCat').value;
-  const repeat=document.getElementById('taskRepeat').value;
+  var text = document.getElementById('taskText').value.trim();
+  var time = document.getElementById('taskTime').value;
+  var category = document.getElementById('taskCat').value;
+  var repeat = document.getElementById('taskRepeat').value;
   if(!text) return;
-  const payload={text,time,category,repeat,completed:false,createdAt:dateToISO(new Date())};
+  var payload = { text:text, time:time, category:category, repeat:repeat, completed:false, createdAt:dateToISO(new Date()) };
   if(editKey){
-    const data={text,time,category,repeat};
-    if(offlineMode) queueOp('update',{key:editKey,data});
+    var data = { text:text, time:time, category:category, repeat:repeat };
+    if(offlineMode) queueOp('update',{key:editKey,data:data});
     else getDb().child(editKey).update(data);
-    editKey=null; document.getElementById('saveBtn').textContent='💾 Sačuvaj';
-  }else{
+    editKey = null;
+    document.getElementById('saveBtn').textContent = 'Sacuvaj';
+  } else {
     if(offlineMode) queueOp('push',payload);
     else getDb().push(payload);
   }
-  document.getElementById('taskText').value='';
-  document.getElementById('taskTime').value='';
-  document.getElementById('taskRepeat').value='none';
+  document.getElementById('taskText').value = '';
+  document.getElementById('taskTime').value = '';
+  document.getElementById('taskRepeat').value = 'none';
 }
 
 function shiftRepeatTime(t){
   if(!t.time) return '';
-  let nd=new Date(t.time);
+  var nd = new Date(t.time);
   if(t.repeat==='daily') nd.setDate(nd.getDate()+1);
   else if(t.repeat==='weekly') nd.setDate(nd.getDate()+7);
   else if(t.repeat==='monthly') nd.setMonth(nd.getMonth()+1);
   else if(t.repeat==='yearly') nd.setFullYear(nd.getFullYear()+1);
-  else if(t.repeat==='weekdays'){ do{ nd.setDate(nd.getDate()+1); }while([0,6].includes(nd.getDay())); }
+  else if(t.repeat==='weekdays'){ do{ nd.setDate(nd.getDate()+1); } while([0,6].includes(nd.getDay())); }
   return dateToISO(nd);
 }
 
 function toggleComplete(key){
-  const t=allTasks[key]; if(!t) return;
-  if(t.repeat&&t.repeat!=='none'&&t.time){
-    const pushData={text:t.text,category:t.category,time:shiftRepeatTime(t),repeat:t.repeat,completed:false,createdAt:t.createdAt||''};
-    if(offlineMode){ queueOp('push',pushData); queueOp('remove',{key}); }
+  var t = allTasks[key];
+  if(!t) return;
+  if(t.repeat && t.repeat!=='none' && t.time){
+    var pushData = { text:t.text, category:t.category, time:shiftRepeatTime(t), repeat:t.repeat, completed:false, createdAt:t.createdAt||'' };
+    if(offlineMode){ queueOp('push',pushData); queueOp('remove',{key:key}); }
     else{ getDb().push(pushData); getDb().child(key).remove(); }
-  }else{
-    const data=!t.completed?{completed:true,completedAt:dateToISO(new Date())}:{completed:false,completedAt:''};
-    if(offlineMode) queueOp('update',{key,data});
+  } else {
+    var data = !t.completed ? { completed:true, completedAt:dateToISO(new Date()) } : { completed:false, completedAt:'' };
+    if(offlineMode) queueOp('update',{key:key,data:data});
     else getDb().child(key).update(data);
   }
 }
 
 function duplicateTask(key){
-  const t=allTasks[key]; if(!t) return;
-  const data={text:t.text,time:t.time||'',category:t.category||'Razno',repeat:t.repeat||'none',completed:false,createdAt:dateToISO(new Date())};
-  if(offlineMode) queueOp('push',data); else getDb().push(data);
+  var t = allTasks[key];
+  if(!t) return;
+  var data = { text:t.text, time:t.time||'', category:t.category||'Razno', repeat:t.repeat||'none', completed:false, createdAt:dateToISO(new Date()) };
+  if(offlineMode) queueOp('push',data);
+  else getDb().push(data);
 }
 
 function prepareEdit(k){
-  const t=allTasks[k]; if(!t) return;
-  editKey=k;
-  document.getElementById('taskText').value=t.text||'';
-  document.getElementById('taskTime').value=t.time||'';
-  document.getElementById('taskCat').value=t.category||'Razno';
-  document.getElementById('taskRepeat').value=t.repeat||'none';
-  document.getElementById('saveBtn').textContent='✏️ Izmeni';
+  var t = allTasks[k];
+  if(!t) return;
+  editKey = k;
+  document.getElementById('taskText').value = t.text||'';
+  document.getElementById('taskTime').value = t.time||'';
+  document.getElementById('taskCat').value = t.category||'Razno';
+  document.getElementById('taskRepeat').value = t.repeat||'none';
+  document.getElementById('saveBtn').textContent = 'Izmeni';
   document.getElementById('taskText').focus();
 }
 
 function resetAll(){
-  if(confirm('Obrisati sve zadatke?')){ if(offlineMode) queueOp('removeall',{}); else if(getDb()) getDb().remove(); }
+  if(confirm('Obrisati sve zadatke?')){
+    if(offlineMode) queueOp('removeall',{});
+    else if(getDb()) getDb().remove();
+  }
 }
+
 function doSignOut(){
-  if(confirm('Odjaviti se?')){ auth.signOut(); }
+  if(confirm('Odjaviti se?')) auth.signOut();
 }
+
+// ===== SERVICE WORKER =====
 
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator)) return;
-  const swCode=`
-    self.addEventListener('install',e=>self.skipWaiting());
-    self.addEventListener('activate',e=>e.waitUntil(clients.claim()));
-    self.addEventListener('notificationclick',e=>{
-      e.notification.close();
-      e.waitUntil(clients.matchAll({type:'window'}).then(list=>{
-        for(const c of list){ if(c.url&&'focus' in c) return c.focus(); }
-        if(clients.openWindow) return clients.openWindow('/');
-      }));
-    });
-    self.addEventListener('push',e=>{
-      const data=e.data?e.data.json():{};
-      e.waitUntil(self.registration.showNotification(data.title||'Moj Planer',{body:data.body||'',icon:data.icon||'/favicon.ico',tag:data.tag||'mp',renotify:true}));
-    });
-  `;
-  const blob=new Blob([swCode],{type:'application/javascript'});
+  var swCode = "self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(list){for(var i=0;i<list.length;i++){var c=list[i];if(c.url&&'focus' in c)return c.focus();}if(clients.openWindow)return clients.openWindow('/');})  );});self.addEventListener('push',function(e){var data=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(data.title||'Moj Planer',{body:data.body||'',icon:'/favicon.ico',tag:data.tag||'mp',renotify:true}));});";
+  var blob = new Blob([swCode], {type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(blob))
-    .then(()=>console.log('SW registrovan'))
-    .catch(e=>console.warn('SW:',e));
+    .then(function(){ console.log('SW registrovan'); })
+    .catch(function(e){ console.warn('SW greska:', e); });
 }
 
-function render(){
-  initCalendars(); updateOfflineBar(); updateUserLabel();
-  const list=document.getElementById('taskList'); list.innerHTML='';
-  const now=new Date(), q=getSearch();
-  const archBtn=document.getElementById('archiveBtn');
-  if(archBtn) archBtn.textContent=showArchive?'📋 Aktivni':'🗂 Arhiva';
-  document.getElementById('doneInfo').textContent=showArchive?'📦 Prikazana ARHIVA (završeni zadaci)':'';
+// ===== RENDER =====
 
-  let keys=Object.keys(allTasks).filter(k=>{
-    const t=allTasks[k]; if(!t) return false;
-    if(filterCat!=='Sve'&&t.category!==filterCat) return false;
-    if(filterDate&&!(t.time&&t.time.startsWith(filterDate))) return false;
-    if(q&&!(String(t.text||'').toLowerCase().includes(q)||String(t.category||'').toLowerCase().includes(q))) return false;
+function render(){
+  initCalendars();
+  updateOfflineBar();
+  updateUserLabel();
+  var list = document.getElementById('taskList');
+  list.innerHTML = '';
+  var now = new Date();
+  var q = getSearch();
+
+  var archBtn = document.getElementById('archiveBtn');
+  if(archBtn) archBtn.textContent = showArchive ? 'Aktivni' : 'Arhiva';
+  document.getElementById('doneInfo').textContent = showArchive ? 'Prikazana ARHIVA (zavrseni zadaci)' : '';
+
+  var keys = Object.keys(allTasks).filter(function(k){
+    var t = allTasks[k];
+    if(!t) return false;
+    if(filterCat !== 'Sve' && t.category !== filterCat) return false;
+    if(filterDate && !(t.time && t.time.startsWith(filterDate))) return false;
+    if(q && !(String(t.text||'').toLowerCase().includes(q) || String(t.category||'').toLowerCase().includes(q))) return false;
     return true;
   });
 
-  const sortByTime=(a,b)=>{ const ta=allTasks[a].time||'',tb=allTasks[b].time||''; if(!ta&&!tb)return 0; if(!ta)return 1; if(!tb)return -1; return ta.localeCompare(tb); };
-  const sortByCreated=(a,b)=>(allTasks[b].createdAt||'').localeCompare(allTasks[a].createdAt||'');
-  const sortFn=sortMode==='created'?sortByCreated:sortByTime;
+  var sortByTime = function(a,b){
+    var ta=allTasks[a].time||'', tb=allTasks[b].time||'';
+    if(!ta&&!tb)return 0; if(!ta)return 1; if(!tb)return -1;
+    return ta.localeCompare(tb);
+  };
+  var sortByCreated = function(a,b){ return (allTasks[b].createdAt||'').localeCompare(allTasks[a].createdAt||''); };
+  var sortFn = sortMode==='created' ? sortByCreated : sortByTime;
 
   if(showArchive){
-    const done=keys.filter(k=>allTasks[k].completed).sort((a,b)=>(allTasks[b].completedAt||'').localeCompare(allTasks[a].completedAt||''));
-    if(!done.length){ list.innerHTML='<div style="text-align:center;color:#9fb0c7;padding:30px;">Arhiva je prazna.</div>'; return; }
-    done.forEach(k=>{
-      const t=allTasks[k], emoji=catEmoji[t.category]||'';
-      list.innerHTML+=`
-        <div class="task done cat-${t.category}">
-          <div class="task.head"><div>${emoji} ${t.category||'Razno'}</div><div>${t.time?displayDate(t.time):'Bez vremena'}</div></div>
-          ${t.createdAt?`<div class="task.meta">Postavljeno: ${displayDate(t.createdAt)}</div>`:''}
-          ${t.completedAt?`<div class="task.meta">Završeno: ${displayDate(t.completedAt)}</div>`:''}
-          <div class="task text">${t.text||''}</div>
-          <div class="actions">
-            <button class="iconbtn" style="background:#7f8c8d" onclick="toggleComplete('${k}')">↩</button>
-            <button class="iconbtn" style="background:#e74c3c" onclick="getDb().child('${k}').remove()">✕</button>
-          </div>
-        </div>`;
+    var done = keys.filter(function(k){ return allTasks[k].completed; }).sort(function(a,b){
+      return (allTasks[b].completedAt||'').localeCompare(allTasks[a].completedAt||'');
+    });
+    if(!done.length){
+      list.innerHTML = '<div style="text-align:center;color:#9fb0c7;padding:30px;font-size:14px;">Arhiva je prazna.</div>';
+      return;
+    }
+    done.forEach(function(k){
+      var t = allTasks[k];
+      var emoji = catEmoji[t.category]||'';
+      list.innerHTML += '<div class="task done cat-'+t.category+'">' +
+        '<div class="task.head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>' +
+        (t.createdAt?'<div class="task.meta">Postavljeno: '+displayDate(t.createdAt)+'</div>':'') +
+        (t.completedAt?'<div class="task.meta">Zavrseno: '+displayDate(t.completedAt)+'</div>':'') +
+        '<div class="task text">'+(t.text||'')+'</div>' +
+        '<div class="actions">' +
+          '<button class="iconbtn" style="background:#7f8c8d" onclick="toggleComplete(\''+k+'\')">&#x21A9;</button>' +
+          '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()">&#x2715;</button>' +
+        '</div></div>';
     });
     return;
   }
 
-  const active=keys.filter(k=>!allTasks[k].completed).sort((a,b)=>{
-    const aAl=allTasks[a].time&&new Date(allTasks[a].time)<=now;
-    const bAl=allTasks[b].time&&new Date(allTasks[b].time)<=now;
-    if(aAl!==bAl) return aAl?-1:1;
+  var active = keys.filter(function(k){ return !allTasks[k].completed; }).sort(function(a,b){
+    var aAl = allTasks[a].time && new Date(allTasks[a].time) <= now;
+    var bAl = allTasks[b].time && new Date(allTasks[b].time) <= now;
+    if(aAl !== bAl) return aAl ? -1 : 1;
     return sortFn(a,b);
   });
 
-  if(!active.length){ list.innerHTML='<div style="text-align:center;color:#9fb0c7;padding:30px;">Nema aktivnih zadataka.</div>'; }
+  if(!active.length){
+    list.innerHTML = '<div style="text-align:center;color:#9fb0c7;padding:30px;font-size:14px;">Nema aktivnih zadataka.</div>';
+  }
 
-  active.forEach(k=>{
-    const t=allTasks[k];
-    const isAlarm=t.time&&!t.completed&&new Date(t.time)<=now;
-    const emoji=catEmoji[t.category]||'';
-    list.innerHTML+=`
-      <div class="task cat-${t.category} ${isAlarm?'alarm':''}">
-        ${isAlarm?`<div class="alarm-banner">⏰ VREME JE — ${displayDate(t.time)}</div>`:''}
-        <div class="task.head"><div>${emoji} ${t.category||'Razno'}</div><div>${t.repeat&&t.repeat!=='none'?'🔄 ':''}${t.time?displayDate(t.time):'Bez vremena'}</div></div>
-        ${t.createdAt?`<div class="task.meta">Postavljeno: ${displayDate(t.createdAt)}</div>`:''}
-        <div class="task text">${t.text||''}</div>
-        <div class="actions">
-          <button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete('${k}')">✓</button>
-          <button class="iconbtn" style="background:#3498db" onclick="prepareEdit('${k}')">✏️</button>
-          <button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask('${k}')">⎘</button>
-          <button class="iconbtn" style="background:#e74c3c" onclick="getDb().child('${k}').remove()">✕</button>
-        </div>
-      </div>`;
+  active.forEach(function(k){
+    var t = allTasks[k];
+    var isAlarm = t.time && !t.completed && new Date(t.time) <= now;
+    var emoji = catEmoji[t.category]||'';
+    list.innerHTML += '<div class="task cat-'+t.category+' '+(isAlarm?'alarm':'')+'">' +
+      (isAlarm?'<div class="alarm-banner">&#x23F0; VREME JE &mdash; '+displayDate(t.time)+'</div>':'') +
+      '<div class="task.head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.repeat&&t.repeat!=='none'?'&#x1F504; ':'')+( t.time?displayDate(t.time):'Bez vremena')+'</div></div>' +
+      (t.createdAt?'<div class="task.meta">Postavljeno: '+displayDate(t.createdAt)+'</div>':'') +
+      '<div class="task text">'+(t.text||'')+'</div>' +
+      '<div class="actions">' +
+        '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\''+k+'\')">&#x2713;</button>' +
+        '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\''+k+'\')">&#x270F;&#xFE0F;</button>' +
+        '<button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask(\''+k+'\')">&#x2398;</button>' +
+        '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()">&#x2715;</button>' +
+      '</div></div>';
   });
+
   checkAndNotify();
 }
 </script>
