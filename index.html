@@ -69,13 +69,7 @@
     .shared-badge{ display:inline-block; background:rgba(26,188,156,.2); color:#1abc9c; border:1px solid rgba(26,188,156,.4); border-radius:8px; padding:3px 8px; font-size:11px; font-weight:700; margin-bottom:8px; }
     .actions{ display:flex; justify-content:flex-end; gap:8px; border-top:1px solid rgba(255,255,255,.08); padding-top:9px; }
     .iconbtn{ width:36px; height:32px; border:none; border-radius:8px; cursor:pointer; color:#fff; font-weight:800; font-size:14px; }
-    .cat-Kola{border-left-color:#e67e22;border-right-color:#e67e22}
-    .cat-Zdravlje{border-left-color:#e74c3c;border-right-color:#e74c3c}
-    .cat-Kupovina{border-left-color:#27ae60;border-right-color:#27ae60}
-    .cat-Hobi{border-left-color:#9b59b6;border-right-color:#9b59b6}
-    .cat-Dom{border-left-color:#f39c12;border-right-color:#f39c12}
-    .cat-Posao{border-left-color:#2980b9;border-right-color:#2980b9}
-    .cat-Razno{border-left-color:#95a5a6;border-right-color:#95a5a6}
+    /* kategorije se generisu dinamicki iz categoryDefs */
     .mobile-cal{display:none}
     .vis-toggle{ font-size:12px; color:#dbe9ff; margin-top:-4px; margin-bottom:10px; text-align:center; opacity:.9; }
     .offline{ display:none; margin-bottom:8px; background:#8e44ad; color:#fff; text-align:center; padding:8px 10px; border-radius:10px; font-size:12px; font-weight:800; }
@@ -225,10 +219,29 @@ var showArchive = false;
 var offlineMode = !navigator.onLine;
 var localQueue = JSON.parse(localStorage.getItem('mp_queue') || '[]');
 
-var categories = ["Sve","Kola","Zdravlje","Kupovina","Hobi","Dom","Posao","Razno"];
+var categoryDefs = [
+  { name:"Sve",      emoji:"📋", color:"" },
+  { name:"Kola",     emoji:"🚗", color:"#e67e22" },
+  { name:"Zdravlje", emoji:"💊", color:"#e74c3c" },
+  { name:"Kupovina", emoji:"🛒", color:"#27ae60" },
+  { name:"Hobi",     emoji:"🎮", color:"#9b59b6" },
+  { name:"Dom",      emoji:"🏠", color:"#f39c12" },
+  { name:"Posao",    emoji:"💼", color:"#2980b9" },
+  { name:"Razno",    emoji:"📌", color:"#95a5a6" }
+];
+var categories = categoryDefs.map(function(c){ return c.name; });
+var catEmoji = {};
+categoryDefs.forEach(function(c){ catEmoji[c.name] = c.emoji; });
+// Dinamicki generisi CSS klase za kategorije
+(function(){
+  var style = document.createElement('style');
+  style.textContent = categoryDefs.filter(function(c){ return c.color; }).map(function(c){
+    return '.cat-'+c.name+'{border-left-color:'+c.color+';border-right-color:'+c.color+'}';
+  }).join('\n');
+  document.head.appendChild(style);
+})();
 var months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
 var days = ["Po","Ut","Sr","Ce","Pe","Su","Ne"];
-var catEmoji = {"Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","Hobi":"🎮","Dom":"🏠","Posao":"💼","Razno":"📌"};
 
 var auth = firebase.auth();
 
@@ -511,6 +524,7 @@ async function flushQueue(){
     if(op.type==='push') await getDb().push(op.payload);
     if(op.type==='update'&&op.payload.key) await getDb().child(op.payload.key).update(op.payload.data);
     if(op.type==='remove'&&op.payload.key) await getDb().child(op.payload.key).remove();
+    if(op.type==='removeall') await getDb().remove();
   }
 }
 
