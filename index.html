@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="sr">
 <head>
@@ -234,6 +233,13 @@ var catEmoji = {"Sve":"📋","Kola":"🚗","Zdravlje":"💊","Kupovina":"🛒","
 var auth = firebase.auth();
 
 // ===== POMOCNE =====
+function escapeHtml(s){
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
 function pad(n){ return String(n).padStart(2,'0'); }
 function dateToISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes()); }
 function displayDate(iso){
@@ -393,6 +399,7 @@ function shareTask(key){
       updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
       return db.ref().update(updates);
     }).then(function(){
+      getDb().child(key).update({ sharedWith: recipientEmail });
       alert('Zadatak uspesno podeljen sa: '+recipientEmail+'\n\nBice vidljiv kod njih cim osveze aplikaciju.');
     }).catch(function(e){
       alert('Greska pri deljenju: '+e.message);
@@ -667,8 +674,8 @@ function render(){
           '<div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div>'+
         '</div>'+
         '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">🤝 '+parts+'</div>'+
-        (t.createdByEmail?'<div class="task-meta">Kreirao/la: '+t.createdByEmail+'</div>':'')+
-        '<div class="task-text">'+(t.text||'')+'</div>'+
+        (t.createdByEmail?'<div class="task-meta">Kreirao/la: '+escapeHtml(t.createdByEmail)+'</div>':'')+
+        '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
           '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\''+k+'\')" title="'+(t.completed?'Vrati':'Zavrsi')+'">&#10003;</button>'+
           '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\''+k+'\')" title="Izmeni">&#9999;</button>'+
@@ -699,7 +706,7 @@ function render(){
       list.innerHTML+='<div class="task done cat-'+t.category+'">'+
         '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
         (t.completedAt?'<div class="task-meta">Zavrseno: '+displayDate(t.completedAt)+'</div>':'')+
-        '<div class="task-text">'+(t.text||'')+'</div>'+
+        '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
           '<button class="iconbtn" style="background:#7f8c8d" onclick="toggleComplete(\''+k+'\')">&#8617;</button>'+
           '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()">&#x2715;</button>'+
@@ -725,7 +732,8 @@ function render(){
       (isAlarm?'<div class="alarm-banner">&#9200; VREME JE &mdash; '+displayDate(t.time)+'</div>':'')+
       '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.repeat&&t.repeat!=='none'?'🔄 ':'')+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
       (t.createdAt?'<div class="task-meta">Postavljeno: '+displayDate(t.createdAt)+'</div>':'')+
-      '<div class="task-text">'+(t.text||'')+'</div>'+
+      (t.sharedWith?'<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Podeljeno sa: '+escapeHtml(t.sharedWith)+'</div>':'')+
+      '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
       '<div class="actions">'+
         '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\''+k+'\')" title="Zavrsi">&#10003;</button>'+
         '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\''+k+'\')" title="Izmeni">&#9999;</button>'+
@@ -740,3 +748,4 @@ function render(){
 </script>
 </body>
 </html>
+
