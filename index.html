@@ -106,23 +106,22 @@
     <div class="login-box">
       <h2 class="login-title">&#9729;&#65039; Moj Planer</h2>
       <p class="login-sub" id="loginSubtitle">Prijavite se da nastavite</p>
-      <input type="text" id="loginNick" placeholder="Korisnički nadimak (Npr: petar12)" autocomplete="username" />
       <input type="email" id="loginEmail" placeholder="Email adresa" autocomplete="email" />
-      <input type="password" id="loginPass" placeholder="Šifra" autocomplete="current-password" />
-      <input type="password" id="loginPass2" placeholder="Ponovite šifru" autocomplete="new-password" style="display:none" />
+      <input type="password" id="loginPass" placeholder="Sifra" autocomplete="current-password" />
+      <input type="password" id="loginPass2" placeholder="Ponovite sifru" autocomplete="new-password" style="display:none" />
       <div class="login-err" id="loginErr"></div>
       <div class="login-ok" id="loginOk"></div>
       <button class="btn green" id="loginBtn" style="width:100%;padding:13px;font-size:15px;" onclick="doAuth()">Prijavi se</button>
       <div class="login-switch" id="loginToggle">Nemate nalog? <span onclick="toggleAuthMode()">Registrujte se</span></div>
-      <div class="forgot-link" id="forgotLink" onclick="doForgotPassword()">Zaboravili ste šifru?</div>
+      <div class="forgot-link" id="forgotLink" onclick="doForgotPassword()">Zaboravili ste sifru?</div>
     </div>
   </div>
 
   <div id="migrationBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:8888;background:linear-gradient(90deg,#8e44ad,#6c3483);color:#fff;padding:14px 20px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
-    <div style="font-size:14px;font-weight:700;">&#128230; Stari zadaci (<span id="migrationCount">?</span> kom.) &mdash; prebaciti na vaš nalog?</div>
+    <div style="font-size:14px;font-weight:700;">&#128230; Stari zadaci (<span id="migrationCount">?</span> kom.) &mdash; prebaciti na vas nalog?</div>
     <div style="display:flex;gap:8px;">
       <button class="btn green small" onclick="doMigrate()">&#9989; Prebaci</button>
-      <button class="btn gray small" onclick="skipMigrate()">&#9197; Preskoči</button>
+      <button class="btn gray small" onclick="skipMigrate()">&#9197; Preskoce</button>
     </div>
   </div>
 
@@ -140,7 +139,7 @@
       <div class="panel form">
         <div class="form-top">
           <button class="btn red small" onclick="resetAll()">&#9888;&#65039; RESET</button>
-          <h3 class="title">&#9729;&#65039; Moj Planer <span style="font-size:12px;color:#3498db;font-weight:bold;" id="userEmailLabel"></span></h3>
+          <h3 class="title">&#9729;&#65039; Moj Planer <span style="font-size:10px;color:#3498db;font-weight:normal;" id="userEmailLabel"></span></h3>
           <button class="btn gray small" onclick="doSignOut()" style="padding:6px 10px;">&#128682;</button>
           <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px" onchange="setupSync()">
             <option value="1">1 min</option>
@@ -150,18 +149,11 @@
             <option value="60">60 min</option>
           </select>
         </div>
-        
-        <div style="background: rgba(52,152,219,0.08); padding: 8px 12px; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border: 1px dashed rgba(52,152,219,0.3);">
-          <span style="font-size: 12px; color: var(--muted); font-weight: bold; white-space: nowrap;">Izmeni nadimak:</span>
-          <input type="text" id="changeNickInput" placeholder="Novi nadimak" style="padding: 5px 8px; font-size: 12px; border-radius: 6px; height: 28px;" />
-          <button class="btn green small" onclick="changeExistingNickname()" style="padding: 4px 10px; font-size: 12px; border-radius: 6px; height: 28px;">Sačuvaj</button>
-        </div>
-
         <div class="offline" id="offlineBar">Rad bez interneta &mdash; sinhronizacija kasnije.</div>
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
         <div class="vis-toggle" id="doneInfo"></div>
         <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="render()" style="margin-bottom:8px;" />
-        <textarea id="taskText" placeholder="Šta treba uraditi?"></textarea>
+        <textarea id="taskText" placeholder="Sta treba uraditi?"></textarea>
         <div class="input-row">
           <select id="taskCat"></select>
           <input type="datetime-local" id="taskTime" />
@@ -176,7 +168,7 @@
         </div>
         <div class="save-row">
           <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">&#128276; Notifikacije</button>
-          <button class="btn green" id="saveBtn" onclick="addTask()">&#128190; Sačuvaj</button>
+          <button class="btn green" id="saveBtn" onclick="addTask()">&#128190; Sacuvaj</button>
         </div>
       </div>
 
@@ -206,7 +198,6 @@ firebase.initializeApp(firebaseConfig);
 
 var dbRef = null;
 var currentUser = null;
-var userNickname = "";
 var isRegisterMode = false;
 
 var sharedTasksData = {};     
@@ -248,11 +239,10 @@ categoryDefs.forEach(function(c){ catEmoji[c.name] = c.emoji; });
   document.head.appendChild(style);
 })();
 var months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
-var days = ["Po","Ut","Sr","Če","Pe","Su","Ne"];
+var days = ["Po","Ut","Sr","Ce","Pe","Su","Ne"];
 
 var auth = firebase.auth();
 
-// ===== POMOĆNE =====
 function escapeHtml(s){
   return String(s||'')
     .replace(/&/g,'&amp;')
@@ -267,54 +257,10 @@ function displayDate(iso){
   var p=iso.split('T'); var dp=p[0].split('-'); var t=p[1]||'';
   return dp[2]+'.'+dp[1]+'.'+dp[0]+'. '+(t?'u '+t.slice(0,5):'');
 }
-function cleanNick(nick){ return String(nick||'').trim().toLowerCase().replace(/[^a-z0-9_]/g, ''); }
+function emailToKey(email){ return email.replace(/\./g,'_').replace(/@/g,'__'); }
 function getSearch(){ return (document.getElementById('quickSearch').value||'').trim().toLowerCase(); }
 function getDb(){ return dbRef; }
 
-// ===== FUNKCIJA ZA PROMENU NADIMKA KOD POSTOJEĆEG KORISNIKA =====
-function changeExistingNickname(){
-  if(!currentUser){ alert('Morate biti prijavljeni.'); return; }
-  var newNick = cleanNick(document.getElementById('changeNickInput').value);
-  if(!newNick || newNick.length < 3){
-    alert('Nadimak mora imati najmanje 3 karaktera (samo slova i brojevi).');
-    return;
-  }
-  if(newNick === userNickname){
-    alert('Već koristite taj nadimak.');
-    return;
-  }
-
-  // Provera u bazi da li je željeni nadimak zauzet
-  firebase.database().ref('nicknames/' + newNick).once('value', function(snap){
-    if(snap.exists()){
-      alert('Nadimak "' + newNick + '" je već zauzet. Molimo izaberite drugi.');
-    } else {
-      if(confirm('Da li sigurno želite da promenite nadimak u @' + newNick + '?')){
-        var db = firebase.database();
-        var oldNick = userNickname;
-        
-        // 1. Postavi novi nadimak da pokazuje na vaš UID
-        db.ref('nicknames/' + newNick).set(currentUser.uid).then(function(){
-          // 2. Ažuriraj podatak u vašem profilu
-          return db.ref('users/' + currentUser.uid + '/myNickname').set(newNick);
-        }).then(function(){
-          // 3. Obriši stari nadimak iz registra ako je postojao
-          if(oldNick){
-            db.ref('nicknames/' + oldNick).remove();
-          }
-          userNickname = newNick;
-          document.getElementById('changeNickInput').value = '';
-          updateUserLabel();
-          alert('Nadimak uspešno promenjen u: @' + newNick);
-        }).catch(function(err){
-          alert('Greška pri promeni nadimka: ' + err.message);
-        });
-      }
-    }
-  });
-}
-
-// ===== AUTH =====
 function toggleAuthMode(){
   isRegisterMode = !isRegisterMode;
   document.getElementById('loginSubtitle').textContent = isRegisterMode?'Napravite novi nalog':'Prijavite se da nastavite';
@@ -322,7 +268,7 @@ function toggleAuthMode(){
   document.getElementById('loginPass2').style.display = isRegisterMode?'block':'none';
   document.getElementById('forgotLink').style.display = isRegisterMode?'none':'block';
   document.getElementById('loginToggle').innerHTML = isRegisterMode
-    ?'Već imate nalog? <span onclick="toggleAuthMode()">Prijavite se</span>'
+    ?'Vec imate nalog? <span onclick="toggleAuthMode()">Prijavite se</span>'
     :'Nemate nalog? <span onclick="toggleAuthMode()">Registrujte se</span>';
   document.getElementById('loginErr').textContent='';
   document.getElementById('loginOk').textContent='';
@@ -332,28 +278,13 @@ function doAuth(){
   var email=document.getElementById('loginEmail').value.trim();
   var pass=document.getElementById('loginPass').value;
   var pass2=document.getElementById('loginPass2').value;
-  var nick=cleanNick(document.getElementById('loginNick').value);
   var errEl=document.getElementById('loginErr'); var okEl=document.getElementById('loginOk');
   errEl.textContent=''; okEl.textContent='';
-  
-  if(!email||!pass){errEl.textContent='Unesite email i šifru.';return;}
-  
+  if(!email||!pass){errEl.textContent='Unesite email i sifru.';return;}
   if(isRegisterMode){
-    if(!nick || nick.length < 3){errEl.textContent='Nadimak mora imati bar 3 slova/broja.';return;}
-    if(pass.length<6){errEl.textContent='Šifra mora imati najmanje 6 karaktera.';return;}
-    if(pass!==pass2){errEl.textContent='Šifre se ne poklapaju.';return;}
-    
-    firebase.database().ref('nicknames/'+nick).once('value', function(snap){
-      if(snap.exists()){
-        errEl.textContent = 'Nadimak je zauzet. Izaberite drugi.';
-      } else {
-        auth.createUserWithEmailAndPassword(email,pass).then(function(cred){
-          return firebase.database().ref('nicknames/'+nick).set(cred.user.uid).then(function(){
-            return firebase.database().ref('users/'+cred.user.uid+'/myNickname').set(nick);
-          });
-        }).catch(function(e){errEl.textContent=translateAuthError(e.code);});
-      }
-    });
+    if(pass.length<6){errEl.textContent='Sifra mora imati najmanje 6 karaktera.';return;}
+    if(pass!==pass2){errEl.textContent='Sifre se ne poklapaju.';return;}
+    auth.createUserWithEmailAndPassword(email,pass).catch(function(e){errEl.textContent=translateAuthError(e.code);});
   } else {
     auth.signInWithEmailAndPassword(email,pass).catch(function(e){errEl.textContent=translateAuthError(e.code);});
   }
@@ -363,43 +294,30 @@ function doForgotPassword(){
   var email=document.getElementById('loginEmail').value.trim();
   var errEl=document.getElementById('loginErr'); var okEl=document.getElementById('loginOk');
   errEl.textContent=''; okEl.textContent='';
-  if(!email){errEl.textContent='Unesite email pa kliknite "Zaboravili ste šifru?".';return;}
+  if(!email){errEl.textContent='Unesite email pa kliknite "Zaboravili ste sifru?".';return;}
   auth.sendPasswordResetEmail(email)
-    .then(function(){okEl.textContent='Email za reset šifre je poslat!';})
+    .then(function(){okEl.textContent='Email za reset sifre je poslat!';})
     .catch(function(e){errEl.textContent=translateAuthError(e.code);});
 }
 
 function translateAuthError(code){
-  var m={'auth/user-not-found':'Korisnik nije pronađen.','auth/wrong-password':'Pogrešna šifra.',
-    'auth/invalid-email':'Neispravna email adresa.','auth/email-already-in-use':'Email je već u upotrebi.',
-    'auth/too-many-requests':'Previše pokušaja. Pokušajte kasnije.','auth/invalid-credential':'Pogrešan email ili šifra.'};
-  return m[code]||'Greška: '+code;
+  var m={'auth/user-not-found':'Korisnik nije pronadjen.','auth/wrong-password':'Pogresna sifra.',
+    'auth/invalid-email':'Neispravna email adresa.','auth/email-already-in-use':'Email je vec u upotrebi.',
+    'auth/too-many-requests':'Previse pokusaja. Pokusajte kasnije.','auth/invalid-credential':'Pogresan email ili sifra.'};
+  return m[code]||'Greska: '+code;
 }
 
 auth.onAuthStateChanged(function(user){
   if(user){
     currentUser = user;
     document.getElementById('loginOverlay').style.display='none';
-    
-    firebase.database().ref('users/'+user.uid+'/myNickname').once('value', function(sn){
-      if(sn.exists()){
-        userNickname = sn.val();
-        updateUserLabel();
-      } else {
-        var fallbackNick = cleanNick(user.email.split('@')[0]) + Math.floor(100 + Math.random() * 900);
-        firebase.database().ref('nicknames/'+fallbackNick).set(user.uid);
-        firebase.database().ref('users/'+user.uid+'/myNickname').set(fallbackNick);
-        userNickname = fallbackNick;
-        updateUserLabel();
-      }
-    });
-
+    firebase.database().ref('emailToUid/'+emailToKey(user.email)).set(user.uid);
     dbRef = firebase.database().ref('users/'+user.uid+'/tasks');
     dbRef.on('value', function(s){ allTasks=s.val()||{}; render(); });
     setupSharedListeners(user.uid);
     renderCats(); setupSync(); updateNotifBar(); updateOfflineBar(); render(); registerServiceWorker(); checkOldTasks();
   } else {
-    currentUser=null; userNickname="";
+    currentUser=null;
     document.getElementById('loginOverlay').style.display='flex';
     if(dbRef){dbRef.off();dbRef=null;}
     cleanupSharedListeners();
@@ -409,7 +327,6 @@ auth.onAuthStateChanged(function(user){
 
 function doSignOut(){ if(confirm('Odjaviti se?')) auth.signOut(); }
 
-// ===== DELJENI ZADACI =====
 function setupSharedListeners(uid){
   sharedRefsRef = firebase.database().ref('users/'+uid+'/sharedTaskRefs');
   sharedRefsRef.on('value', function(snap){
@@ -445,23 +362,23 @@ function cleanupSharedListeners(){
 
 function shareTask(key){
   var t = allTasks[key]; if(!t) return;
-  var recipientNick = prompt('Unesite NADIMAK osobe kojoj šaljete zadatak:\n\n"'+t.text.slice(0,60)+'"');
-  if(!recipientNick) return;
-  recipientNick = cleanNick(recipientNick);
-  if(recipientNick===userNickname){alert('Ne možete podeliti zadatak sa samim sobom.');return;}
+  var recipientEmail = prompt('Unesite email osobe kojoj zelite da posaljete zadatak:\n\n"'+t.text.slice(0,60)+'"');
+  if(!recipientEmail) return;
+  recipientEmail = recipientEmail.trim().toLowerCase();
+  if(recipientEmail===currentUser.email.toLowerCase()){alert('Ne mozete podeliti zadatak sa samim sobom.');return;}
 
-  firebase.database().ref('nicknames/'+recipientNick).once('value', function(snap){
+  firebase.database().ref('emailToUid/'+emailToKey(recipientEmail)).once('value', function(snap){
     var recipientUid = snap.val();
     if(!recipientUid){
-      alert('Korisnik sa nadimkom "'+recipientNick+'" nije pronađen.');
+      alert('Korisnik "'+recipientEmail+'" nije pronadjen.\n\nMozda se jos nije prijavio u aplikaciju.');
       return;
     }
     var db = firebase.database();
     var newRef = db.ref('sharedTasks').push();
     var newKey = newRef.key;
     var participants = {};
-    participants[currentUser.uid] = userNickname;
-    participants[recipientUid] = recipientNick;
+    participants[currentUser.uid] = currentUser.email;
+    participants[recipientUid] = recipientEmail;
 
     var taskData = {
       text: t.text,
@@ -472,7 +389,7 @@ function shareTask(key){
       createdAt: t.createdAt||dateToISO(new Date()),
       participants: participants,
       createdBy: currentUser.uid,
-      createdByNick: userNickname
+      createdByEmail: currentUser.email
     };
 
     newRef.set(taskData).then(function(){
@@ -481,10 +398,10 @@ function shareTask(key){
       updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
       return db.ref().update(updates);
     }).then(function(){
-      getDb().child(key).update({ sharedWith: recipientNick });
-      alert('Zadatak uspešno podeljen sa nadimkom: '+recipientNick);
+      getDb().child(key).update({ sharedWith: recipientEmail });
+      alert('Zadatak uspesno podeljen sa: '+recipientEmail+'\n\nBice vidljiv kod njih cim osveze aplikaciju.');
     }).catch(function(e){
-      alert('Greška pri deljenju: '+e.message);
+      alert('Greska pri deljenju: '+e.message);
     });
   });
 }
@@ -508,11 +425,10 @@ function editSharedTask(key){
 }
 
 function removeSharedRef(key){
-  if(!confirm('Ukloniti ovaj deljeni zadatak iz vašeg prikaza?')) return;
+  if(!confirm('Ukloniti ovaj deljeni zadatak iz vaseg prikaza?')) return;
   firebase.database().ref('users/'+currentUser.uid+'/sharedTaskRefs/'+key).remove();
 }
 
-// ===== MIGRACIJA =====
 function checkOldTasks(){
   firebase.database().ref('tasks').once('value', function(snap){
     var old=snap.val();
@@ -527,28 +443,27 @@ function doMigrate(){
     var newRef=firebase.database().ref('users/'+currentUser.uid+'/tasks');
     newRef.once('value', function(ns){
       var ec=Object.keys(ns.val()||{}).length, oc=Object.keys(old).length;
-      if(!confirm('Prebaciti '+oc+' starih zadataka?\n\nVeć imate '+ec+' zadataka - biće DODATI.')) return;
+      if(!confirm('Prebaciti '+oc+' starih zadataka?\n\nVec imate '+ec+' zadataka - bice DODATI.')) return;
       var u={}; Object.entries(old).forEach(function(e){u[e[0]]=e[1];});
       newRef.update(u).then(function(){
         firebase.database().ref('tasks').remove();
         document.getElementById('migrationBar').style.display='none';
-        alert('Zadaci su uspešno prebačeni!');
+        alert('Zadaci su uspesno prebaceni!');
       });
     });
   });
 }
 function skipMigrate(){
-  if(confirm('Preskočiti migraciju?')) document.getElementById('migrationBar').style.display='none';
+  if(confirm('Preskociti migraciju?')) document.getElementById('migrationBar').style.display='none';
 }
 
-// ===== NOTIFIKACIJE =====
 function requestNotifPermission(){
   if(!('Notification' in window)) return;
   Notification.requestPermission().then(function(p){updateNotifBar();if(p==='granted')checkAndNotify();});
 }
 function updateUserLabel(){
   var el=document.getElementById('userEmailLabel');
-  if(el && userNickname) el.textContent = "@" + userNickname;
+  if(el&&currentUser) el.textContent=currentUser.email;
 }
 function updateNotifBar(){
   var bar=document.getElementById('notif-bar');
@@ -568,33 +483,18 @@ async function showPushNotification(title,body,tag){
 }
 function checkAndNotify(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
-  var now=new Date(); 
-  var in24h=new Date(now.getTime()+86400000);
-  var in48h=new Date(now.getTime()+172800000);
-
+  var now=new Date(); var in24h=new Date(now.getTime()+86400000);
   Object.keys(allTasks).forEach(function(k){
     var t=allTasks[k];
-    if(t.completed){notifiedTasks.delete(k);notifiedTasks.delete(k+'_s');notifiedTasks.delete(k+'_2d');return;}
+    if(t.completed){notifiedTasks.delete(k);notifiedTasks.delete(k+'_s');return;}
     if(!t.time) return;
     var tt=new Date(t.time);
-    
-    if(!notifiedTasks.has(k)&&tt<=now){
-      notifiedTasks.add(k);
-      showPushNotification('Moj Planer - VREME JE!',(catEmoji[t.category]||'')+' '+t.text,'alarm_'+k);
-    }
-    if(!notifiedTasks.has(k+'_s')&&tt>now&&tt<=in24h){
-      notifiedTasks.add(k+'_s');
-      showPushNotification('Sutra vas čeka zadatak',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'sutra_'+k);
-    }
-    if(!notifiedTasks.has(k+'_2d')&&tt>in24h&&tt<=in48h){
-      notifiedTasks.add(k+'_2d');
-      showPushNotification('Zadatak za 2 dana',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'dva_dana_'+k);
-    }
+    if(!notifiedTasks.has(k)&&tt<=now){notifiedTasks.add(k);showPushNotification('Moj Planer - VREME JE!',(catEmoji[t.category]||'')+' '+t.text,'alarm_'+k);}
+    if(!notifiedTasks.has(k+'_s')&&tt>now&&tt<=in24h){notifiedTasks.add(k+'_s');showPushNotification('Sutra vas ceka zadatak',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'sutra_'+k);}
   });
 }
 setInterval(checkAndNotify,60000);
 
-// ===== OFFLINE =====
 function updateOfflineBar(){document.getElementById('offlineBar').style.display=offlineMode?'block':'none';}
 window.addEventListener('online',async function(){offlineMode=false;updateOfflineBar();await flushQueue();render();});
 window.addEventListener('offline',function(){offlineMode=true;updateOfflineBar();render();});
@@ -611,7 +511,6 @@ async function flushQueue(){
   }
 }
 
-// ===== KATEGORIJE =====
 function renderCats(){
   var isShared = filterCat==='Deljeni';
   var html = categories.map(function(c){
@@ -654,7 +553,6 @@ function setCat(c){ filterCat=c; filterDate=null; showArchive=false; render(); }
 function clearFilter(){ filterCat='Sve'; filterDate=null; showArchive=false; render(); }
 function filterByDate(ds){ filterDate=ds; filterCat='Sve'; render(); }
 
-// ===== ZADACI =====
 function addTask(){
   var text=document.getElementById('taskText').value.trim();
   var time=document.getElementById('taskTime').value;
@@ -665,7 +563,7 @@ function addTask(){
   if(editSharedKey){
     firebase.database().ref('sharedTasks/'+editSharedKey).update({text:text,time:time,category:category,repeat:repeat});
     editSharedKey=null;
-    document.getElementById('saveBtn').textContent='💾 Sačuvaj';
+    document.getElementById('saveBtn').textContent='💾 Sacuvaj';
     document.getElementById('taskText').value='';
     document.getElementById('taskTime').value='';
     document.getElementById('taskRepeat').value='none';
@@ -676,7 +574,7 @@ function addTask(){
   if(editKey){
     var data={text:text,time:time,category:category,repeat:repeat};
     if(offlineMode) queueOp('update',{key:editKey,data:data}); else getDb().child(editKey).update(data);
-    editKey=null; document.getElementById('saveBtn').textContent='💾 Sačuvaj';
+    editKey=null; document.getElementById('saveBtn').textContent='💾 Sacuvaj';
   } else {
     if(offlineMode) queueOp('push',payload); else getDb().push(payload);
   }
@@ -744,20 +642,20 @@ function render(){
   var now=new Date(); var q=getSearch();
   var archBtn=document.getElementById('archiveBtn');
   if(archBtn) archBtn.textContent=showArchive?'📋 Aktivni':'🗂 Arhiva';
-  document.getElementById('doneInfo').textContent=showArchive?'📦 Prikazana ARHIVA (završeni zadaci)':'';
+  document.getElementById('doneInfo').textContent=showArchive?'📦 Prikazana ARHIVA (zavrseni zadaci)':'';
 
   if(filterCat==='Deljeni'){
     var sharedKeys=Object.keys(sharedTasksData);
-    list.innerHTML='<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim učesnicima odmah</div></div></div>';
+    list.innerHTML='<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim ucesnicima odmah</div></div></div>';
     if(!sharedKeys.length){
-      list.innerHTML+='<div style="text-align:center;color:#9fb0c7;padding:30px;">Nemate deljenih zadataka.<br><br>Koristite dugme &#128228; na zadatku da ga podelite preko nadimka.</div>';
+      list.innerHTML+='<div style="text-align:center;color:#9fb0c7;padding:30px;">Nemate deljenih zadataka.<br><br>Koristite dugme &#128228; na zadatku da ga podelite.</div>';
       return;
     }
     sharedKeys.forEach(function(k){
       var t=sharedTasksData[k]; if(!t) return;
       var emoji=catEmoji[t.category]||'📌';
       var isAlarm=t.time&&!t.completed&&new Date(t.time)<=now;
-      var parts=t.participants?Object.values(t.participants).map(p => "@"+p).join(' i '):'';
+      var parts=t.participants?Object.values(t.participants).join(' i '):'';
       list.innerHTML+='<div class="task shared-task cat-'+t.category+' '+(t.completed?'done':'')+' '+(isAlarm?'alarm':'')+'">' +
         (isAlarm?'<div class="alarm-banner">&#9200; VREME JE &mdash; '+displayDate(t.time)+'</div>':'')+
         '<div class="task-head">'+
@@ -765,10 +663,10 @@ function render(){
           '<div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div>'+
         '</div>'+
         '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">🤝 '+parts+'</div>'+
-        (t.createdByNick?'<div class="task-meta">Kreirao/la: @'+escapeHtml(t.createdByNick)+'</div>':'')+
+        (t.createdByEmail?'<div class="task-meta">Kreirao/la: '+escapeHtml(t.createdByEmail)+'</div>':'')+
         '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
-          '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\''+k+'\')" title="'+(t.completed?'Vrati':'Završi')+'">&#10003;</button>'+
+          '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\''+k+'\')" title="'+(t.completed?'Vrati':'Zavrsi')+'">&#10003;</button>'+
           '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\''+k+'\')" title="Izmeni">&#9999;</button>'+
           '<button class="iconbtn" style="background:#e74c3c" onclick="removeSharedRef(\''+k+'\')" title="Ukloni">&#x2715;</button>'+
         '</div></div>';
@@ -795,7 +693,7 @@ function render(){
       var t=allTasks[k]; var emoji=catEmoji[t.category]||'';
       list.innerHTML+='<div class="task done cat-'+t.category+'">'+
         '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
-        (t.completedAt?'<div class="task-meta">Završeno: '+displayDate(t.completedAt)+'</div>':'')+
+        (t.completedAt?'<div class="task-meta">Zavrseno: '+displayDate(t.completedAt)+'</div>':'')+
         '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
           '<button class="iconbtn" style="background:#7f8c8d" onclick="toggleComplete(\''+k+'\')">&#8617;</button>'+
@@ -822,14 +720,14 @@ function render(){
       (isAlarm?'<div class="alarm-banner">&#9200; VREME JE &mdash; '+displayDate(t.time)+'</div>':'')+
       '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.repeat&&t.repeat!=='none'?'🔄 ':'')+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
       (t.createdAt?'<div class="task-meta">Postavljeno: '+displayDate(t.createdAt)+'</div>':'')+
-      (t.sharedWith?'<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Podeljeno sa: @'+escapeHtml(t.sharedWith)+'</div>':'')+
+      (t.sharedWith?'<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Podeljeno sa: '+escapeHtml(t.sharedWith)+'</div>':'')+
       '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
       '<div class="actions">'+
-        '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\''+k+'\')" title="Završi">&#10003;</button>'+
+        '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\''+k+'\')" title="Zavrsi">&#10003;</button>'+
         '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\''+k+'\')" title="Izmeni">&#9999;</button>'+
         '<button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask(\''+k+'\')" title="Kopiraj">&#9014;</button>'+
-        '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\''+k+'\')" title="Podeli sa nekim via Nickname">&#128228;</button>'+
-        '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()" title="Obriši">&#x2715;</button>'+
+        '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\''+k+'\')" title="Podeli sa nekim">&#128228;</button>'+
+        '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()" title="Obrisi">&#x2715;</button>'+
       '</div></div>';
   });
 
