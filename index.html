@@ -318,6 +318,7 @@ auth.onAuthStateChanged(function(user){
     currentUser = user;
     document.getElementById('loginOverlay').style.display='none';
     firebase.database().ref('emailToUid/'+emailToKey(user.email)).set(user.uid);
+    firebase.database().ref('users/'+user.uid+'/email').set(user.email); // Pamti email u profilu korisnika
     
     // Slusanje nadimka
     firebase.database().ref('users/'+user.uid+'/nickname').on('value', function(snap){
@@ -385,52 +386,84 @@ function cleanupSharedListeners(){
 
 function shareTask(key){
   var t = allTasks[key]; if(!t) return;
-  var recipientEmail = prompt('Unesite email osobe kojoj zelite da posaljete zadatak:\n\n"'+t.text.slice(0,60)+'"');
-  if(!recipientEmail) return;
-  recipientEmail = recipientEmail.trim().toLowerCase();
-  if(recipientEmail===currentUser.email.toLowerCase()){alert('Ne mozete podeliti zadatak sa samim sobom.');return;}
-
-  firebase.database().ref('emailToUid/'+emailToKey(recipientEmail)).once('value', function(snap){
+  var userInput = prompt('Unesite EMAIL ili NADIMAK osobe kojoj zelite da posaljete zadatak:\n\n"'+t.text.slice(0,60)+'"');
+  if(!userInput) return;
+  userInput = userInput.trim();
+  
+  var lookupKey = emailToKey(userInput.toLowerCase());
+  var db = firebase.database();
+  
+  // 1. Pokusaj pronalaska preko email adrese
+  db.ref('emailToUid/' + lookupKey).once('value', function(snap){
     var recipientUid = snap.val();
-    if(!recipientUid){
-      alert('Korisnik "'+recipientEmail+'" nije pronadjen.\n\nMozda se jos nije prijavio u aplikaciju.');
-      return;
+    
+    if(recipientUid){
+      executeSharing(key, t, recipientUid, userInput.toLowerCase());
+    } else {
+      // 2. Ako ne postoji email kljuc, pretrazujemo bazu korisnika po nadimku
+      db.ref('users').once('value', function(usersSnap){
+        var foundUid = null;
+        var foundEmail = null;
+        var searchNick = userInput.toLowerCase();
+        
+        usersSnap.forEach(function(userChild){
+          var userData = userChild.val();
+          if(userData && userData.nickname && userData.nickname.toLowerCase() === searchNick){
+            foundUid = userChild.key;
+            foundEmail = userData.email || ""; 
+          }
+        });
+        
+        if(foundUid){
+          executeSharing(key, t, foundUid, foundEmail || userInput);
+        } else {
+          alert('Korisnik sa emailom ili nadimkom "'+userInput+'" nije pronadjen.\n\nProverite velika/mala slova ili da li se korisnik uopste registrovao.');
+        }
+      });
     }
-    var db = firebase.database();
-    var newRef = db.ref('sharedTasks').push();
-    var newKey = newRef.key;
-    var participants = {};
-    participants[currentUser.uid] = currentNickname ? currentNickname + ' ('+currentUser.email+')' : currentUser.email;
-    participants[recipientUid] = recipientEmail;
+  });
+}
 
-    var taskData = {
-      text: t.text,
-      category: t.category||'Razno',
-      time: t.time||'',
-      repeat: t.repeat||'none',
-      completed: false,
-      createdAt: t.createdAt||dateToISO(new Date()),
-      participants: participants,
-      createdBy: currentUser.uid,
-      createdByEmail: currentUser.email,
-      createdByNickname: currentNickname
-    };
+function executeSharing(key, taskObj, recipientUid, recipientEmailOrNick) {
+  if(recipientUid === currentUser.uid){
+    alert('Ne mozete podeliti zadatak sa samim sobom.');
+    return;
+  }
+  
+  var db = firebase.database();
+  var newRef = db.ref('sharedTasks').push();
+  var newKey = newRef.key;
+  var participants = {};
+  participants[currentUser.uid] = currentNickname ? currentNickname + ' ('+currentUser.email+')' : currentUser.email;
+  participants[recipientUid] = recipientEmailOrNick;
 
-    newRef.set(taskData).then(function(){
-      var updates = {};
-      updates['users/'+currentUser.uid+'/sharedTaskRefs/'+newKey] = true;
-      updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
-      return db.ref().update(updates);
-    }).then(function(){
-      if (offlineMode) {
-        queueOp('update', { key: key, data: { sharedWith: recipientEmail } });
-      } else {
-        getDb().child(key).update({ sharedWith: recipientEmail });
-      }
-      alert('Zadatak uspesno podeljen sa: '+recipientEmail);
-    }).catch(function(e){
-      alert('Greska pri deljenju: '+e.message);
-    });
+  var taskData = {
+    text: taskObj.text,
+    category: taskObj.category||'Razno',
+    time: taskObj.time||'',
+    repeat: taskObj.repeat||'none',
+    completed: false,
+    createdAt: taskObj.createdAt||dateToISO(new Date()),
+    participants: participants,
+    createdBy: currentUser.uid,
+    createdByEmail: currentUser.email,
+    createdByNickname: currentNickname
+  };
+
+  newRef.set(taskData).then(function(){
+    var updates = {};
+    updates['users/'+currentUser.uid+'/sharedTaskRefs/'+newKey] = true;
+    updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
+    return db.ref().update(updates);
+  }).then(function(){
+    if (offlineMode) {
+      queueOp('update', { key: key, data: { sharedWith: recipientEmailOrNick } });
+    } else {
+      getDb().child(key).update({ sharedWith: recipientEmailOrNick });
+    }
+    alert('Zadatak uspesno podeljen sa: ' + recipientEmailOrNick);
+  }).catch(function(e){
+    alert('Greska pri deljenju: ' + e.message);
   });
 }
 
@@ -452,7 +485,6 @@ function editSharedTask(key){
   document.getElementById('taskText').focus();
 }
 
-// Uklanjanje reference za deljeni zadatak
 function removeSharedRef(key){
   if(!confirm('Ukloniti ovaj deljeni zadatak iz vaseg prikaza?')) return;
   firebase.database().ref('users/'+currentUser.uid+'/sharedTaskRefs/'+key).remove();
@@ -477,7 +509,7 @@ function doMigrate(){
       newRef.update(u).then(function(){
         firebase.database().ref('tasks').remove();
         document.getElementById('migrationBar').style.display='none';
-        alert('Zadaci su uspesno prebaceni!');
+        alert('Zaci su uspesno prebaceni!');
       });
     });
   });
@@ -513,7 +545,6 @@ async function showPushNotification(title,body,tag){
   try{new Notification(title,opts);}catch(e){}
 }
 
-// TROSTEPENA LOGIKA ALARMA (2 dana ranije, 1 dan ranije, vreme je)
 function checkAndNotify(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
   var now=new Date(); 
@@ -531,19 +562,16 @@ function checkAndNotify(){
     if(!t.time) return;
     var tt=new Date(t.time);
     
-    // 1. Doslo je vreme za zadatak
     if(!notifiedTasks.has(k)&&tt<=now){
       notifiedTasks.add(k);
       showPushNotification('Moj Planer - VREME JE!',(catEmoji[t.category]||'')+' '+t.text,'alarm_'+k);
     }
     
-    // 2. Sutra (1 dan ranije)
     if(!notifiedTasks.has(k+'_s')&&tt>now&&tt<=in24h){
       notifiedTasks.add(k+'_s');
       showPushNotification('Sutra vas ceka zadatak',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'sutra_'+k);
     }
 
-    // 3. Za 2 dana
     if(!notifiedTasks.has(k+'_2d')&&tt>in24h&&tt<=in48h){
       notifiedTasks.add(k+'_2d');
       showPushNotification('Za 2 dana vas ceka zadatak',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'dva_dana_'+k);
@@ -698,7 +726,7 @@ function removeTask(k){
 
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator)) return;
-  var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<llength;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
+  var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<l.length;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
   var blob=new Blob([sw],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(e){console.warn('SW:',e);});
 }
