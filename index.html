@@ -141,7 +141,7 @@
           <button class="btn red small" onclick="resetAll()">&#9888;&#65039; RESET</button>
           <h3 class="title">&#9729;&#65039; Moj Planer <span style="font-size:10px;color:#3498db;font-weight:normal;" id="userEmailLabel"></span></h3>
           <button class="btn gray small" onclick="doSignOut()" style="padding:6px 10px;">&#128682;</button>
-          <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px">
+          <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px" onchange="setupSync()">
             <option value="1">1 min</option>
             <option value="5" selected>5 min</option>
             <option value="15">15 min</option>
@@ -149,10 +149,10 @@
             <option value="60">60 min</option>
           </select>
         </div>
-        <div class="offline" id="offlineBar">Rad bez interneta &mdash; lokalno keširano.</div>
+        <div class="offline" id="offlineBar">Rad bez interneta &mdash; sinhronizacija kasnije.</div>
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
         <div class="vis-toggle" id="doneInfo"></div>
-        <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." style="margin-bottom:8px;" />
+        <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="render()" style="margin-bottom:8px;" />
         <textarea id="taskText" placeholder="Sta treba uraditi?"></textarea>
         <div class="input-row">
           <select id="taskCat"></select>
@@ -174,9 +174,9 @@
 
       <div class="panel section" style="padding:14px 14px 6px;">
         <div class="toolbar">
-          <button class="btn blue" id="sortByTimeBtn">&#9201; Po vremenu</button>
-          <button class="btn blue" id="sortByCreatedBtn">&#127381; Novo prvo</button>
-          <button class="btn gray" id="archiveBtn">&#128450; Arhiva</button>
+          <button class="btn blue" onclick="sortMode='time';render()">&#9201; Po vremenu</button>
+          <button class="btn blue" onclick="sortMode='created';render()">&#127381; Novo prvo</button>
+          <button class="btn gray" id="archiveBtn" onclick="showArchive=!showArchive;render()">&#128450; Arhiva</button>
         </div>
       </div>
 
@@ -196,17 +196,14 @@ var firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
-// UKLJUČIVANJE NATIVNE OFFLINE PERZISTENCIJE
-firebase.database().enablePersistence().catch(function(err) {
-    console.warn("Firebase persistence error:", err.code);
-});
-
 var dbRef = null;
 var currentUser = null;
 var isRegisterMode = false;
 
 var sharedTasksData = {};     
+var sharedTaskListeners = {}; 
 var sharedRefsRef = null;
+
 var allTasks = {};
 
 var filterCat = "Sve";
@@ -217,6 +214,8 @@ var syncTimer = null;
 var notifiedTasks = new Set();
 var sortMode = 'time';
 var showArchive = false;
+var offlineMode = !navigator.onLine;
+var localQueue = JSON.parse(localStorage.getItem('mp_queue') || '[]');
 
 var categoryDefs = [
   { name:"Sve",      emoji:"📋", color:"" },
@@ -239,13 +238,11 @@ categoryDefs.forEach(function(c){ catEmoji[c.name] = c.emoji; });
   }).join('\n');
   document.head.appendChild(style);
 })();
-
 var months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
 var days = ["Po","Ut","Sr","Ce","Pe","Su","Ne"];
 
 var auth = firebase.auth();
 
-// ===== POMOCNE =====
 function escapeHtml(s){
   return String(s||'')
     .replace(/&/g,'&amp;')
@@ -264,7 +261,6 @@ function emailToKey(email){ return email.replace(/\./g,'_').replace(/@/g,'__'); 
 function getSearch(){ return (document.getElementById('quickSearch').value||'').trim().toLowerCase(); }
 function getDb(){ return dbRef; }
 
-// ===== AUTH =====
 function toggleAuthMode(){
   isRegisterMode = !isRegisterMode;
   document.getElementById('loginSubtitle').textContent = isRegisterMode?'Napravite novi nalog':'Prijavite se da nastavite';
@@ -317,20 +313,9 @@ auth.onAuthStateChanged(function(user){
     document.getElementById('loginOverlay').style.display='none';
     firebase.database().ref('emailToUid/'+emailToKey(user.email)).set(user.uid);
     dbRef = firebase.database().ref('users/'+user.uid+'/tasks');
-    
-    dbRef.on('value', function(s){ 
-      allTasks=s.val()||{}; 
-      renderCalendars();
-      renderTaskList(); 
-    });
-    
+    dbRef.on('value', function(s){ allTasks=s.val()||{}; render(); });
     setupSharedListeners(user.uid);
-    renderCats(); 
-    setupSync(); 
-    updateNotifBar(); 
-    updateOfflineBar();
-    registerServiceWorker(); 
-    checkOldTasks();
+    renderCats(); setupSync(); updateNotifBar(); updateOfflineBar(); render(); registerServiceWorker(); checkOldTasks();
   } else {
     currentUser=null;
     document.getElementById('loginOverlay').style.display='flex';
@@ -342,25 +327,36 @@ auth.onAuthStateChanged(function(user){
 
 function doSignOut(){ if(confirm('Odjaviti se?')) auth.signOut(); }
 
-// ===== UNAPREĐENI DELJENI ZADACI — JEDAN EFIKASAN SLUŠALAC =====
 function setupSharedListeners(uid){
-  sharedRefsRef = firebase.database().ref('sharedTasks');
-  sharedRefsRef.on('value', function(snap) {
-    var totalShared = snap.val() || {};
-    sharedTasksData = {};
-    Object.keys(totalShared).forEach(function(k) {
-       var task = totalShared[k];
-       if(task && task.participants && task.participants[uid]) {
-           sharedTasksData[k] = task;
-       }
+  sharedRefsRef = firebase.database().ref('users/'+uid+'/sharedTaskRefs');
+  sharedRefsRef.on('value', function(snap){
+    var refs = snap.val() || {};
+    Object.keys(sharedTaskListeners).forEach(function(k){
+      if(!refs[k]){
+        sharedTaskListeners[k].off();
+        delete sharedTaskListeners[k];
+        delete sharedTasksData[k];
+      }
     });
-    renderCats();
-    renderTaskList();
+    Object.keys(refs).forEach(function(k){
+      if(!sharedTaskListeners[k]){
+        var ref = firebase.database().ref('sharedTasks/'+k);
+        ref.on('value', function(s){
+          if(s.val()) sharedTasksData[k]=s.val();
+          else { delete sharedTasksData[k]; }
+          render();
+        });
+        sharedTaskListeners[k] = ref;
+      }
+    });
+    render();
   });
 }
 
 function cleanupSharedListeners(){
   if(sharedRefsRef){sharedRefsRef.off();sharedRefsRef=null;}
+  Object.keys(sharedTaskListeners).forEach(function(k){ sharedTaskListeners[k].off(); });
+  sharedTaskListeners={};
   sharedTasksData={};
 }
 
@@ -397,8 +393,13 @@ function shareTask(key){
     };
 
     newRef.set(taskData).then(function(){
+      var updates = {};
+      updates['users/'+currentUser.uid+'/sharedTaskRefs/'+newKey] = true;
+      updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
+      return db.ref().update(updates);
+    }).then(function(){
       getDb().child(key).update({ sharedWith: recipientEmail });
-      alert('Zadatak uspesno podeljen sa: '+recipientEmail);
+      alert('Zadatak uspesno podeljen sa: '+recipientEmail+'\n\nBice vidljiv kod njih cim osveze aplikaciju.');
     }).catch(function(e){
       alert('Greska pri deljenju: '+e.message);
     });
@@ -424,11 +425,10 @@ function editSharedTask(key){
 }
 
 function removeSharedRef(key){
-  if(!confirm('Ukloniti ovaj deljeni zadatak za sve ucesnike?')) return;
-  firebase.database().ref('sharedTasks/'+key).remove();
+  if(!confirm('Ukloniti ovaj deljeni zadatak iz vaseg prikaza?')) return;
+  firebase.database().ref('users/'+currentUser.uid+'/sharedTaskRefs/'+key).remove();
 }
 
-// ===== MIGRACIJA =====
 function checkOldTasks(){
   firebase.database().ref('tasks').once('value', function(snap){
     var old=snap.val();
@@ -448,7 +448,7 @@ function doMigrate(){
       newRef.update(u).then(function(){
         firebase.database().ref('tasks').remove();
         document.getElementById('migrationBar').style.display='none';
-        alert('Zadaci su uspesno prebaceni!');
+        alert('Zaci su uspesno prebaceni!');
       });
     });
   });
@@ -457,7 +457,6 @@ function skipMigrate(){
   if(confirm('Preskociti migraciju?')) document.getElementById('migrationBar').style.display='none';
 }
 
-// ===== NOTIFIKACIJE =====
 function requestNotifPermission(){
   if(!('Notification' in window)) return;
   Notification.requestPermission().then(function(p){updateNotifBar();if(p==='granted')checkAndNotify();});
@@ -496,14 +495,22 @@ function checkAndNotify(){
 }
 setInterval(checkAndNotify,60000);
 
-// ===== DETEKCIJA MREŽE =====
-function updateOfflineBar(){
-  document.getElementById('offlineBar').style.display = navigator.onLine ? 'none' : 'block';
+function updateOfflineBar(){document.getElementById('offlineBar').style.display=offlineMode?'block':'none';}
+window.addEventListener('online',async function(){offlineMode=false;updateOfflineBar();await flushQueue();render();});
+window.addEventListener('offline',function(){offlineMode=true;updateOfflineBar();render();});
+function queueOp(type,payload){localQueue.push({type:type,payload:payload});localStorage.setItem('mp_queue',JSON.stringify(localQueue));}
+async function flushQueue(){
+  if(!navigator.onLine||!localQueue.length) return;
+  var q=localQueue.slice();localQueue=[];localStorage.removeItem('mp_queue');
+  for(var i=0;i<q.length;i++){
+    var op=q[i];
+    if(op.type==='push') await getDb().push(op.payload);
+    if(op.type==='update'&&op.payload.key) await getDb().child(op.payload.key).update(op.payload.data);
+    if(op.type==='remove'&&op.payload.key) await getDb().child(op.payload.key).remove();
+    if(op.type==='removeall') await getDb().remove();
+  }
 }
-window.addEventListener('online', function(){ updateOfflineBar(); renderTaskList(); });
-window.addEventListener('offline', function(){ updateOfflineBar(); renderTaskList(); });
 
-// ===== KATEGORIJE (RAZDVOJENI RENDER) =====
 function renderCats(){
   var isShared = filterCat==='Deljeni';
   var html = categories.map(function(c){
@@ -519,7 +526,6 @@ function renderCats(){
   }).join('');
 }
 
-// ===== KALENDARI (RAZDVOJENI RENDER) =====
 function initCalendars(){ renderCalendar('cal1',0); renderCalendar('cal2',1); renderCalendar('cal2m',1); }
 function renderCalendar(id,offset){
   var el=document.getElementById(id); if(!el) return;
@@ -539,22 +545,14 @@ function renderCalendar(id,offset){
   html+='</div>'; el.innerHTML=html;
 }
 
-function renderCalendars() {
-  initCalendars();
-  updateUserLabel();
-}
-
 function setupSync(){
   if(syncTimer) clearInterval(syncTimer);
-  syncTimer=setInterval(renderTaskList,parseInt(document.getElementById('syncInt').value,10)*60000);
+  syncTimer=setInterval(render,parseInt(document.getElementById('syncInt').value,10)*60000);
 }
-document.getElementById('syncInt').addEventListener('change', setupSync);
+function setCat(c){ filterCat=c; filterDate=null; showArchive=false; render(); }
+function clearFilter(){ filterCat='Sve'; filterDate=null; showArchive=false; render(); }
+function filterByDate(ds){ filterDate=ds; filterCat='Sve'; render(); }
 
-function setCat(c){ filterCat=c; filterDate=null; showArchive=false; renderCats(); renderTaskList(); }
-function clearFilter(){ filterCat='Sve'; filterDate=null; showArchive=false; renderCats(); renderTaskList(); }
-function filterByDate(ds){ filterDate=ds; filterCat='Sve'; renderCats(); renderTaskList(); }
-
-// ===== ZADACI =====
 function addTask(){
   var text=document.getElementById('taskText').value.trim();
   var time=document.getElementById('taskTime').value;
@@ -575,10 +573,10 @@ function addTask(){
   var payload={text:text,time:time,category:category,repeat:repeat,completed:false,createdAt:dateToISO(new Date())};
   if(editKey){
     var data={text:text,time:time,category:category,repeat:repeat};
-    getDb().child(editKey).update(data);
+    if(offlineMode) queueOp('update',{key:editKey,data:data}); else getDb().child(editKey).update(data);
     editKey=null; document.getElementById('saveBtn').textContent='💾 Sacuvaj';
   } else {
-    getDb().push(payload);
+    if(offlineMode) queueOp('push',payload); else getDb().push(payload);
   }
   document.getElementById('taskText').value='';
   document.getElementById('taskTime').value='';
@@ -600,17 +598,18 @@ function toggleComplete(key){
   var t=allTasks[key]; if(!t) return;
   if(t.repeat&&t.repeat!=='none'&&t.time){
     var pd={text:t.text,category:t.category,time:shiftRepeatTime(t),repeat:t.repeat,completed:false,createdAt:t.createdAt||''};
-    getDb().push(pd);getDb().child(key).remove();
+    if(offlineMode){queueOp('push',pd);queueOp('remove',{key:key});}
+    else{getDb().push(pd);getDb().child(key).remove();}
   } else {
     var data=!t.completed?{completed:true,completedAt:dateToISO(new Date())}:{completed:false,completedAt:''};
-    getDb().child(key).update(data);
+    if(offlineMode) queueOp('update',{key:key,data:data}); else getDb().child(key).update(data);
   }
 }
 
 function duplicateTask(key){
   var t=allTasks[key]; if(!t) return;
   var data={text:t.text,time:t.time||'',category:t.category||'Razno',repeat:t.repeat||'none',completed:false,createdAt:dateToISO(new Date())};
-  getDb().push(data);
+  if(offlineMode) queueOp('push',data); else getDb().push(data);
 }
 
 function prepareEdit(k){
@@ -626,11 +625,10 @@ function prepareEdit(k){
 
 function resetAll(){
   if(confirm('Obrisati sve sopstvene zadatke?')){
-     if(getDb()) getDb().remove();
+    if(offlineMode) queueOp('removeall',{}); else if(getDb()) getDb().remove();
   }
 }
 
-// ===== SERVICE WORKER =====
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator)) return;
   var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<l.length;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
@@ -638,15 +636,14 @@ function registerServiceWorker(){
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(e){console.warn('SW:',e);});
 }
 
-// ===== OPTIMIZOVANI RENDER LISTE (RAZDVOJEN) =====
-function renderTaskList(){
+function render(){
+  initCalendars(); updateOfflineBar(); updateUserLabel(); renderCats();
   var list=document.getElementById('taskList'); list.innerHTML='';
   var now=new Date(); var q=getSearch();
   var archBtn=document.getElementById('archiveBtn');
   if(archBtn) archBtn.textContent=showArchive?'📋 Aktivni':'🗂 Arhiva';
   document.getElementById('doneInfo').textContent=showArchive?'📦 Prikazana ARHIVA (zavrseni zadaci)':'';
 
-  // ===== DELJENI ZADACI =====
   if(filterCat==='Deljeni'){
     var sharedKeys=Object.keys(sharedTasksData);
     list.innerHTML='<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim ucesnicima odmah</div></div></div>';
@@ -677,7 +674,6 @@ function renderTaskList(){
     return;
   }
 
-  // ===== SOPSTVENI ZADACI =====
   var keys=Object.keys(allTasks).filter(function(k){
     var t=allTasks[k]; if(!t) return false;
     if(filterCat!=='Sve'&&t.category!==filterCat) return false;
@@ -701,49 +697,5 @@ function renderTaskList(){
         '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
           '<button class="iconbtn" style="background:#7f8c8d" onclick="toggleComplete(\''+k+'\')">&#8617;</button>'+
-          '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()">&#x2715;</button>'+
-        '</div></div>';
-    });
-    return;
-  }
-
-  var active=keys.filter(function(k){return !allTasks[k].completed;}).sort(function(a,b){
-    var aAl=allTasks[a].time&&new Date(allTasks[a].time)<=now;
-    var bAl=allTasks[b].time&&new Date(allTasks[b].time)<=now;
-    if(aAl!==bAl)return aAl?-1:1;
-    return sortFn(a,b);
-  });
-
-  if(!active.length){list.innerHTML='<div style="text-align:center;color:#9fb0c7;padding:30px;">Nema aktivnih zadataka.</div>';}
-
-  active.forEach(function(k){
-    var t=allTasks[k];
-    var isAlarm=t.time&&!t.completed&&new Date(t.time)<=now;
-    var emoji=catEmoji[t.category]||'';
-    list.innerHTML+='<div class="task cat-'+t.category+' '+(isAlarm?'alarm':'')+'">' +
-      (isAlarm?'<div class="alarm-banner">&#9200; VREME JE &mdash; '+displayDate(t.time)+'</div>':'')+
-      '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.repeat&&t.repeat!=='none'?'🔄 ':'')+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
-      (t.createdAt?'<div class="task-meta">Postavljeno: '+displayDate(t.createdAt)+'</div>':'')+
-      (t.sharedWith?'<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Podeljeno sa: '+escapeHtml(t.sharedWith)+'</div>':'')+
-      '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
-      '<div class="actions">'+
-        '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\''+k+'\')" title="Zavrsi">&#10003;</button>'+
-        '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\''+k+'\')" title="Izmeni">&#9999;</button>'+
-        '<button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask(\''+k+'\')" title="Kopiraj">&#9014;</button>'+
-        '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\''+k+'\')" title="Podeli sa nekim">&#128228;</button>'+
-        '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()" title="Obrisi">&#x2715;</button>'+
-      '</div></div>';
-  });
-
-  checkAndNotify();
-}
-
-// VEZIVANJE EVENT LISTENERA DIRETKNO KROZ JS (ČIŠĆI KOD)
-document.getElementById('quickSearch').addEventListener('input', renderTaskList);
-document.getElementById('sortByTimeBtn').addEventListener('click', function() { sortMode='time'; renderTaskList(); });
-document.getElementById('sortByCreatedBtn').addEventListener('click', function() { sortMode='created'; renderTaskList(); });
-document.getElementById('archiveBtn').addEventListener('click', function() { showArchive=!showArchive; renderTaskList(); });
-</script>
-</body>
-</html>
+          '<button class="iconbtn" style="background:#e74c
 
