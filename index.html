@@ -422,7 +422,11 @@ function shareTask(key){
       updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
       return db.ref().update(updates);
     }).then(function(){
-      getDb().child(key).update({ sharedWith: recipientEmail });
+      if (offlineMode) {
+        queueOp('update', { key: key, data: { sharedWith: recipientEmail } });
+      } else {
+        getDb().child(key).update({ sharedWith: recipientEmail });
+      }
       alert('Zadatak uspesno podeljen sa: '+recipientEmail);
     }).catch(function(e){
       alert('Greska pri deljenju: '+e.message);
@@ -682,9 +686,19 @@ function resetAll(){
   }
 }
 
+function removeTask(k){
+  if(offlineMode) {
+    queueOp('remove', {key: k});
+    delete allTasks[k];
+    render();
+  } else {
+    getDb().child(k).remove();
+  }
+}
+
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator)) return;
-  var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<l.length;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
+  var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<llength;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
   var blob=new Blob([sw],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(e){console.warn('SW:',e);});
 }
@@ -752,7 +766,7 @@ function render(){
         '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
           '<button class="iconbtn" style="background:#7f8c8d" onclick="toggleComplete(\''+k+'\')">&#8617;</button>'+
-          '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()">&#x2715;</button>'+
+          '<button class="iconbtn" style="background:#e74c3c" onclick="removeTask(\''+k+'\')">&#x2715;</button>'+
         '</div></div>';
     });
     return;
@@ -782,7 +796,7 @@ function render(){
         '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\''+k+'\')" title="Izmeni">&#9999;</button>'+
         '<button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask(\''+k+'\')" title="Kopiraj">&#9014;</button>'+
         '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\''+k+'\')" title="Podeli sa nekim">&#128228;</button>'+
-        '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()" title="Obrisi">&#x2715;</button>'+
+        '<button class="iconbtn" style="background:#e74c3c" onclick="removeTask(\''+k+'\')" title="Obrisi">&#x2715;</button>'+
       '</div></div>';
   });
 
