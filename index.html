@@ -317,13 +317,23 @@ auth.onAuthStateChanged(function(user){
   if(user){
     currentUser = user;
     document.getElementById('loginOverlay').style.display='none';
+    
+    // Automatsko mapiranje email-a u kljuc
     firebase.database().ref('emailToUid/'+emailToKey(user.email)).set(user.uid);
-    firebase.database().ref('users/'+user.uid+'/email').set(user.email); // Pamti email u profilu korisnika
+    firebase.database().ref('users/'+user.uid+'/email').set(user.email);
     
     // Slusanje nadimka
     firebase.database().ref('users/'+user.uid+'/nickname').on('value', function(snap){
       currentNickname = snap.val() || "";
       document.getElementById('userNickname').value = currentNickname;
+      if(currentNickname) {
+        // Osiguravamo indeks za pretragu nadimka bez obzira na velika/mala slova
+        firebase.database().ref('nicknameToUid/'+emailToKey(currentNickname.toLowerCase())).set({
+          uid: user.uid,
+          email: user.email,
+          nickname: currentNickname
+        });
+      }
       updateUserLabel();
       render();
     });
@@ -346,7 +356,14 @@ function doSignOut(){ if(confirm('Odjaviti se?')) auth.signOut(); }
 function saveNickname(){
   if(!currentUser) return;
   var nick = document.getElementById('userNickname').value.trim();
-  firebase.database().ref('users/'+currentUser.uid+'/nickname').set(nick).then(function(){
+  if(!nick) return;
+  
+  firebase.database().ref('users/'+currentUser.uid+'/nickname').set(nick);
+  firebase.database().ref('nicknameToUid/'+emailToKey(nick.toLowerCase())).set({
+    uid: currentUser.uid,
+    email: currentUser.email,
+    nickname: nick
+  }).then(function(){
     alert('Nadimak uspesno sacuvan!');
   });
 }
@@ -389,42 +406,31 @@ function shareTask(key){
   var userInput = prompt('Unesite EMAIL ili NADIMAK osobe kojoj zelite da posaljete zadatak:\n\n"'+t.text.slice(0,60)+'"');
   if(!userInput) return;
   userInput = userInput.trim();
-  
   var lookupKey = emailToKey(userInput.toLowerCase());
-  var db = firebase.database();
   
-  // 1. Pokusaj pronalaska preko email adrese
-  db.ref('emailToUid/' + lookupKey).once('value', function(snap){
-    var recipientUid = snap.val();
-    
+  // 1. Pokusaj pronalaska preko email-a
+  firebase.database().ref('emailToUid/'+lookupKey).once('value', function(emailSnap){
+    var recipientUid = emailSnap.val();
     if(recipientUid){
-      executeSharing(key, t, recipientUid, userInput.toLowerCase());
-    } else {
-      // 2. Ako ne postoji email kljuc, pretrazujemo bazu korisnika po nadimku
-      db.ref('users').once('value', function(usersSnap){
-        var foundUid = null;
-        var foundEmail = null;
-        var searchNick = userInput.toLowerCase();
-        
-        usersSnap.forEach(function(userChild){
-          var userData = userChild.val();
-          if(userData && userData.nickname && userData.nickname.toLowerCase() === searchNick){
-            foundUid = userChild.key;
-            foundEmail = userData.email || ""; 
-          }
-        });
-        
-        if(foundUid){
-          executeSharing(key, t, foundUid, foundEmail || userInput);
-        } else {
-          alert('Korisnik sa emailom ili nadimkom "'+userInput+'" nije pronadjen.\n\nProverite velika/mala slova ili da li se korisnik uopste registrovao.');
-        }
+      firebase.database().ref('users/'+recipientUid+'/nickname').once('value', function(nSnap){
+        var rNick = nSnap.val() || "";
+        executeSharing(key, t, recipientUid, userInput.toLowerCase(), rNick);
       });
+    } else {
+      // 2. Ako nije email, pokusaj preko nadimka (koristeci bezbedan indeks)
+      firebase.database().ref('nicknameToUid/'+lookupKey).once('value', function(nickSnap){
+        var nickData = nickSnap.val();
+        if(nickData && nickData.uid){
+          executeSharing(key, t, nickData.uid, nickData.email, nickData.nickname);
+        } else {
+          alert('Korisnik sa emailom ili nadimkom "'+userInput+'" nije pronadjen.\n\nProverite da li je uneto ispravno.');
+        }
+      }, function(err){ alert('Greska pri pretrazi nadimka: ' + err.message); });
     }
-  });
+  }, function(err){ alert('Greska pri pretrazi emaila: ' + err.message); });
 }
 
-function executeSharing(key, taskObj, recipientUid, recipientEmailOrNick) {
+function executeSharing(key, taskObj, recipientUid, recipientEmail, recipientNickname) {
   if(recipientUid === currentUser.uid){
     alert('Ne mozete podeliti zadatak sa samim sobom.');
     return;
@@ -433,9 +439,10 @@ function executeSharing(key, taskObj, recipientUid, recipientEmailOrNick) {
   var db = firebase.database();
   var newRef = db.ref('sharedTasks').push();
   var newKey = newRef.key;
+  
   var participants = {};
   participants[currentUser.uid] = currentNickname ? currentNickname + ' ('+currentUser.email+')' : currentUser.email;
-  participants[recipientUid] = recipientEmailOrNick;
+  participants[recipientUid] = recipientNickname ? recipientNickname + ' ('+recipientEmail+')' : recipientEmail;
 
   var taskData = {
     text: taskObj.text,
@@ -456,12 +463,13 @@ function executeSharing(key, taskObj, recipientUid, recipientEmailOrNick) {
     updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
     return db.ref().update(updates);
   }).then(function(){
+    var displayTarget = recipientNickname ? recipientNickname : recipientEmail;
     if (offlineMode) {
-      queueOp('update', { key: key, data: { sharedWith: recipientEmailOrNick } });
+      queueOp('update', { key: key, data: { sharedWith: displayTarget } });
     } else {
-      getDb().child(key).update({ sharedWith: recipientEmailOrNick });
+      getDb().child(key).update({ sharedWith: displayTarget });
     }
-    alert('Zadatak uspesno podeljen sa: ' + recipientEmailOrNick);
+    alert('Zadatak uspesno podeljen sa: ' + displayTarget);
   }).catch(function(e){
     alert('Greska pri deljenju: ' + e.message);
   });
@@ -509,7 +517,7 @@ function doMigrate(){
       newRef.update(u).then(function(){
         firebase.database().ref('tasks').remove();
         document.getElementById('migrationBar').style.display='none';
-        alert('Zaci su uspesno prebaceni!');
+        alert('Zadaci su uspesno prebaceni!');
       });
     });
   });
