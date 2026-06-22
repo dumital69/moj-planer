@@ -150,6 +150,13 @@
             <option value="60">60 min</option>
           </select>
         </div>
+        
+        <div style="background: rgba(52,152,219,0.08); padding: 8px 12px; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border: 1px dashed rgba(52,152,219,0.3);">
+          <span style="font-size: 12px; color: var(--muted); font-weight: bold; white-space: nowrap;">Izmeni nadimak:</span>
+          <input type="text" id="changeNickInput" placeholder="Novi nadimak" style="padding: 5px 8px; font-size: 12px; border-radius: 6px; height: 28px;" />
+          <button class="btn green small" onclick="changeExistingNickname()" style="padding: 4px 10px; font-size: 12px; border-radius: 6px; height: 28px;">Sačuvaj</button>
+        </div>
+
         <div class="offline" id="offlineBar">Rad bez interneta &mdash; sinhronizacija kasnije.</div>
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
         <div class="vis-toggle" id="doneInfo"></div>
@@ -264,6 +271,49 @@ function cleanNick(nick){ return String(nick||'').trim().toLowerCase().replace(/
 function getSearch(){ return (document.getElementById('quickSearch').value||'').trim().toLowerCase(); }
 function getDb(){ return dbRef; }
 
+// ===== FUNKCIJA ZA PROMENU NADIMKA KOD POSTOJEĆEG KORISNIKA =====
+function changeExistingNickname(){
+  if(!currentUser){ alert('Morate biti prijavljeni.'); return; }
+  var newNick = cleanNick(document.getElementById('changeNickInput').value);
+  if(!newNick || newNick.length < 3){
+    alert('Nadimak mora imati najmanje 3 karaktera (samo slova i brojevi).');
+    return;
+  }
+  if(newNick === userNickname){
+    alert('Već koristite taj nadimak.');
+    return;
+  }
+
+  // Provera u bazi da li je željeni nadimak zauzet
+  firebase.database().ref('nicknames/' + newNick).once('value', function(snap){
+    if(snap.exists()){
+      alert('Nadimak "' + newNick + '" je već zauzet. Molimo izaberite drugi.');
+    } else {
+      if(confirm('Da li sigurno želite da promenite nadimak u @' + newNick + '?')){
+        var db = firebase.database();
+        var oldNick = userNickname;
+        
+        // 1. Postavi novi nadimak da pokazuje na vaš UID
+        db.ref('nicknames/' + newNick).set(currentUser.uid).then(function(){
+          // 2. Ažuriraj podatak u vašem profilu
+          return db.ref('users/' + currentUser.uid + '/myNickname').set(newNick);
+        }).then(function(){
+          // 3. Obriši stari nadimak iz registra ako je postojao
+          if(oldNick){
+            db.ref('nicknames/' + oldNick).remove();
+          }
+          userNickname = newNick;
+          document.getElementById('changeNickInput').value = '';
+          updateUserLabel();
+          alert('Nadimak uspešno promenjen u: @' + newNick);
+        }).catch(function(err){
+          alert('Greška pri promeni nadimka: ' + err.message);
+        });
+      }
+    }
+  });
+}
+
 // ===== AUTH =====
 function toggleAuthMode(){
   isRegisterMode = !isRegisterMode;
@@ -293,7 +343,6 @@ function doAuth(){
     if(pass.length<6){errEl.textContent='Šifra mora imati najmanje 6 karaktera.';return;}
     if(pass!==pass2){errEl.textContent='Šifre se ne poklapaju.';return;}
     
-    // Provera da li nadimak već postoji
     firebase.database().ref('nicknames/'+nick).once('value', function(snap){
       if(snap.exists()){
         errEl.textContent = 'Nadimak je zauzet. Izaberite drugi.';
@@ -332,13 +381,11 @@ auth.onAuthStateChanged(function(user){
     currentUser = user;
     document.getElementById('loginOverlay').style.display='none';
     
-    // Čitanje nadimka korisnika ili generisanje ako ga nema
     firebase.database().ref('users/'+user.uid+'/myNickname').once('value', function(sn){
       if(sn.exists()){
         userNickname = sn.val();
         updateUserLabel();
       } else {
-        // Ako je stari korisnik i nema nadimak, pravimo ga od prvog dela mejla
         var fallbackNick = cleanNick(user.email.split('@')[0]) + Math.floor(100 + Math.random() * 900);
         firebase.database().ref('nicknames/'+fallbackNick).set(user.uid);
         firebase.database().ref('users/'+user.uid+'/myNickname').set(fallbackNick);
@@ -494,7 +541,7 @@ function skipMigrate(){
   if(confirm('Preskočiti migraciju?')) document.getElementById('migrationBar').style.display='none';
 }
 
-// ===== NOTIFIKACIJE ZAJEDNO SA 1 I 2 DANA RANIIJE =====
+// ===== NOTIFIKACIJE =====
 function requestNotifPermission(){
   if(!('Notification' in window)) return;
   Notification.requestPermission().then(function(p){updateNotifBar();if(p==='granted')checkAndNotify();});
@@ -523,7 +570,7 @@ function checkAndNotify(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
   var now=new Date(); 
   var in24h=new Date(now.getTime()+86400000);
-  var in48h=new Date(now.getTime()+172800000); // 2 dana ranije
+  var in48h=new Date(now.getTime()+172800000);
 
   Object.keys(allTasks).forEach(function(k){
     var t=allTasks[k];
@@ -531,17 +578,14 @@ function checkAndNotify(){
     if(!t.time) return;
     var tt=new Date(t.time);
     
-    // 1. Sad je vreme!
     if(!notifiedTasks.has(k)&&tt<=now){
       notifiedTasks.add(k);
       showPushNotification('Moj Planer - VREME JE!',(catEmoji[t.category]||'')+' '+t.text,'alarm_'+k);
     }
-    // 2. Sutra vas čeka (unutar 24h)
     if(!notifiedTasks.has(k+'_s')&&tt>now&&tt<=in24h){
       notifiedTasks.add(k+'_s');
       showPushNotification('Sutra vas čeka zadatak',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'sutra_'+k);
     }
-    // 3. NOVO: Za 2 dana vas čeka (unutar 48h)
     if(!notifiedTasks.has(k+'_2d')&&tt>in24h&&tt<=in48h){
       notifiedTasks.add(k+'_2d');
       showPushNotification('Zadatak za 2 dana',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'dva_dana_'+k);
@@ -687,7 +731,6 @@ function resetAll(){
   }
 }
 
-// ===== SERVICE WORKER =====
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator)) return;
   var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<l.length;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
@@ -695,7 +738,6 @@ function registerServiceWorker(){
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(e){console.warn('SW:',e);});
 }
 
-// ===== RENDER =====
 function render(){
   initCalendars(); updateOfflineBar(); updateUserLabel(); renderCats();
   var list=document.getElementById('taskList'); list.innerHTML='';
