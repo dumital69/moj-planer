@@ -107,21 +107,21 @@
       <h2 class="login-title">&#9729;&#65039; Moj Planer</h2>
       <p class="login-sub" id="loginSubtitle">Prijavite se da nastavite</p>
       <input type="email" id="loginEmail" placeholder="Email adresa" autocomplete="email" />
-      <input type="password" id="loginPass" placeholder="Sifra" autocomplete="current-password" />
-      <input type="password" id="loginPass2" placeholder="Ponovite sifru" autocomplete="new-password" style="display:none" />
+      <input type="password" id="loginPass" placeholder="Šifra" autocomplete="current-password" />
+      <input type="password" id="loginPass2" placeholder="Ponovite šifru" autocomplete="new-password" style="display:none" />
       <div class="login-err" id="loginErr"></div>
       <div class="login-ok" id="loginOk"></div>
       <button class="btn green" id="loginBtn" style="width:100%;padding:13px;font-size:15px;" onclick="doAuth()">Prijavi se</button>
       <div class="login-switch" id="loginToggle">Nemate nalog? <span onclick="toggleAuthMode()">Registrujte se</span></div>
-      <div class="forgot-link" id="forgotLink" onclick="doForgotPassword()">Zaboravili ste sifru?</div>
+      <div class="forgot-link" id="forgotLink" onclick="doForgotPassword()">Zaboravili ste šifru?</div>
     </div>
   </div>
 
   <div id="migrationBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:8888;background:linear-gradient(90deg,#8e44ad,#6c3483);color:#fff;padding:14px 20px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
-    <div style="font-size:14px;font-weight:700;">&#128230; Stari zadaci (<span id="migrationCount">?</span> kom.) &mdash; prebaciti na vas nalog?</div>
+    <div style="font-size:14px;font-weight:700;">&#128230; Stari zadaci (<span id="migrationCount">?</span> kom.) &mdash; prebaciti na vaš nalog?</div>
     <div style="display:flex;gap:8px;">
       <button class="btn green small" onclick="doMigrate()">&#9989; Prebaci</button>
-      <button class="btn gray small" onclick="skipMigrate()">&#9197; Preskoce</button>
+      <button class="btn gray small" onclick="skipMigrate()">&#9197; Preskoči</button>
     </div>
   </div>
 
@@ -153,7 +153,7 @@
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
         <div class="vis-toggle" id="doneInfo"></div>
         <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="render()" style="margin-bottom:8px;" />
-        <textarea id="taskText" placeholder="Sta treba uraditi?"></textarea>
+        <textarea id="taskText" placeholder="Šta treba uraditi?"></textarea>
         <div class="input-row">
           <select id="taskCat"></select>
           <input type="datetime-local" id="taskTime" />
@@ -168,7 +168,7 @@
         </div>
         <div class="save-row">
           <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">&#128276; Notifikacije</button>
-          <button class="btn green" id="saveBtn" onclick="addTask()">&#128190; Sacuvaj</button>
+          <button class="btn green" id="saveBtn" onclick="addTask()">&#128190; Sačuvaj</button>
         </div>
       </div>
 
@@ -239,10 +239,11 @@ categoryDefs.forEach(function(c){ catEmoji[c.name] = c.emoji; });
   document.head.appendChild(style);
 })();
 var months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
-var days = ["Po","Ut","Sr","Ce","Pe","Su","Ne"];
+var days = ["Po","Ut","Sr","Če","Pe","Su","Ne"];
 
 var auth = firebase.auth();
 
+// ===== POMOĆNE =====
 function escapeHtml(s){
   return String(s||'')
     .replace(/&/g,'&amp;')
@@ -261,6 +262,7 @@ function emailToKey(email){ return email.replace(/\./g,'_').replace(/@/g,'__'); 
 function getSearch(){ return (document.getElementById('quickSearch').value||'').trim().toLowerCase(); }
 function getDb(){ return dbRef; }
 
+// ===== AUTH =====
 function toggleAuthMode(){
   isRegisterMode = !isRegisterMode;
   document.getElementById('loginSubtitle').textContent = isRegisterMode?'Napravite novi nalog':'Prijavite se da nastavite';
@@ -268,7 +270,7 @@ function toggleAuthMode(){
   document.getElementById('loginPass2').style.display = isRegisterMode?'block':'none';
   document.getElementById('forgotLink').style.display = isRegisterMode?'none':'block';
   document.getElementById('loginToggle').innerHTML = isRegisterMode
-    ?'Vec imate nalog? <span onclick="toggleAuthMode()">Prijavite se</span>'
+    ?'Već imate nalog? <span onclick="toggleAuthMode()">Prijavite se</span>'
     :'Nemate nalog? <span onclick="toggleAuthMode()">Registrujte se</span>';
   document.getElementById('loginErr').textContent='';
   document.getElementById('loginOk').textContent='';
@@ -280,10 +282,10 @@ function doAuth(){
   var pass2=document.getElementById('loginPass2').value;
   var errEl=document.getElementById('loginErr'); var okEl=document.getElementById('loginOk');
   errEl.textContent=''; okEl.textContent='';
-  if(!email||!pass){errEl.textContent='Unesite email i sifru.';return;}
+  if(!email||!pass){errEl.textContent='Unesite email i šifru.';return;}
   if(isRegisterMode){
-    if(pass.length<6){errEl.textContent='Sifra mora imati najmanje 6 karaktera.';return;}
-    if(pass!==pass2){errEl.textContent='Sifre se ne poklapaju.';return;}
+    if(pass.length<6){errEl.textContent='Šifra mora imati najmanje 6 karaktera.';return;}
+    if(pass!==pass2){errEl.textContent='Šifre se ne poklapaju.';return;}
     auth.createUserWithEmailAndPassword(email,pass).catch(function(e){errEl.textContent=translateAuthError(e.code);});
   } else {
     auth.signInWithEmailAndPassword(email,pass).catch(function(e){errEl.textContent=translateAuthError(e.code);});
@@ -294,17 +296,17 @@ function doForgotPassword(){
   var email=document.getElementById('loginEmail').value.trim();
   var errEl=document.getElementById('loginErr'); var okEl=document.getElementById('loginOk');
   errEl.textContent=''; okEl.textContent='';
-  if(!email){errEl.textContent='Unesite email pa kliknite "Zaboravili ste sifru?".';return;}
+  if(!email){errEl.textContent='Unesite email pa kliknite "Zaboravili ste šifru?".';return;}
   auth.sendPasswordResetEmail(email)
-    .then(function(){okEl.textContent='Email za reset sifre je poslat!';})
+    .then(function(){okEl.textContent='Email za reset šifre je poslat!';})
     .catch(function(e){errEl.textContent=translateAuthError(e.code);});
 }
 
 function translateAuthError(code){
-  var m={'auth/user-not-found':'Korisnik nije pronadjen.','auth/wrong-password':'Pogresna sifra.',
-    'auth/invalid-email':'Neispravna email adresa.','auth/email-already-in-use':'Email je vec u upotrebi.',
-    'auth/too-many-requests':'Previse pokusaja. Pokusajte kasnije.','auth/invalid-credential':'Pogresan email ili sifra.'};
-  return m[code]||'Greska: '+code;
+  var m={'auth/user-not-found':'Korisnik nije pronađen.','auth/wrong-password':'Pogrešna šifra.',
+    'auth/invalid-email':'Neispravna email adresa.','auth/email-already-in-use':'Email je već u upotrebi.',
+    'auth/too-many-requests':'Previše pokušaja. Pokušajte kasnije.','auth/invalid-credential':'Pogrešan email ili šifra.'};
+  return m[code]||'Greška: '+code;
 }
 
 auth.onAuthStateChanged(function(user){
@@ -327,6 +329,7 @@ auth.onAuthStateChanged(function(user){
 
 function doSignOut(){ if(confirm('Odjaviti se?')) auth.signOut(); }
 
+// ===== DELJENI ZADACI =====
 function setupSharedListeners(uid){
   sharedRefsRef = firebase.database().ref('users/'+uid+'/sharedTaskRefs');
   sharedRefsRef.on('value', function(snap){
@@ -362,15 +365,15 @@ function cleanupSharedListeners(){
 
 function shareTask(key){
   var t = allTasks[key]; if(!t) return;
-  var recipientEmail = prompt('Unesite email osobe kojoj zelite da posaljete zadatak:\n\n"'+t.text.slice(0,60)+'"');
+  var recipientEmail = prompt('Unesite email osobe kojoj želite da pošaljete zadatak:\n\n"'+t.text.slice(0,60)+'"');
   if(!recipientEmail) return;
   recipientEmail = recipientEmail.trim().toLowerCase();
-  if(recipientEmail===currentUser.email.toLowerCase()){alert('Ne mozete podeliti zadatak sa samim sobom.');return;}
+  if(recipientEmail===currentUser.email.toLowerCase()){alert('Ne možete podeliti zadatak sa samim sobom.');return;}
 
   firebase.database().ref('emailToUid/'+emailToKey(recipientEmail)).once('value', function(snap){
     var recipientUid = snap.val();
     if(!recipientUid){
-      alert('Korisnik "'+recipientEmail+'" nije pronadjen.\n\nMozda se jos nije prijavio u aplikaciju.');
+      alert('Korisnik "'+recipientEmail+'" nije pronađen.\n\nMožda se još nije prijavio u aplikaciju.');
       return;
     }
     var db = firebase.database();
@@ -399,9 +402,9 @@ function shareTask(key){
       return db.ref().update(updates);
     }).then(function(){
       getDb().child(key).update({ sharedWith: recipientEmail });
-      alert('Zadatak uspesno podeljen sa: '+recipientEmail+'\n\nBice vidljiv kod njih cim osveze aplikaciju.');
+      alert('Zadatak uspešno podeljen sa: '+recipientEmail+'\n\nBiće vidljiv kod njih čim osveže aplikaciju.');
     }).catch(function(e){
-      alert('Greska pri deljenju: '+e.message);
+      alert('Greška pri deljenju: '+e.message);
     });
   });
 }
@@ -425,10 +428,11 @@ function editSharedTask(key){
 }
 
 function removeSharedRef(key){
-  if(!confirm('Ukloniti ovaj deljeni zadatak iz vaseg prikaza?')) return;
+  if(!confirm('Ukloniti ovaj deljeni zadatak iz vašeg prikaza?')) return;
   firebase.database().ref('users/'+currentUser.uid+'/sharedTaskRefs/'+key).remove();
 }
 
+// ===== MIGRACIJA =====
 function checkOldTasks(){
   firebase.database().ref('tasks').once('value', function(snap){
     var old=snap.val();
@@ -443,20 +447,21 @@ function doMigrate(){
     var newRef=firebase.database().ref('users/'+currentUser.uid+'/tasks');
     newRef.once('value', function(ns){
       var ec=Object.keys(ns.val()||{}).length, oc=Object.keys(old).length;
-      if(!confirm('Prebaciti '+oc+' starih zadataka?\n\nVec imate '+ec+' zadataka - bice DODATI.')) return;
+      if(!confirm('Prebaciti '+oc+' starih zadataka?\n\nVeć imate '+ec+' zadataka - biće DODATI.')) return;
       var u={}; Object.entries(old).forEach(function(e){u[e[0]]=e[1];});
       newRef.update(u).then(function(){
         firebase.database().ref('tasks').remove();
         document.getElementById('migrationBar').style.display='none';
-        alert('Zaci su uspesno prebaceni!');
+        alert('Zadaci su uspešno prebačeni!');
       });
     });
   });
 }
 function skipMigrate(){
-  if(confirm('Preskociti migraciju?')) document.getElementById('migrationBar').style.display='none';
+  if(confirm('Preskočiti migraciju?')) document.getElementById('migrationBar').style.display='none';
 }
 
+// ===== NOTIFIKACIJE =====
 function requestNotifPermission(){
   if(!('Notification' in window)) return;
   Notification.requestPermission().then(function(p){updateNotifBar();if(p==='granted')checkAndNotify();});
@@ -490,11 +495,12 @@ function checkAndNotify(){
     if(!t.time) return;
     var tt=new Date(t.time);
     if(!notifiedTasks.has(k)&&tt<=now){notifiedTasks.add(k);showPushNotification('Moj Planer - VREME JE!',(catEmoji[t.category]||'')+' '+t.text,'alarm_'+k);}
-    if(!notifiedTasks.has(k+'_s')&&tt>now&&tt<=in24h){notifiedTasks.add(k+'_s');showPushNotification('Sutra vas ceka zadatak',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'sutra_'+k);}
+    if(!notifiedTasks.has(k+'_s')&&tt>now&&tt<=in24h){notifiedTasks.add(k+'_s');showPushNotification('Sutra vas čeka zadatak',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'sutra_'+k);}
   });
 }
 setInterval(checkAndNotify,60000);
 
+// ===== OFFLINE =====
 function updateOfflineBar(){document.getElementById('offlineBar').style.display=offlineMode?'block':'none';}
 window.addEventListener('online',async function(){offlineMode=false;updateOfflineBar();await flushQueue();render();});
 window.addEventListener('offline',function(){offlineMode=true;updateOfflineBar();render();});
@@ -511,6 +517,7 @@ async function flushQueue(){
   }
 }
 
+// ===== KATEGORIJE =====
 function renderCats(){
   var isShared = filterCat==='Deljeni';
   var html = categories.map(function(c){
@@ -553,6 +560,7 @@ function setCat(c){ filterCat=c; filterDate=null; showArchive=false; render(); }
 function clearFilter(){ filterCat='Sve'; filterDate=null; showArchive=false; render(); }
 function filterByDate(ds){ filterDate=ds; filterCat='Sve'; render(); }
 
+// ===== ZADACI =====
 function addTask(){
   var text=document.getElementById('taskText').value.trim();
   var time=document.getElementById('taskTime').value;
@@ -563,7 +571,7 @@ function addTask(){
   if(editSharedKey){
     firebase.database().ref('sharedTasks/'+editSharedKey).update({text:text,time:time,category:category,repeat:repeat});
     editSharedKey=null;
-    document.getElementById('saveBtn').textContent='💾 Sacuvaj';
+    document.getElementById('saveBtn').textContent='💾 Sačuvaj';
     document.getElementById('taskText').value='';
     document.getElementById('taskTime').value='';
     document.getElementById('taskRepeat').value='none';
@@ -574,7 +582,7 @@ function addTask(){
   if(editKey){
     var data={text:text,time:time,category:category,repeat:repeat};
     if(offlineMode) queueOp('update',{key:editKey,data:data}); else getDb().child(editKey).update(data);
-    editKey=null; document.getElementById('saveBtn').textContent='💾 Sacuvaj';
+    editKey=null; document.getElementById('saveBtn').textContent='💾 Sačuvaj';
   } else {
     if(offlineMode) queueOp('push',payload); else getDb().push(payload);
   }
@@ -629,6 +637,7 @@ function resetAll(){
   }
 }
 
+// ===== SERVICE WORKER =====
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator)) return;
   var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<l.length;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
@@ -636,17 +645,18 @@ function registerServiceWorker(){
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(e){console.warn('SW:',e);});
 }
 
+// ===== RENDER =====
 function render(){
   initCalendars(); updateOfflineBar(); updateUserLabel(); renderCats();
   var list=document.getElementById('taskList'); list.innerHTML='';
   var now=new Date(); var q=getSearch();
   var archBtn=document.getElementById('archiveBtn');
   if(archBtn) archBtn.textContent=showArchive?'📋 Aktivni':'🗂 Arhiva';
-  document.getElementById('doneInfo').textContent=showArchive?'📦 Prikazana ARHIVA (zavrseni zadaci)':'';
+  document.getElementById('doneInfo').textContent=showArchive?'📦 Prikazana ARHIVA (završeni zadaci)':'';
 
   if(filterCat==='Deljeni'){
     var sharedKeys=Object.keys(sharedTasksData);
-    list.innerHTML='<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim ucesnicima odmah</div></div></div>';
+    list.innerHTML='<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim učesnicima odmah</div></div></div>';
     if(!sharedKeys.length){
       list.innerHTML+='<div style="text-align:center;color:#9fb0c7;padding:30px;">Nemate deljenih zadataka.<br><br>Koristite dugme &#128228; na zadatku da ga podelite.</div>';
       return;
@@ -666,7 +676,7 @@ function render(){
         (t.createdByEmail?'<div class="task-meta">Kreirao/la: '+escapeHtml(t.createdByEmail)+'</div>':'')+
         '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
-          '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\''+k+'\')" title="'+(t.completed?'Vrati':'Zavrsi')+'">&#10003;</button>'+
+          '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\''+k+'\')" title="'+(t.completed?'Vrati':'Završi')+'">&#10003;</button>'+
           '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\''+k+'\')" title="Izmeni">&#9999;</button>'+
           '<button class="iconbtn" style="background:#e74c3c" onclick="removeSharedRef(\''+k+'\')" title="Ukloni">&#x2715;</button>'+
         '</div></div>';
@@ -693,9 +703,47 @@ function render(){
       var t=allTasks[k]; var emoji=catEmoji[t.category]||'';
       list.innerHTML+='<div class="task done cat-'+t.category+'">'+
         '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
-        (t.completedAt?'<div class="task-meta">Zavrseno: '+displayDate(t.completedAt)+'</div>':'')+
+        (t.completedAt?'<div class="task-meta">Završeno: '+displayDate(t.completedAt)+'</div>':'')+
         '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
           '<button class="iconbtn" style="background:#7f8c8d" onclick="toggleComplete(\''+k+'\')">&#8617;</button>'+
-          '<button class="iconbtn" style="background:#e74c
+          '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()">&#x2715;</button>'+
+        '</div></div>';
+    });
+    return;
+  }
+
+  var active=keys.filter(function(k){return !allTasks[k].completed;}).sort(function(a,b){
+    var aAl=allTasks[a].time&&new Date(allTasks[a].time)<=now;
+    var bAl=allTasks[b].time&&new Date(allTasks[b].time)<=now;
+    if(aAl!==bAl)return aAl?-1:1;
+    return sortFn(a,b);
+  });
+
+  if(!active.length){list.innerHTML='<div style="text-align:center;color:#9fb0c7;padding:30px;">Nema aktivnih zadataka.</div>';}
+
+  active.forEach(function(k){
+    var t=allTasks[k];
+    var isAlarm=t.time&&!t.completed&&new Date(t.time)<=now;
+    var emoji=catEmoji[t.category]||'';
+    list.innerHTML+='<div class="task cat-'+t.category+' '+(isAlarm?'alarm':'')+'">' +
+      (isAlarm?'<div class="alarm-banner">&#9200; VREME JE &mdash; '+displayDate(t.time)+'</div>':'')+
+      '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.repeat&&t.repeat!=='none'?'🔄 ':'')+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
+      (t.createdAt?'<div class="task-meta">Postavljeno: '+displayDate(t.createdAt)+'</div>':'')+
+      (t.sharedWith?'<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Podeljeno sa: '+escapeHtml(t.sharedWith)+'</div>':'')+
+      '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
+      '<div class="actions">'+
+        '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\''+k+'\')" title="Završi">&#10003;</button>'+
+        '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\''+k+'\')" title="Izmeni">&#9999;</button>'+
+        '<button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask(\''+k+'\')" title="Kopiraj">&#9014;</button>'+
+        '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\''+k+'\')" title="Podeli sa nekim">&#128228;</button>'+
+        '<button class="iconbtn" style="background:#e74c3c" onclick="getDb().child(\''+k+'\').remove()" title="Obriši">&#x2715;</button>'+
+      '</div></div>';
+  });
+
+  checkAndNotify();
+}
+</script>
+</body>
+</html>
 
