@@ -318,11 +318,9 @@ auth.onAuthStateChanged(function(user){
     currentUser = user;
     document.getElementById('loginOverlay').style.display='none';
     
-    // VAŽNO: Email uvek upisujemo isključivo malim slovima u indeks radi pretrage
     firebase.database().ref('emailToUid/'+emailToKey(user.email.toLowerCase())).set(user.uid);
     firebase.database().ref('users/'+user.uid+'/email').set(user.email);
     
-    // Slusanje nadimka
     firebase.database().ref('users/'+user.uid+'/nickname').on('value', function(snap){
       currentNickname = snap.val() || "";
       document.getElementById('userNickname').value = currentNickname;
@@ -409,7 +407,7 @@ function cleanupSharedListeners(){
 
 function shareTask(key){
   var t = allTasks[key]; if(!t) return;
-  var userInput = prompt('Unesite EMAIL ili NADIMAK osobe kojoj zelite da posaljete zadatak:\n\n"'+t.text.slice(0,60)+'"');
+  var userInput = prompt('Unesite EMAIL ili NADIMAK osobe kojoj zelite da dodate u ovaj zadatak:\n\n"'+t.text.slice(0,60)+'"');
   if(!userInput) return;
   userInput = userInput.trim();
   var lookupKey = emailToKey(userInput.toLowerCase());
@@ -417,7 +415,6 @@ function shareTask(key){
   var db = firebase.database();
   
   if (userInput.indexOf('@') > -1) {
-    // 1. PRETRAGA PREKO EMAIL-A
     if(userInput.toLowerCase() === currentUser.email.toLowerCase()){
       alert('Ne mozete podeliti zadatak sa samim sobom.');
       return;
@@ -427,11 +424,10 @@ function shareTask(key){
       if(recipientUid){
         executeSharing(key, t, recipientUid, userInput.toLowerCase());
       } else {
-        alert('Korisnik sa emailom "'+userInput+'" nije pronadjen.\n\nProverite unos i da li se korisnik bar jednom prijavio.');
+        alert('Korisnik sa emailom "'+userInput+'" nije pronadjen.');
       }
-    }).catch(function(err){ alert('Greska pri pretrazi emaila: ' + err.message); });
+    }).catch(function(err){ alert('Greska: ' + err.message); });
   } else {
-    // 2. PRETRAGA PREKO NADIMKA
     if(currentNickname && userInput.toLowerCase() === currentNickname.toLowerCase()){
       alert('Ne mozete podeliti zadatak sa samim sobom.');
       return;
@@ -443,45 +439,72 @@ function shareTask(key){
       } else {
         alert('Korisnik sa nadimkom "'+userInput+'" nije pronadjen.');
       }
-    }).catch(function(err){ alert('Greska pri pretrazi nadimka: ' + err.message); });
+    }).catch(function(err){ alert('Greska: ' + err.message); });
   }
 }
 
 function executeSharing(key, taskObj, recipientUid, rawTarget) {
   var db = firebase.database();
-  var newRef = db.ref('sharedTasks').push();
-  var newKey = newRef.key;
-  
-  var participants = {};
-  participants[currentUser.uid] = currentNickname ? currentNickname + ' ('+currentUser.email+')' : currentUser.email;
-  participants[recipientUid] = rawTarget;
+  var myInfo = currentNickname ? currentNickname + ' ('+currentUser.email+')' : currentUser.email;
 
-  var taskData = {
-    text: taskObj.text,
-    category: taskObj.category||'Razno',
-    time: taskObj.time||'',
-    repeat: taskObj.repeat||'none',
-    completed: false,
-    createdAt: taskObj.createdAt||dateToISO(new Date()),
-    participants: participants,
-    createdBy: currentUser.uid,
-    createdByEmail: currentUser.email,
-    createdByNickname: currentNickname
-  };
+  if (taskObj.sharedKey) {
+    var sharedKey = taskObj.sharedKey;
+    
+    db.ref('sharedTasks/' + sharedKey + '/participants').once('value', function(snap) {
+      var currentParticipants = snap.val() || {};
+      if (currentParticipants[recipientUid]) {
+        alert('Ovaj korisnik je vec ucesnik u ovom zadatku!');
+        return;
+      }
+      
+      var updates = {};
+      updates['sharedTasks/' + sharedKey + '/participants/' + recipientUid] = rawTarget;
+      updates['users/' + recipientUid + '/sharedTaskRefs/' + sharedKey] = true;
+      
+      var staroDeljenje = taskObj.sharedWith || "";
+      updates['users/' + currentUser.uid + '/tasks/' + key + '/sharedWith'] = staroDeljenje + ", " + rawTarget;
+      
+      db.ref().update(updates).then(function() {
+        alert('Korisnik ' + rawTarget + ' je uspesno dodat u postojeci deljeni zadatak!');
+      }).catch(function(e) {
+        alert('Greska pri dodavanju ucesnika: ' + e.message);
+      });
+    });
+    
+  } else {
+    var newRef = db.ref('sharedTasks').push();
+    var newKey = newRef.key;
+    
+    var participants = {};
+    participants[currentUser.uid] = myInfo;
+    participants[recipientUid] = rawTarget;
 
-  newRef.set(taskData).then(function(){
-    var updates = {};
-    updates['users/'+currentUser.uid+'/sharedTaskRefs/'+newKey] = true;
-    updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
-    // DODATO: Upisujemo u tvoj privatni zadatak referencu (kljuc) deljenog zadatka i informaciju s kim je podeljen
-    updates['users/'+currentUser.uid+'/tasks/'+key+'/sharedKey'] = newKey;
-    updates['users/'+currentUser.uid+'/tasks/'+key+'/sharedWith'] = rawTarget;
-    return db.ref().update(updates);
-  }).then(function(){
-    alert('Zadatak uspesno podeljen sa: ' + rawTarget);
-  }).catch(function(e){
-    alert('Greska pri deljenju: ' + e.message);
-  });
+    var taskData = {
+      text: taskObj.text,
+      category: taskObj.category || 'Razno',
+      time: taskObj.time || '',
+      repeat: taskObj.repeat || 'none',
+      completed: false,
+      createdAt: taskObj.createdAt || dateToISO(new Date()),
+      participants: participants,
+      createdBy: currentUser.uid,
+      createdByEmail: currentUser.email,
+      createdByNickname: currentNickname
+    };
+
+    newRef.set(taskData).then(function() {
+      var updates = {};
+      updates['users/' + currentUser.uid + '/sharedTaskRefs/' + newKey] = true;
+      updates['users/' + recipientUid + '/sharedTaskRefs/' + newKey] = true;
+      updates['users/' + currentUser.uid + '/tasks/' + key + '/sharedKey'] = newKey;
+      updates['users/' + currentUser.uid + '/tasks/' + key + '/sharedWith'] = rawTarget;
+      return db.ref().update(updates);
+    }).then(function() {
+      alert('Zadatak uspesno podeljen sa: ' + rawTarget);
+    }).catch(function(e) {
+      alert('Greska pri deljenju: ' + e.message);
+    });
+  }
 }
 
 function toggleSharedComplete(key){
@@ -676,7 +699,6 @@ function addTask(){
   if(editKey){
     var data={text:text,time:time,category:category,repeat:repeat};
     
-    // NOVO: Automatsko ažuriranje povezanog deljenog zadatka pre izmene privatnog
     var currentTask = allTasks[editKey];
     if(currentTask && currentTask.sharedKey){
       firebase.database().ref('sharedTasks/' + currentTask.sharedKey).update(data);
