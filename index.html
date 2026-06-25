@@ -473,13 +473,11 @@ function executeSharing(key, taskObj, recipientUid, rawTarget) {
     var updates = {};
     updates['users/'+currentUser.uid+'/sharedTaskRefs/'+newKey] = true;
     updates['users/'+recipientUid+'/sharedTaskRefs/'+newKey] = true;
+    // DODATO: Upisujemo u tvoj privatni zadatak referencu (kljuc) deljenog zadatka i informaciju s kim je podeljen
+    updates['users/'+currentUser.uid+'/tasks/'+key+'/sharedKey'] = newKey;
+    updates['users/'+currentUser.uid+'/tasks/'+key+'/sharedWith'] = rawTarget;
     return db.ref().update(updates);
   }).then(function(){
-    if (offlineMode) {
-      queueOp('update', { key: key, data: { sharedWith: rawTarget } });
-    } else {
-      getDb().child(key).update({ sharedWith: rawTarget });
-    }
     alert('Zadatak uspesno podeljen sa: ' + rawTarget);
   }).catch(function(e){
     alert('Greska pri deljenju: ' + e.message);
@@ -677,6 +675,13 @@ function addTask(){
   var payload={text:text,time:time,category:category,repeat:repeat,completed:false,createdAt:dateToISO(new Date())};
   if(editKey){
     var data={text:text,time:time,category:category,repeat:repeat};
+    
+    // NOVO: Automatsko ažuriranje povezanog deljenog zadatka pre izmene privatnog
+    var currentTask = allTasks[editKey];
+    if(currentTask && currentTask.sharedKey){
+      firebase.database().ref('sharedTasks/' + currentTask.sharedKey).update(data);
+    }
+
     if(offlineMode) queueOp('update',{key:editKey,data:data}); else getDb().child(editKey).update(data);
     editKey=null; document.getElementById('saveBtn').textContent='💾 Sacuvaj';
   } else {
