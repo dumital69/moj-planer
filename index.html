@@ -145,13 +145,7 @@
             <button class="btn teal small" onclick="saveNickname()" style="padding:6px 9px;height:30px;">Sacuvaj</button>
           </div>
           <button class="btn gray small" onclick="doSignOut()" style="padding:6px 10px;">&#128682;</button>
-          <select id="syncInt" style="max-width:92px;padding:6px 8px;font-size:12px" onchange="setupSync()">
-            <option value="1">1 min</option>
-            <option value="5" selected>5 min</option>
-            <option value="15">15 min</option>
-            <option value="30">30 min</option>
-            <option value="60">60 min</option>
-          </select>
+          <button class="btn blue small" onclick="manualRefresh()" style="padding:6px 10px; font-size:12px;">🔄 Osveži</button>
         </div>
         <div class="offline" id="offlineBar">Rad bez interneta &mdash; sinhronizacija kasnije.</div>
         <div id="cats" class="chips" style="margin-bottom:10px;"></div>
@@ -216,6 +210,7 @@ var filterDate = null;
 var editKey = null;
 var editSharedKey = null;
 var syncTimer = null;
+var lastRefreshTime = Date.now();
 var notifiedTasks = new Set();
 var sortMode = 'time';
 var showArchive = false;
@@ -672,8 +667,20 @@ function renderCalendar(id,offset){
 
 function setupSync(){
   if(syncTimer) clearInterval(syncTimer);
-  syncTimer=setInterval(render,parseInt(document.getElementById('syncInt').value,10)*60000);
+  syncTimer = setInterval(function() {
+    var now = Date.now();
+    if (now - lastRefreshTime >= 15 * 60 * 1000) {
+      lastRefreshTime = now;
+      render();
+    }
+  }, 30000);
 }
+
+function manualRefresh() {
+  lastRefreshTime = Date.now();
+  render();
+}
+
 function setCat(c){ filterCat=c; filterDate=null; showArchive=false; render(); }
 function clearFilter(){ filterCat='Sve'; filterDate=null; showArchive=false; render(); }
 function filterByDate(ds){ filterDate=ds; filterCat='Sve'; render(); }
@@ -879,3 +886,4 @@ function render(){
 </script>
 </body>
 </html>
+
