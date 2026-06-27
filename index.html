@@ -62,6 +62,18 @@
     @keyframes pulse{ 0%,100%{transform:translateY(0);box-shadow:0 0 18px rgba(241,196,15,.20)} 50%{transform:translateY(-1px);box-shadow:0 0 28px rgba(241,196,15,.38)} }
     .task.done{ opacity:.55; border-left-color:#7f8c8d!important; border-right-color:#7f8c8d!important; animation:none!important; }
     .task.shared-task{ border-left-color:var(--teal)!important; border-right-color:var(--teal)!important; }
+    
+    /* NOVO: CSS Klasa i animacija za blinkanje izmenjenog deljenog zadatka */
+    .task.blink-shared {
+      animation: blink-glow 1.5s infinite ease-in-out;
+      border-top: 1px solid rgba(26,188,156,0.6);
+      border-bottom: 1px solid rgba(26,188,156,0.6);
+    }
+    @keyframes blink-glow {
+      0%, 100% { box-shadow: 0 10px 20px rgba(0,0,0,.26); background: linear-gradient(180deg,#1a2940,#162338); }
+      50% { box-shadow: 0 0 20px rgba(26,188,156,0.6); background: linear-gradient(180deg,#1e3834,#162338); }
+    }
+
     .task-head{ display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:12px; color:#88a7c6; margin-bottom:8px; }
     .task-text{ white-space:pre-wrap; line-height:1.45; font-size:15px; margin-bottom:10px; }
     .task-meta{ font-size:12px; color:#9eb7cf; margin-bottom:8px; }
@@ -199,8 +211,8 @@ var currentUser = null;
 var isRegisterMode = false;
 var currentNickname = "";
 
-var sharedTasksData = {};
-var sharedTaskListeners = {};
+var sharedTasksData = {};     
+var sharedTaskListeners = {}; 
 var sharedRefsRef = null;
 
 var allTasks = {};
@@ -238,7 +250,6 @@ categoryDefs.forEach(function(c){ catEmoji[c.name] = c.emoji; });
   }).join('\n');
   document.head.appendChild(style);
 })();
-
 var months = ["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
 var days = ["Po","Ut","Sr","Ce","Pe","Su","Ne"];
 
@@ -313,10 +324,10 @@ auth.onAuthStateChanged(function(user){
   if(user){
     currentUser = user;
     document.getElementById('loginOverlay').style.display='none';
-
+    
     firebase.database().ref('emailToUid/'+emailToKey(user.email.toLowerCase())).set(user.uid);
     firebase.database().ref('users/'+user.uid+'/email').set(user.email);
-
+    
     firebase.database().ref('users/'+user.uid+'/nickname').on('value', function(snap){
       currentNickname = snap.val() || "";
       document.getElementById('userNickname').value = currentNickname;
@@ -347,20 +358,19 @@ function saveNickname(){
   var nick = document.getElementById('userNickname').value.trim();
   if(!nick) return alert('Unesite nadimak.');
   var nickLower = nick.toLowerCase();
-
+  
   var db = firebase.database();
-
   db.ref('nicknameToUid/' + nickLower).once('value', function(snap) {
     var existingUid = snap.val();
     if(existingUid && existingUid !== currentUser.uid) {
       alert('Ovaj nadimak je vec zauzet! Izaberite drugi.');
       return;
     }
-
+    
     var updates = {};
     updates['users/'+currentUser.uid+'/nickname'] = nick;
     updates['nicknameToUid/'+nickLower] = currentUser.uid;
-
+    
     db.ref().update(updates).then(function(){
       alert('Nadimak uspesno sacuvan!');
     }).catch(function(err){
@@ -408,9 +418,9 @@ function shareTask(key){
   if(!userInput) return;
   userInput = userInput.trim();
   var lookupKey = emailToKey(userInput.toLowerCase());
-
+  
   var db = firebase.database();
-
+  
   if (userInput.indexOf('@') > -1) {
     if(userInput.toLowerCase() === currentUser.email.toLowerCase()){
       alert('Ne mozete podeliti zadatak sa samim sobom.');
@@ -443,35 +453,38 @@ function shareTask(key){
 function executeSharing(key, taskObj, recipientUid, rawTarget) {
   var db = firebase.database();
   var myInfo = currentNickname ? currentNickname + ' ('+currentUser.email+')' : currentUser.email;
+  var nowISO = dateToISO(new Date());
 
   if (taskObj.sharedKey) {
     var sharedKey = taskObj.sharedKey;
-
+    
     db.ref('sharedTasks/' + sharedKey + '/participants').once('value', function(snap) {
       var currentParticipants = snap.val() || {};
       if (currentParticipants[recipientUid]) {
         alert('Ovaj korisnik je vec ucesnik u ovom zadatku!');
         return;
       }
-
+      
       var updates = {};
       updates['sharedTasks/' + sharedKey + '/participants/' + recipientUid] = rawTarget;
+      updates['sharedTasks/' + sharedKey + '/lastChangedAt'] = nowISO; // Zapisujemo promenu (deljenje)
+      updates['sharedTasks/' + sharedKey + '/lastChangedBy'] = currentUser.uid;
       updates['users/' + recipientUid + '/sharedTaskRefs/' + sharedKey] = true;
-
+      
       var staroDeljenje = taskObj.sharedWith || "";
       updates['users/' + currentUser.uid + '/tasks/' + key + '/sharedWith'] = staroDeljenje + ", " + rawTarget;
-
+      
       db.ref().update(updates).then(function() {
         alert('Korisnik ' + rawTarget + ' je uspesno dodat u postojeci deljeni zadatak!');
       }).catch(function(e) {
         alert('Greska pri dodavanju ucesnika: ' + e.message);
       });
     });
-
+    
   } else {
     var newRef = db.ref('sharedTasks').push();
     var newKey = newRef.key;
-
+    
     var participants = {};
     participants[currentUser.uid] = myInfo;
     participants[recipientUid] = rawTarget;
@@ -482,7 +495,9 @@ function executeSharing(key, taskObj, recipientUid, rawTarget) {
       time: taskObj.time || '',
       repeat: taskObj.repeat || 'none',
       completed: false,
-      createdAt: taskObj.createdAt || dateToISO(new Date()),
+      createdAt: taskObj.createdAt || nowISO,
+      lastChangedAt: nowISO, // Inicijalni marker promene pri kreiranju
+      lastChangedBy: currentUser.uid,
       participants: participants,
       createdBy: currentUser.uid,
       createdByEmail: currentUser.email,
@@ -507,8 +522,18 @@ function executeSharing(key, taskObj, recipientUid, rawTarget) {
 function toggleSharedComplete(key){
   var t = sharedTasksData[key]; if(!t) return;
   var now = dateToISO(new Date());
-  if(!t.completed) firebase.database().ref('sharedTasks/'+key).update({completed:true, completedAt:now});
-  else firebase.database().ref('sharedTasks/'+key).update({completed:false, completedAt:''});
+  var updateData = {
+    lastChangedAt: now,
+    lastChangedBy: currentUser.uid
+  };
+  if(!t.completed) {
+    updateData.completed = true;
+    updateData.completedAt = now;
+  } else {
+    updateData.completed = false;
+    updateData.completedAt = '';
+  }
+  firebase.database().ref('sharedTasks/'+key).update(updateData);
 }
 
 function editSharedTask(key){
@@ -584,9 +609,9 @@ async function showPushNotification(title,body,tag){
 
 function checkAndNotify(){
   if(!('Notification' in window)||Notification.permission!=='granted') return;
-  var now=new Date();
+  var now=new Date(); 
   var in24h=new Date(now.getTime()+86400000);
-  var in48h=new Date(now.getTime()+172800000);
+  var in48h=new Date(now.getTime()+172800000); 
 
   Object.keys(allTasks).forEach(function(k){
     var t=allTasks[k];
@@ -598,12 +623,12 @@ function checkAndNotify(){
     }
     if(!t.time) return;
     var tt=new Date(t.time);
-
+    
     if(!notifiedTasks.has(k)&&tt<=now){
       notifiedTasks.add(k);
       showPushNotification('Moj Planer - VREME JE!',(catEmoji[t.category]||'')+' '+t.text,'alarm_'+k);
     }
-
+    
     if(!notifiedTasks.has(k+'_s')&&tt>now&&tt<=in24h){
       notifiedTasks.add(k+'_s');
       showPushNotification('Sutra vas ceka zadatak',(catEmoji[t.category]||'')+' '+t.text+' - '+displayDate(t.time),'sutra_'+k);
@@ -639,8 +664,23 @@ function renderCats(){
     var isActive = filterCat===c && !isShared;
     return '<button class="chip '+(isActive?'active':'')+'" onclick="setCat(\''+c+'\')">'+(catEmoji[c]||'')+' '+c+'</button>';
   }).join('');
+  
+  // NOVO: Provera da li ijedan od deljenih zadataka ima nepročitane izmene za indikaciju na samom čipu "Deljeni"
   var sharedCount = Object.keys(sharedTasksData).length;
-  html += '<button class="chip teal-chip '+(isShared?'active-teal':'')+'" onclick="setCat(\'Deljeni\')">&#129309; Deljeni'+(sharedCount>0?' ('+sharedCount+')':'')+'</button>';
+  var lastViewedShared = parseInt(localStorage.getItem('mp_last_viewed_shared') || '0');
+  var hasUnreadShared = false;
+  
+  if(currentUser){
+    hasUnreadShared = Object.values(sharedTasksData).some(function(t){
+      if(!t.lastChangedAt || t.lastChangedBy === currentUser.uid) return false;
+      var changeTime = new Date(t.lastChangedAt).getTime();
+      return changeTime > lastViewedShared;
+    });
+  }
+
+  var extraStyle = hasUnreadShared ? 'style="animation: blink-glow 1.5s infinite ease-in-out; border: 1px solid var(--teal);"' : '';
+  
+  html += '<button class="chip teal-chip '+(isShared?'active-teal':'')+'" '+extraStyle+' onclick="setCat(\'Deljeni\')">&#129309; Deljeni'+(sharedCount>0?' ('+sharedCount+')':'')+'</button>';
   document.getElementById('cats').innerHTML = html;
 
   document.getElementById('taskCat').innerHTML = categories.filter(function(c){return c!=='Sve';}).map(function(c){
@@ -683,7 +723,23 @@ function manualRefresh() {
   render();
 }
 
-function setCat(c){ filterCat=c; filterDate=null; showArchive=false; render(); }
+function setCat(c){ 
+  filterCat=c; 
+  filterDate=null; 
+  showArchive=false; 
+  
+  // NOVO: Ako je izabrana kategorija deljeni, beležimo vreme ulaska
+  if(c === 'Deljeni') {
+    localStorage.setItem('mp_last_viewed_shared', Date.now().toString());
+    // Posle 3 sekunde osvežavamo prikaz da skine blinkanje (jer se smatra da je korisnik video promene)
+    setTimeout(function(){
+      if(filterCat === 'Deljeni') render();
+    }, 3000);
+  }
+  
+  render(); 
+}
+
 function clearFilter(){ filterCat='Sve'; filterDate=null; showArchive=false; render(); }
 function filterByDate(ds){ filterDate=ds; filterCat='Sve'; render(); }
 
@@ -693,9 +749,18 @@ function addTask(){
   var category=document.getElementById('taskCat').value;
   var repeat=document.getElementById('taskRepeat').value;
   if(!text) return;
+  var nowISO = dateToISO(new Date());
 
   if(editSharedKey){
-    firebase.database().ref('sharedTasks/'+editSharedKey).update({text:text,time:time,category:category,repeat:repeat});
+    // NOVO: Dodati parametri za lastChanged kod izmene deljenog zadatka
+    firebase.database().ref('sharedTasks/'+editSharedKey).update({
+      text:text,
+      time:time,
+      category:category,
+      repeat:repeat,
+      lastChangedAt: nowISO,
+      lastChangedBy: currentUser.uid
+    });
     editSharedKey=null;
     document.getElementById('saveBtn').textContent='💾 Sacuvaj';
     document.getElementById('taskText').value='';
@@ -704,12 +769,15 @@ function addTask(){
     return;
   }
 
-  var payload={text:text,time:time,category:category,repeat:repeat,completed:false,createdAt:dateToISO(new Date())};
+  var payload={text:text,time:time,category:category,repeat:repeat,completed:false,createdAt:nowISO};
   if(editKey){
     var data={text:text,time:time,category:category,repeat:repeat};
-
+    
     var currentTask = allTasks[editKey];
     if(currentTask && currentTask.sharedKey){
+      // NOVO: Osvežavanje markera kod izmene lokalne kopije koja ima deljeni ključ
+      data.lastChangedAt = nowISO;
+      data.lastChangedBy = currentUser.uid;
       firebase.database().ref('sharedTasks/' + currentTask.sharedKey).update(data);
     }
 
@@ -781,7 +849,7 @@ function removeTask(k){
 
 function registerServiceWorker(){
   if(!('serviceWorker' in navigator)) return;
-  var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<l.length;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
+  var sw="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<llength;i++){if(l[i].url&&'focus'in l[i])return l[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
   var blob=new Blob([sw],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(function(e){console.warn('SW:',e);});
 }
@@ -801,18 +869,30 @@ function render(){
       list.innerHTML+='<div style="text-align:center;color:#9fb0c7;padding:30px;">Nemate deljenih zadataka.<br><br>Koristite dugme &#128228; na zadatku da ga podelite.</div>';
       return;
     }
+    
+    // Čitamo vreme kada je korisnik ušao u deljene zadatke iz lokalne memorije
+    var lastViewedShared = parseInt(localStorage.getItem('mp_last_viewed_shared') || '0');
+
     sharedKeys.forEach(function(k){
       var t=sharedTasksData[k]; if(!t) return;
       var emoji=catEmoji[t.category]||'📌';
       var isAlarm=t.time&&!t.completed&&new Date(t.time)<=now;
-      /* ISPRAVKA XSS: escapeHtml() primenjen na parts */
-      var parts=t.participants?Object.values(t.participants).map(function(p){return escapeHtml(p);}).join(' i '):'';
+      var parts=t.participants?Object.values(t.participants).join(' i '):'';
       var creatorDisplay = t.createdByNickname ? t.createdByNickname + ' ('+t.createdByEmail+')' : t.createdByEmail;
+      
+      // NOVO: Detekcija da li zadatak treba da blinka
+      var shouldBlink = false;
+      if (t.lastChangedAt && t.lastChangedBy !== currentUser.uid) {
+        var changeTime = new Date(t.lastChangedAt).getTime();
+        if (changeTime > lastViewedShared) {
+          shouldBlink = true;
+        }
+      }
 
-      list.innerHTML+='<div class="task shared-task cat-'+t.category+' '+(t.completed?'done':'')+' '+(isAlarm?'alarm':'')+'">' +
+      list.innerHTML+='<div class="task shared-task cat-'+t.category+' '+(t.completed?'done':'')+' '+(isAlarm?'alarm':'')+' '+(shouldBlink?'blink-shared':'')+'">' +
         (isAlarm?'<div class="alarm-banner">&#9200; VREME JE &mdash; '+displayDate(t.time)+'</div>':'')+
         '<div class="task-head">'+
-          '<div>'+emoji+' '+escapeHtml(t.category)+'</div>'+
+          '<div>'+emoji+' '+t.category+'</div>'+
           '<div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div>'+
         '</div>'+
         '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">🤝 Ucesnici: '+parts+'</div>'+
@@ -845,7 +925,7 @@ function render(){
     done.forEach(function(k){
       var t=allTasks[k]; var emoji=catEmoji[t.category]||'';
       list.innerHTML+='<div class="task done cat-'+t.category+'">'+
-        '<div class="task-head"><div>'+emoji+' '+escapeHtml(t.category||'Razno')+'</div><div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
+        '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
         (t.completedAt?'<div class="task-meta">Zavrseno: '+displayDate(t.completedAt)+'</div>':'')+
         '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
         '<div class="actions">'+
@@ -871,7 +951,7 @@ function render(){
     var emoji=catEmoji[t.category]||'';
     list.innerHTML+='<div class="task cat-'+t.category+' '+(isAlarm?'alarm':'')+'">' +
       (isAlarm?'<div class="alarm-banner">&#9200; VREME JE &mdash; '+displayDate(t.time)+'</div>':'')+
-      '<div class="task-head"><div>'+emoji+' '+escapeHtml(t.category||'Razno')+'</div><div>'+(t.repeat&&t.repeat!=='none'?'🔄 ':'')+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
+      '<div class="task-head"><div>'+emoji+' '+(t.category||'Razno')+'</div><div>'+(t.repeat&&t.repeat!=='none'?'🔄 ':'')+(t.time?displayDate(t.time):'Bez vremena')+'</div></div>'+
       (t.createdAt?'<div class="task-meta">Postavljeno: '+displayDate(t.createdAt)+'</div>':'')+
       (t.sharedWith?'<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Podeljeno sa: '+escapeHtml(t.sharedWith)+'</div>':'')+
       '<div class="task-text">'+escapeHtml(t.text)+'</div>'+
