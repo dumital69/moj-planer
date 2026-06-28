@@ -1237,10 +1237,30 @@
                         "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
         const days = ["Po", "Ut", "Sr", "Če", "Pe", "Su", "Ne"];
 
+        // ===== PROMENA DATUMA U PONOĆ =====
+        let lastDateChecked = new Date().toDateString();
+
+        function checkDateChange() {
+            const today = new Date().toDateString();
+            if (today !== lastDateChecked) {
+                lastDateChecked = today;
+                return true; // Datum se promenio
+            }
+            return false;
+        }
+
         function initCalendars() {
-            renderCalendar('cal1', 0);
-            renderCalendar('cal2', 1);
-            renderCalendar('cal2m', 1);
+            // Ako se datum promenio, osveži kalendar
+            if (checkDateChange()) {
+                renderCalendar('cal1', 0);
+                renderCalendar('cal2', 1);
+                renderCalendar('cal2m', 1);
+                showToast('📅 Datum promenjen - kalendar osvežen', 'info', 1500);
+            } else {
+                renderCalendar('cal1', 0);
+                renderCalendar('cal2', 1);
+                renderCalendar('cal2m', 1);
+            }
         }
 
         function renderCalendar(id, offset) {
@@ -1326,24 +1346,23 @@
             document.getElementById('statShared').textContent = shared;
         }
 
-        // ===== AUTO-OSVEŽAVANJE (svaki minut kao Ctrl+F5) =====
+        // ===== AUTO-OSVEŽAVANJE (svakih 30 minuta) =====
         let autoRefreshInterval = null;
 
         function startAutoRefresh() {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
             autoRefreshInterval = setInterval(function() {
-                // Osveži kao Ctrl+F5 - kompletno ponovno učitavanje
                 if (currentUser) {
                     const dbRef = getDbRef(currentUser.uid);
                     if (dbRef) {
                         dbRef.once('value', function(s) {
                             allTasks = s.val() || {};
                             renderTasks();
-                            showToast('🔄 Auto-osveženo', 'info', 1000);
+                            showToast('🔄 Auto-osveženo (30 min)', 'info', 1500);
                         });
                     }
                 }
-            }, 60000); // Svaki minut
+            }, 1800000); // 30 minuta
         }
 
         function stopAutoRefresh() {
@@ -1536,7 +1555,6 @@
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>' +
-                    // Uklonjeno dugme "Kopiraj" - kao što si tražio
                     '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\'' + key + '\')" title="Podeli">📤</button>' +
                     '<button class="iconbtn" style="background:#e74c3c" onclick="removeTask(\'' + key + '\')" title="Obriši">✕</button>' +
                     '</div></div>';
@@ -1744,8 +1762,6 @@
                 addToQueue({ type: 'update', key: key, payload: updates });
             }
         };
-
-        // Uklonjena funkcija duplicateTask - kao što si tražio
 
         window.removeTask = function(key) {
             if (!confirm('Obrisati zadatak?')) return;
@@ -2048,7 +2064,7 @@
         }
 
         // ============================================================
-        //  MANUALNO OSVEŽAVANJE
+        //  MANUALNO OSVEŽAVANJE (klik na 🔄 dugme)
         // ============================================================
         window.manualRefresh = function() {
             showToast('🔄 Osvežavam... (Ctrl+F5)', 'info', 1500);
@@ -2128,7 +2144,7 @@
                     renderTasks();
                     updateNotifBar();
                     startNotificationTimer();
-                    startAutoRefresh(); // Pokreni auto-osvežavanje
+                    startAutoRefresh();
                     checkOldTasks();
                     registerServiceWorker();
                 });
@@ -2140,7 +2156,7 @@
                 allTasks = {};
                 cleanupSharedListeners();
                 stopNotificationTimer();
-                stopAutoRefresh(); // Zaustavi auto-osvežavanje
+                stopAutoRefresh();
                 renderTasks();
             }
         });
@@ -2157,12 +2173,23 @@
             }).join('');
         }
 
+        // Provera datuma pri svakom renderu
+        setInterval(function() {
+            const today = new Date().toDateString();
+            if (today !== lastDateChecked) {
+                lastDateChecked = today;
+                renderTasks();
+                showToast('📅 Datum promenjen - sve osveženo', 'info', 1500);
+            }
+        }, 60000); // Provera svakih 60 sekundi
+
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.0 (sa statistikom)');
-        console.log('✅ Dodato: Statistika, auto-osvežavanje, bolje animacije');
+        console.log('☁️ Moj Planer - verzija 2.1');
+        console.log('✅ Dodato: Statistika, auto-osvežavanje (30 min), bolje animacije');
         console.log('🗑️ Uklonjeno: Dugme "Kopiraj"');
-        console.log('🔄 Auto-osvežavanje: svaki minut (kao Ctrl+F5)');
+        console.log('📅 Kalendar se automatski osvežava u ponoć');
+        console.log('🔄 Ručno osvežavanje: klik na 🔄 dugme');
     </script>
 </body>
 </html>
