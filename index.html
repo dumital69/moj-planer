@@ -27,6 +27,7 @@
             --teal: #1abc9c;
             --shadow: 0 16px 38px rgba(0,0,0,0.45);
             --radius: 18px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { box-sizing: border-box; }
@@ -73,9 +74,51 @@
             border: 1px solid rgba(52, 152, 219, 0.18);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .panel:hover {
+            border-color: rgba(52, 152, 219, 0.35);
         }
 
         .section { padding: 14px 16px; }
+
+        /* ===== STATISTIKA ===== */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 10px 8px;
+            text-align: center;
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+        .stat-number {
+            font-size: 22px;
+            font-weight: 800;
+            display: block;
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+            display: block;
+        }
+        .stat-card.total .stat-number { color: var(--blue); }
+        .stat-card.active .stat-number { color: var(--green); }
+        .stat-card.done .stat-number { color: var(--muted); }
+        .stat-card.shared .stat-number { color: var(--teal); }
 
         /* ===== DUGMICI ===== */
         .btn {
@@ -85,12 +128,12 @@
             color: #fff;
             cursor: pointer;
             font-weight: 700;
-            transition: 0.2s ease;
+            transition: var(--transition);
             user-select: none;
             text-align: center;
         }
-
-        .btn:active { transform: scale(0.98); }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .btn:active { transform: scale(0.97); }
 
         .btn.green { background: linear-gradient(180deg, #2ecc71, #22b15a); }
         .btn.gray { background: linear-gradient(180deg, #34495e, #273647); }
@@ -117,9 +160,9 @@
             color: #fff;
             font-size: 12px;
             font-weight: 700;
-            transition: 0.15s;
+            transition: var(--transition);
         }
-
+        .chip:hover { transform: translateY(-1px); background: #2b4566; }
         .chip.active { background: var(--blue); }
         .chip.active-teal { background: var(--teal); box-shadow: 0 0 10px rgba(26, 188, 156, 0.5); }
         .chip.teal-chip { background: #163d31; color: #1abc9c; border: 1px solid rgba(26, 188, 156, 0.35); }
@@ -158,10 +201,10 @@
             font-size: 12px;
             position: relative;
             min-height: 40px;
-            transition: 0.2s;
+            transition: var(--transition);
         }
-        .day:hover { background: #2b4566; }
-        .day.today { background: #1f8f4b; font-weight: 800; }
+        .day:hover { background: #2b4566; transform: scale(1.05); }
+        .day.today { background: #1f8f4b; font-weight: 800; box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); }
         .day.sel { outline: 2px solid var(--blue); background: #2b4566; }
         .day .dot {
             width: 7px;
@@ -170,6 +213,11 @@
             background: var(--yellow);
             box-shadow: 0 0 4px var(--yellow);
             margin-top: 2px;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
         }
 
         /* ===== FORMA ===== */
@@ -226,7 +274,17 @@
             padding: 12px 12px 11px;
             margin-bottom: 12px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.26);
-            transition: 0.3s;
+            transition: var(--transition);
+            animation: taskIn 0.4s ease;
+        }
+        .task:hover {
+            transform: translateX(4px);
+            border-color: rgba(52, 152, 219, 0.4);
+        }
+
+        @keyframes taskIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .task.alarm {
@@ -241,6 +299,9 @@
             border-left-color: #7f8c8d !important;
             border-right-color: #7f8c8d !important;
             animation: none !important;
+        }
+        .task.done .task-text {
+            text-decoration: line-through;
         }
 
         .task.shared-task {
@@ -257,7 +318,7 @@
         /* ===== ANIMACIJE ===== */
         @keyframes pulse {
             0%, 100% { transform: translateY(0); box-shadow: 0 0 18px rgba(241,196,15,0.20); }
-            50% { transform: translateY(-1px); box-shadow: 0 0 28px rgba(241,196,15,0.38); }
+            50% { transform: translateY(-2px); box-shadow: 0 0 28px rgba(241,196,15,0.38); }
         }
 
         @keyframes blink-glow {
@@ -275,6 +336,11 @@
             to { transform: translateX(100px); opacity: 0; }
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         /* ===== TASK DELOVI ===== */
         .task-head {
             display: flex;
@@ -290,6 +356,7 @@
             line-height: 1.45;
             font-size: 15px;
             margin-bottom: 10px;
+            transition: var(--transition);
         }
         .task-meta {
             font-size: 12px;
@@ -305,6 +372,7 @@
             margin-bottom: 8px;
             text-align: center;
             font-size: 13px;
+            animation: fadeIn 0.5s ease;
         }
         .shared-badge {
             display: inline-block;
@@ -346,10 +414,10 @@
             color: #fff;
             font-weight: 800;
             font-size: 14px;
-            transition: 0.2s;
+            transition: var(--transition);
         }
-        .iconbtn:hover { transform: scale(1.05); }
-        .iconbtn:active { transform: scale(0.95); }
+        .iconbtn:hover { transform: scale(1.1); }
+        .iconbtn:active { transform: scale(0.9); }
 
         /* ===== LOGIN ===== */
         #loginOverlay {
@@ -370,6 +438,7 @@
             width: 100%;
             max-width: 380px;
             box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+            animation: fadeIn 0.5s ease;
         }
         .login-title {
             text-align: center;
@@ -394,8 +463,9 @@
             color: #fff;
             font-size: 15px;
             outline: none;
+            transition: var(--transition);
         }
-        .login-box input:focus { border-color: #3498db; }
+        .login-box input:focus { border-color: #3498db; box-shadow: 0 0 20px rgba(52, 152, 219, 0.15); }
         .login-err {
             color: #e74c3c;
             font-size: 13px;
@@ -423,7 +493,9 @@
             font-weight: 700;
             text-decoration: underline;
             cursor: pointer;
+            transition: var(--transition);
         }
+        .login-switch span:hover { color: #5dade2; }
         .forgot-link {
             text-align: center;
             font-size: 12px;
@@ -431,7 +503,9 @@
             margin-top: 8px;
             cursor: pointer;
             text-decoration: underline;
+            transition: var(--transition);
         }
+        .forgot-link:hover { color: #a9ccec; }
 
         /* ===== OFFLINE ===== */
         .offline {
@@ -444,6 +518,7 @@
             border-radius: 10px;
             font-size: 12px;
             font-weight: 800;
+            animation: pulse 2s infinite;
         }
         .vis-toggle {
             font-size: 12px;
@@ -499,13 +574,14 @@
             color: #fff;
             cursor: pointer;
             font-size: 13px;
-            transition: 0.2s;
+            transition: var(--transition);
         }
-        .pagination button:hover { background: #2b4566; }
+        .pagination button:hover { background: #2b4566; transform: scale(1.05); }
         .pagination button.active { background: var(--blue); }
         .pagination button:disabled {
             opacity: 0.4;
             cursor: not-allowed;
+            transform: none !important;
         }
 
         /* ===== RESPONSIVE ===== */
@@ -524,6 +600,18 @@
             .save-row { flex-direction: column; }
             #notif-bar { width: 100%; }
             .form-top { flex-direction: column; align-items: stretch; }
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            .stat-number {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -583,17 +671,37 @@
                 </div>
                 <div class="offline" id="offlineBar">Rad bez interneta — sinhronizacija kasnije.</div>
                 
+                <!-- ===== STATISTIKA ===== -->
+                <div class="stats" id="statsContainer">
+                    <div class="stat-card total">
+                        <span class="stat-number" id="statTotal">0</span>
+                        <span class="stat-label">📋 Ukupno</span>
+                    </div>
+                    <div class="stat-card active">
+                        <span class="stat-number" id="statActive">0</span>
+                        <span class="stat-label">✅ Aktivni</span>
+                    </div>
+                    <div class="stat-card done">
+                        <span class="stat-number" id="statDone">0</span>
+                        <span class="stat-label">📁 Završeni</span>
+                    </div>
+                    <div class="stat-card shared">
+                        <span class="stat-number" id="statShared">0</span>
+                        <span class="stat-label">🤝 Deljeni</span>
+                    </div>
+                </div>
+                
                 <div id="cats" class="chips" style="margin-bottom:10px;"></div>
                 <div class="vis-toggle" id="doneInfo"></div>
                 
-                <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="renderTasks()" style="margin-bottom:8px;width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;" />
+                <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="renderTasks()" style="margin-bottom:8px;width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;transition:var(--transition);" />
                 
-                <textarea id="taskText" placeholder="Šta treba uraditi?" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;min-height:78px;resize:none;"></textarea>
+                <textarea id="taskText" placeholder="Šta treba uraditi?" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;min-height:78px;resize:none;transition:var(--transition);"></textarea>
                 
                 <div class="input-row">
-                    <select id="taskCat" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;"></select>
-                    <input type="datetime-local" id="taskTime" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;" />
-                    <select id="taskRepeat" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;">
+                    <select id="taskCat" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;transition:var(--transition);"></select>
+                    <input type="datetime-local" id="taskTime" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;transition:var(--transition);" />
+                    <select id="taskRepeat" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;transition:var(--transition);">
                         <option value="none">Bez ponavljanja</option>
                         <option value="daily">Svaki dan</option>
                         <option value="weekly">Svake nedelje</option>
@@ -1204,6 +1312,47 @@
         const catEmoji = {};
         categoryDefs.forEach(function(c) { catEmoji[c.name] = c.emoji; });
 
+        // ===== STATISTIKA =====
+        function updateStats() {
+            const tasks = Object.values(allTasks);
+            const total = tasks.length;
+            const active = tasks.filter(t => !t.completed).length;
+            const done = tasks.filter(t => t.completed).length;
+            const shared = Object.keys(sharedTasksData).length;
+            
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statActive').textContent = active;
+            document.getElementById('statDone').textContent = done;
+            document.getElementById('statShared').textContent = shared;
+        }
+
+        // ===== AUTO-OSVEŽAVANJE (svaki minut kao Ctrl+F5) =====
+        let autoRefreshInterval = null;
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(function() {
+                // Osveži kao Ctrl+F5 - kompletno ponovno učitavanje
+                if (currentUser) {
+                    const dbRef = getDbRef(currentUser.uid);
+                    if (dbRef) {
+                        dbRef.once('value', function(s) {
+                            allTasks = s.val() || {};
+                            renderTasks();
+                            showToast('🔄 Auto-osveženo', 'info', 1000);
+                        });
+                    }
+                }
+            }, 60000); // Svaki minut
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
         // ===== RENDER ZADATAKA =====
         window.renderTasks = function() {
             initCalendars();
@@ -1212,6 +1361,7 @@
             renderCategories();
             renderTaskList();
             updateArchiveButton();
+            updateStats();
         };
 
         function renderCategories() {
@@ -1386,7 +1536,7 @@
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>' +
-                    '<button class="iconbtn" style="background:#9b59b6" onclick="duplicateTask(\'' + key + '\')" title="Kopiraj">⎔</button>' +
+                    // Uklonjeno dugme "Kopiraj" - kao što si tražio
                     '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\'' + key + '\')" title="Podeli">📤</button>' +
                     '<button class="iconbtn" style="background:#e74c3c" onclick="removeTask(\'' + key + '\')" title="Obriši">✕</button>' +
                     '</div></div>';
@@ -1595,29 +1745,7 @@
             }
         };
 
-        window.duplicateTask = function(key) {
-            const task = allTasks[key];
-            if (!task) return;
-            
-            if (!currentUser) return;
-            
-            const data = {
-                text: task.text,
-                time: task.time || '',
-                category: task.category || 'Razno',
-                repeat: task.repeat || 'none',
-                completed: false,
-                createdAt: dateToISO(new Date())
-            };
-            
-            const db = getDbRef(currentUser.uid);
-            if (navigator.onLine) {
-                db.push(data);
-            } else {
-                addToQueue({ type: 'push', payload: data });
-            }
-            showToast('Zadatak dupliran!', 'success');
-        };
+        // Uklonjena funkcija duplicateTask - kao što si tražio
 
         window.removeTask = function(key) {
             if (!confirm('Obrisati zadatak?')) return;
@@ -1923,8 +2051,19 @@
         //  MANUALNO OSVEŽAVANJE
         // ============================================================
         window.manualRefresh = function() {
-            showToast('Osvežavam prikaz...', 'info', 1500);
-            renderTasks();
+            showToast('🔄 Osvežavam... (Ctrl+F5)', 'info', 1500);
+            if (currentUser) {
+                const dbRef = getDbRef(currentUser.uid);
+                if (dbRef) {
+                    dbRef.once('value', function(s) {
+                        allTasks = s.val() || {};
+                        renderTasks();
+                        showToast('✅ Osveženo!', 'success', 1000);
+                    });
+                }
+            } else {
+                renderTasks();
+            }
         };
 
         // ============================================================
@@ -1979,7 +2118,6 @@
                     }
                     updateUserLabel();
                     
-                    // Postavi listener za zadatke
                     const dbRef = getDbRef(user.uid);
                     dbRef.on('value', function(s) {
                         allTasks = s.val() || {};
@@ -1990,6 +2128,7 @@
                     renderTasks();
                     updateNotifBar();
                     startNotificationTimer();
+                    startAutoRefresh(); // Pokreni auto-osvežavanje
                     checkOldTasks();
                     registerServiceWorker();
                 });
@@ -2001,6 +2140,7 @@
                 allTasks = {};
                 cleanupSharedListeners();
                 stopNotificationTimer();
+                stopAutoRefresh(); // Zaustavi auto-osvežavanje
                 renderTasks();
             }
         });
@@ -2010,7 +2150,6 @@
         // ============================================================
         loadQueue();
         
-        // Render kategorija u dropdown-u
         const catSelect = document.getElementById('taskCat');
         if (catSelect) {
             catSelect.innerHTML = categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
@@ -2018,11 +2157,12 @@
             }).join('');
         }
 
-        // Početni render
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.0 (popravljena)');
-        console.log('✅ Sve bezbednosne i performansne popravke su primenjene!');
+        console.log('☁️ Moj Planer - verzija 2.0 (sa statistikom)');
+        console.log('✅ Dodato: Statistika, auto-osvežavanje, bolje animacije');
+        console.log('🗑️ Uklonjeno: Dugme "Kopiraj"');
+        console.log('🔄 Auto-osvežavanje: svaki minut (kao Ctrl+F5)');
     </script>
 </body>
 </html>
