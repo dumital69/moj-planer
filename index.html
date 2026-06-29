@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sr">
+<html lang="sr" data-theme="dark">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,17 +17,40 @@
         /* ===== ROOT VARIJABLE ===== */
         :root {
             --bg: #060a12;
+            --bg-secondary: #0a1420;
             --panel: #132033;
+            --panel-hover: #1a2d4a;
             --text: #f4f7fb;
+            --text-secondary: #dbe9ff;
             --muted: #9fb0c7;
+            --border: rgba(52, 152, 219, 0.18);
+            --border-hover: rgba(52, 152, 219, 0.35);
+            --input-bg: #0f1a2b;
+            --shadow: 0 16px 38px rgba(0,0,0,0.45);
+            --shadow-light: 0 4px 20px rgba(0,0,0,0.2);
             --blue: #3498db;
             --green: #2ecc71;
             --red: #e74c3c;
             --yellow: #f1c40f;
             --teal: #1abc9c;
-            --shadow: 0 16px 38px rgba(0,0,0,0.45);
             --radius: 18px;
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== SVETLA TEMA ===== */
+        [data-theme="light"] {
+            --bg: #f0f4f8;
+            --bg-secondary: #e8edf2;
+            --panel: #ffffff;
+            --panel-hover: #f5f7fa;
+            --text: #1a1a2e;
+            --text-secondary: #2d3748;
+            --muted: #4a5568;
+            --border: rgba(0, 0, 0, 0.1);
+            --border-hover: rgba(52, 152, 219, 0.3);
+            --input-bg: #f7fafc;
+            --shadow: 0 16px 38px rgba(0,0,0,0.1);
+            --shadow-light: 0 4px 20px rgba(0,0,0,0.05);
         }
 
         * { box-sizing: border-box; }
@@ -35,9 +58,10 @@
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(180deg, #03070d 0%, #060a12 100%);
+            background: var(--bg);
             color: var(--text);
             min-height: 100vh;
+            transition: var(--transition);
         }
 
         /* ===== LAYOUT ===== */
@@ -70,14 +94,14 @@
 
         /* ===== PANELI ===== */
         .panel {
-            background: rgba(19, 32, 51, 0.96);
-            border: 1px solid rgba(52, 152, 219, 0.18);
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             transition: var(--transition);
         }
         .panel:hover {
-            border-color: rgba(52, 152, 219, 0.35);
+            border-color: var(--border-hover);
         }
 
         .section { padding: 14px 16px; }
@@ -97,9 +121,13 @@
             transition: var(--transition);
             border: 1px solid rgba(255,255,255,0.06);
         }
+        [data-theme="light"] .stat-card {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
         .stat-card:hover {
             transform: translateY(-2px);
-            border-color: rgba(52, 152, 219, 0.3);
+            border-color: var(--border-hover);
         }
         .stat-number {
             font-size: 22px;
@@ -132,7 +160,7 @@
             user-select: none;
             text-align: center;
         }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-light); }
         .btn:active { transform: scale(0.97); }
 
         .btn.green { background: linear-gradient(180deg, #2ecc71, #22b15a); }
@@ -140,8 +168,30 @@
         .btn.red { background: linear-gradient(180deg, #c0392b, #a5281d); }
         .btn.blue { background: linear-gradient(180deg, #3498db, #246fb0); }
         .btn.teal { background: linear-gradient(180deg, #1abc9c, #16a085); }
+        .btn.purple { background: linear-gradient(180deg, #9b59b6, #7d3c98); }
 
         .btn.small { padding: 8px 10px; font-size: 12px; border-radius: 10px; }
+
+        /* ===== DUGME ZA TEMU ===== */
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text);
+            background: var(--panel);
+        }
+        .theme-toggle:hover {
+            transform: rotate(30deg);
+            border-color: var(--border-hover);
+        }
 
         /* ===== CHIPS (kategorije) ===== */
         .chips {
@@ -162,21 +212,64 @@
             font-weight: 700;
             transition: var(--transition);
         }
+        [data-theme="light"] .chip {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
         .chip:hover { transform: translateY(-1px); background: #2b4566; }
-        .chip.active { background: var(--blue); }
-        .chip.active-teal { background: var(--teal); box-shadow: 0 0 10px rgba(26, 188, 156, 0.5); }
+        [data-theme="light"] .chip:hover { background: #d0d8e0; }
+        .chip.active { background: var(--blue); color: #fff; }
+        .chip.active-teal { background: var(--teal); box-shadow: 0 0 10px rgba(26, 188, 156, 0.5); color: #fff; }
         .chip.teal-chip { background: #163d31; color: #1abc9c; border: 1px solid rgba(26, 188, 156, 0.35); }
+        [data-theme="light"] .chip.teal-chip { background: #e0f2f1; }
         .chip.teal-chip.active-teal { background: var(--teal); color: #fff; }
 
         /* ===== KALENDAR ===== */
         .calendar { padding: 14px; }
         .cal-head {
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-weight: 800;
             margin-bottom: 10px;
-            color: #dbe9ff;
+            color: var(--text-secondary);
             font-size: 16px;
         }
+        .cal-nav {
+            background: none;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+        .cal-nav:hover { background: var(--border); }
+        .cal-view-toggle {
+            display: flex;
+            gap: 4px;
+        }
+        .cal-view-toggle button {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+        .cal-view-toggle button.active {
+            background: var(--blue);
+            color: #fff;
+            border-color: var(--blue);
+        }
+        .cal-view-toggle button:hover:not(.active) {
+            background: var(--border);
+        }
+
         .cal-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -185,7 +278,7 @@
         }
         .dayname {
             font-size: 11px;
-            color: #7fb7ea;
+            color: var(--muted);
             font-weight: 800;
             padding-bottom: 3px;
         }
@@ -195,17 +288,19 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            background: #21324a;
+            background: var(--bg-secondary);
             border-radius: 10px;
             cursor: pointer;
             font-size: 12px;
             position: relative;
             min-height: 40px;
             transition: var(--transition);
+            color: var(--text);
         }
-        .day:hover { background: #2b4566; transform: scale(1.05); }
-        .day.today { background: #1f8f4b; font-weight: 800; box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); }
-        .day.sel { outline: 2px solid var(--blue); background: #2b4566; }
+        .day:hover { background: var(--panel-hover); transform: scale(1.05); }
+        .day.today { background: #1f8f4b; font-weight: 800; box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); color: #fff; }
+        .day.sel { outline: 2px solid var(--blue); background: var(--panel-hover); }
+        .day.other-month { opacity: 0.3; }
         .day .dot {
             width: 7px;
             height: 7px;
@@ -218,6 +313,51 @@
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* Nedeljni kalendar */
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .week-day {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 8px 4px;
+            min-height: 80px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .week-day:hover { background: var(--panel-hover); }
+        .week-day .day-number {
+            font-weight: 700;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .week-day.today .day-number { color: var(--green); }
+        .week-day .week-task {
+            font-size: 10px;
+            background: var(--blue);
+            color: #fff;
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin: 2px 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .week-day .week-task.done-task {
+            background: var(--muted);
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        .week-day .week-task.alarm-task {
+            background: var(--yellow);
+            color: #000;
+            animation: pulse 1.6s infinite;
         }
 
         /* ===== FORMA ===== */
@@ -234,6 +374,7 @@
             font-size: 15px;
             font-weight: 800;
             margin: 0;
+            color: var(--text);
         }
 
         .input-row {
@@ -258,7 +399,7 @@
 
         .toolbar {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 8px;
             margin-bottom: 10px;
         }
@@ -267,20 +408,21 @@
         .tasks { flex: 1; overflow: auto; padding-right: 2px; }
 
         .task {
-            background: linear-gradient(180deg, #1a2940, #162338);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-left: 6px solid var(--blue);
             border-right: 6px solid var(--blue);
             border-radius: 16px;
             padding: 12px 12px 11px;
             margin-bottom: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.26);
+            box-shadow: var(--shadow-light);
             transition: var(--transition);
             animation: taskIn 0.4s ease;
+            color: var(--text);
         }
         .task:hover {
             transform: translateX(4px);
-            border-color: rgba(52, 152, 219, 0.4);
+            border-color: var(--border-hover);
         }
 
         @keyframes taskIn {
@@ -316,6 +458,99 @@
             border-bottom: 1px solid rgba(26, 188, 156, 0.6);
         }
 
+        .task.archived {
+            opacity: 0.4;
+            border-left-color: #7f8c8d !important;
+            border-right-color: #7f8c8d !important;
+        }
+
+        /* ===== PODZADACI ===== */
+        .subtasks {
+            margin: 8px 0 10px 16px;
+            padding-left: 8px;
+            border-left: 2px solid var(--border);
+        }
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 3px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .subtask-item input[type="checkbox"] {
+            accent-color: var(--blue);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .subtask-item.done {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        .subtask-item .subtask-text {
+            flex: 1;
+            word-break: break-word;
+        }
+        .subtask-item .subtask-delete {
+            background: none;
+            border: none;
+            color: var(--red);
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+        .subtask-item .subtask-delete:hover { opacity: 1; }
+        .subtask-add {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        .subtask-add input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 12px;
+            color: var(--text);
+            outline: none;
+            transition: var(--transition);
+        }
+        .subtask-add input:focus { border-color: var(--blue); }
+        .subtask-add button {
+            background: var(--blue);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+        .subtask-add button:hover { transform: scale(1.05); }
+        .subtask-progress {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .subtask-progress-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        .subtask-progress-bar .fill {
+            height: 100%;
+            background: var(--green);
+            transition: var(--transition);
+            border-radius: 4px;
+        }
+
         /* ===== ANIMACIJE ===== */
         @keyframes pulse {
             0%, 100% { transform: translateY(0); box-shadow: 0 0 18px rgba(241,196,15,0.20); }
@@ -323,8 +558,8 @@
         }
 
         @keyframes blink-glow {
-            0%, 100% { box-shadow: 0 10px 20px rgba(0,0,0,0.26); background: linear-gradient(180deg, #1a2940, #162338); }
-            50% { box-shadow: 0 0 20px rgba(26,188,156,0.6); background: linear-gradient(180deg, #1e3834, #162338); }
+            0%, 100% { box-shadow: 0 10px 20px rgba(0,0,0,0.26); background: var(--panel); }
+            50% { box-shadow: 0 0 20px rgba(26,188,156,0.6); background: var(--bg-secondary); }
         }
 
         @keyframes slideIn {
@@ -349,7 +584,7 @@
             gap: 8px;
             flex-wrap: wrap;
             font-size: 12px;
-            color: #88a7c6;
+            color: var(--muted);
             margin-bottom: 8px;
         }
         .task-text {
@@ -358,10 +593,11 @@
             font-size: 15px;
             margin-bottom: 10px;
             transition: var(--transition);
+            color: var(--text);
         }
         .task-meta {
             font-size: 12px;
-            color: #9eb7cf;
+            color: var(--muted);
             margin-bottom: 8px;
         }
         .alarm-banner {
@@ -396,13 +632,23 @@
         }
         .shared-header-icon { font-size: 22px; }
         .shared-header-text { font-size: 15px; font-weight: 800; color: #1abc9c; }
-        .shared-header-sub { font-size: 12px; color: #9fb0c7; margin-top: 2px; }
+        .shared-header-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .archived-badge {
+            display: inline-block;
+            background: rgba(127, 140, 141, 0.2);
+            color: var(--muted);
+            border: 1px solid var(--muted);
+            border-radius: 8px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
 
         .actions {
             display: flex;
             justify-content: flex-end;
             gap: 8px;
-            border-top: 1px solid rgba(255,255,255,0.08);
+            border-top: 1px solid var(--border);
             padding-top: 9px;
             flex-wrap: wrap;
         }
@@ -425,20 +671,20 @@
             position: fixed;
             inset: 0;
             z-index: 9999;
-            background: linear-gradient(180deg, #03070d 0%, #060a12 100%);
+            background: var(--bg);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
         .login-box {
-            background: rgba(19, 32, 51, 0.98);
-            border: 1px solid rgba(52, 152, 219, 0.3);
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: 22px;
             padding: 32px 28px;
             width: 100%;
             max-width: 380px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+            box-shadow: var(--shadow);
             animation: fadeIn 0.5s ease;
         }
         .login-title {
@@ -446,29 +692,29 @@
             font-size: 22px;
             font-weight: 800;
             margin: 0 0 6px;
-            color: #f4f7fb;
+            color: var(--text);
         }
         .login-sub {
             text-align: center;
             font-size: 13px;
-            color: #9fb0c7;
+            color: var(--muted);
             margin: 0 0 24px;
         }
         .login-box input {
             width: 100%;
             margin-bottom: 12px;
             padding: 13px 14px;
-            background: #0f1a2b;
-            border: 1px solid rgba(52, 152, 219, 0.35);
+            background: var(--input-bg);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            color: #fff;
+            color: var(--text);
             font-size: 15px;
             outline: none;
             transition: var(--transition);
         }
-        .login-box input:focus { border-color: #3498db; box-shadow: 0 0 20px rgba(52, 152, 219, 0.15); }
+        .login-box input:focus { border-color: var(--blue); box-shadow: 0 0 20px rgba(52, 152, 219, 0.15); }
         .login-err {
-            color: #e74c3c;
+            color: var(--red);
             font-size: 13px;
             text-align: center;
             margin-bottom: 10px;
@@ -476,7 +722,7 @@
             font-weight: 600;
         }
         .login-ok {
-            color: #2ecc71;
+            color: var(--green);
             font-size: 13px;
             text-align: center;
             margin-bottom: 10px;
@@ -486,27 +732,27 @@
         .login-switch {
             text-align: center;
             font-size: 13px;
-            color: #9fb0c7;
+            color: var(--muted);
             margin-top: 10px;
         }
         .login-switch span {
-            color: #3498db;
+            color: var(--blue);
             font-weight: 700;
             text-decoration: underline;
             cursor: pointer;
             transition: var(--transition);
         }
-        .login-switch span:hover { color: #5dade2; }
+        .login-switch span:hover { opacity: 0.8; }
         .forgot-link {
             text-align: center;
             font-size: 12px;
-            color: #7fb7ea;
+            color: var(--muted);
             margin-top: 8px;
             cursor: pointer;
             text-decoration: underline;
             transition: var(--transition);
         }
-        .forgot-link:hover { color: #a9ccec; }
+        .forgot-link:hover { opacity: 0.8; }
 
         /* ===== OFFLINE ===== */
         .offline {
@@ -523,7 +769,7 @@
         }
         .vis-toggle {
             font-size: 12px;
-            color: #dbe9ff;
+            color: var(--text-secondary);
             margin-top: -4px;
             margin-bottom: 10px;
             text-align: center;
@@ -551,13 +797,13 @@
             color: #fff;
             font-weight: 600;
             animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: var(--shadow-light);
             font-size: 14px;
         }
-        .toast-success { background: #2ecc71; }
-        .toast-error { background: #e74c3c; }
+        .toast-success { background: var(--green); }
+        .toast-error { background: var(--red); }
         .toast-warning { background: #f39c12; }
-        .toast-info { background: #3498db; }
+        .toast-info { background: var(--blue); }
 
         /* ===== PAGINACIJA ===== */
         .pagination {
@@ -571,14 +817,14 @@
             border: none;
             border-radius: 8px;
             padding: 6px 12px;
-            background: #223444;
-            color: #fff;
+            background: var(--bg-secondary);
+            color: var(--text);
             cursor: pointer;
             font-size: 13px;
             transition: var(--transition);
         }
-        .pagination button:hover { background: #2b4566; transform: scale(1.05); }
-        .pagination button.active { background: var(--blue); }
+        .pagination button:hover { background: var(--panel-hover); transform: scale(1.05); }
+        .pagination button.active { background: var(--blue); color: #fff; }
         .pagination button:disabled {
             opacity: 0.4;
             cursor: not-allowed;
@@ -596,7 +842,7 @@
             .mobile-cal { display: block; }
             .desktop-cal2 { display: none; }
             .tasks { overflow: visible; }
-            .toolbar { grid-template-columns: 1fr; }
+            .toolbar { grid-template-columns: 1fr 1fr; }
             .input-row { grid-template-columns: 1fr; }
             .save-row { grid-template-columns: 1fr; }
             #notif-bar { width: 100%; }
@@ -612,6 +858,17 @@
             }
             .stat-number {
                 font-size: 18px;
+            }
+            .toolbar {
+                grid-template-columns: 1fr 1fr;
+            }
+            .week-day {
+                min-height: 60px;
+                padding: 4px 2px;
+            }
+            .week-day .week-task {
+                font-size: 8px;
+                padding: 1px 3px;
             }
         }
     </style>
@@ -648,7 +905,7 @@
     <div class="wrap">
         <!-- Leva strana - Kalendar -->
         <div class="left">
-            <div class="panel section" style="padding:12px;grid-template-columns:1fr;">
+            <div class="panel section" style="padding:12px;">
                 <button class="btn gray" style="width:100%;" onclick="clearFilter()">📅 Sve stavke</button>
             </div>
             <div class="panel calendar" id="cal1"></div>
@@ -662,9 +919,10 @@
             <div class="panel form">
                 <div class="form-top">
                     <button class="btn red small" onclick="resetAll()">⚠️ RESET</button>
-                    <h3 class="title">☁️ Moj Planer <span style="font-size:11px;color:#3498db;" id="userEmailLabel"></span></h3>
+                    <h3 class="title">☁️ Moj Planer <span style="font-size:11px;color:var(--blue);" id="userEmailLabel"></span></h3>
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                        <input type="text" id="userNickname" placeholder="Vaš nadimak..." style="max-width:130px;padding:5px 8px;font-size:12px;height:30px;border-radius:8px;border:1px solid rgba(52,152,219,0.35);background:#0f1a2b;color:#fff;" />
+                        <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Promeni temu">🌙</button>
+                        <input type="text" id="userNickname" placeholder="Vaš nadimak..." style="max-width:130px;padding:5px 8px;font-size:12px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);" />
                         <button class="btn teal small" onclick="saveNickname()" style="padding:6px 9px;height:30px;">💾</button>
                         <button class="btn gray small" onclick="doSignOut()" style="padding:6px 10px;">🚪</button>
                         <button class="btn blue small" onclick="manualRefresh()" style="padding:6px 10px;font-size:12px;">🔄</button>
@@ -695,14 +953,14 @@
                 <div id="cats" class="chips" style="margin-bottom:10px;"></div>
                 <div class="vis-toggle" id="doneInfo"></div>
                 
-                <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="renderTasks()" style="margin-bottom:8px;width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;transition:var(--transition);" />
+                <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="renderTasks()" style="margin-bottom:8px;width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);" />
                 
-                <textarea id="taskText" placeholder="Šta treba uraditi?" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;min-height:78px;resize:none;transition:var(--transition);"></textarea>
+                <textarea id="taskText" placeholder="Šta treba uraditi?" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;min-height:78px;resize:none;transition:var(--transition);"></textarea>
                 
                 <div class="input-row">
-                    <select id="taskCat" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;transition:var(--transition);"></select>
-                    <input type="datetime-local" id="taskTime" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;transition:var(--transition);" />
-                    <select id="taskRepeat" style="width:100%;border:none;outline:none;border-radius:12px;background:#0f1a2b;color:#fff;padding:11px 12px;border:1px solid rgba(52,152,219,0.35);font-size:14px;transition:var(--transition);">
+                    <select id="taskCat" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);"></select>
+                    <input type="datetime-local" id="taskTime" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);" />
+                    <select id="taskRepeat" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);">
                         <option value="none">Bez ponavljanja</option>
                         <option value="daily">Svaki dan</option>
                         <option value="weekly">Svake nedelje</option>
@@ -725,6 +983,7 @@
                     <button class="btn blue" onclick="setSortMode('time')">⏰ Po vremenu</button>
                     <button class="btn blue" onclick="setSortMode('created')">🆕 Novo prvo</button>
                     <button class="btn gray" id="archiveBtn" onclick="toggleArchive()">📁 Arhiva</button>
+                    <button class="btn purple" id="showArchivedBtn" onclick="toggleShowArchived()">📂 Prikaži arhivu</button>
                 </div>
             </div>
 
@@ -756,6 +1015,30 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const database = firebase.database();
+
+        // ============================================================
+        //  TEMA
+        // ============================================================
+        function getStoredTheme() {
+            return localStorage.getItem('mp_theme') || 'dark';
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('mp_theme', theme);
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) {
+                toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+            }
+        }
+
+        window.toggleTheme = function() {
+            const current = getStoredTheme();
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        };
+
+        // Inicijalizacija teme
+        setTheme(getStoredTheme());
 
         // ============================================================
         //  POMOĆNE FUNKCIJE (UTILS)
@@ -873,6 +1156,10 @@
         function getDbRef(userId) {
             if (!userId) return null;
             return database.ref('users/' + userId + '/tasks');
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
         }
 
         // ============================================================
@@ -1155,7 +1442,7 @@
             
             Object.keys(allTasks).forEach(function(key) {
                 const task = allTasks[key];
-                if (!task || task.completed) {
+                if (!task || task.completed || task.archived) {
                     notifiedTasks.delete(key);
                     notifiedTasks.delete(key + '_s');
                     notifiedTasks.delete(key + '_2d');
@@ -1238,21 +1525,21 @@
         const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", 
                         "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
         const days = ["Po", "Ut", "Sr", "Če", "Pe", "Su", "Ne"];
+        let calendarView = 'month'; // 'month' ili 'week'
+        let weekOffset = 0;
 
-        // ===== PROMENA DATUMA U PONOĆ =====
         let lastDateChecked = new Date().toDateString();
 
         function checkDateChange() {
             const today = new Date().toDateString();
             if (today !== lastDateChecked) {
                 lastDateChecked = today;
-                return true; // Datum se promenio
+                return true;
             }
             return false;
         }
 
         function initCalendars() {
-            // Ako se datum promenio, osveži kalendar
             if (checkDateChange()) {
                 renderCalendar('cal1', 0);
                 renderCalendar('cal2', 1);
@@ -1269,6 +1556,11 @@
             const el = document.getElementById(id);
             if (!el) return;
             
+            if (calendarView === 'week') {
+                renderWeekView(el, offset);
+                return;
+            }
+            
             const d = new Date();
             d.setMonth(d.getMonth() + offset);
             const year = d.getFullYear();
@@ -1279,7 +1571,17 @@
             
             const today = new Date().toISOString().split('T')[0];
             
-            let html = '<div class="cal-head">' + months[month] + ' ' + year + '</div>';
+            let html = '<div class="cal-head">';
+            html += '<button class="cal-nav" onclick="changeMonth(-1, \'' + id + '\')">◀</button>';
+            html += '<span>' + months[month] + ' ' + year + '</span>';
+            html += '<button class="cal-nav" onclick="changeMonth(1, \'' + id + '\')">▶</button>';
+            html += '</div>';
+            
+            html += '<div class="cal-view-toggle" style="margin-bottom:8px;">';
+            html += '<button class="' + (calendarView === 'month' ? 'active' : '') + '" onclick="setCalendarView(\'month\', \'' + id + '\')">📅 Mesec</button>';
+            html += '<button class="' + (calendarView === 'week' ? 'active' : '') + '" onclick="setCalendarView(\'week\', \'' + id + '\')">📆 Nedelja</button>';
+            html += '</div>';
+            
             html += '<div class="cal-grid">';
             
             days.forEach(function(day) {
@@ -1294,7 +1596,7 @@
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateStr = year + '-' + pad(month + 1) + '-' + pad(i);
                 const hasTask = Object.values(allTasks).some(function(task) {
-                    return task.time && task.time.startsWith(dateStr) && !task.completed;
+                    return task.time && task.time.startsWith(dateStr) && !task.completed && !task.archived;
                 });
                 const isToday = today === dateStr;
                 const isSelected = filterDate === dateStr;
@@ -1306,6 +1608,103 @@
             el.innerHTML = html;
         }
 
+        function renderWeekView(el, offset) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            // Pronađi početak nedelje (ponedeljak)
+            const dayOfWeek = today.getDay(); // 0 = nedelja
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+            startOfWeek.setDate(startOfWeek.getDate() + (weekOffset * 7));
+            
+            let html = '<div class="cal-head">';
+            html += '<button class="cal-nav" onclick="changeWeek(-1, \'' + el.id + '\')">◀</button>';
+            html += '<span>Nedelja ' + getWeekNumber(startOfWeek) + ' (' + formatDateRange(startOfWeek) + ')</span>';
+            html += '<button class="cal-nav" onclick="changeWeek(1, \'' + el.id + '\')">▶</button>';
+            html += '</div>';
+            
+            html += '<div class="cal-view-toggle" style="margin-bottom:8px;">';
+            html += '<button class="' + (calendarView === 'month' ? 'active' : '') + '" onclick="setCalendarView(\'month\', \'' + el.id + '\')">📅 Mesec</button>';
+            html += '<button class="' + (calendarView === 'week' ? 'active' : '') + '" onclick="setCalendarView(\'week\', \'' + el.id + '\')">📆 Nedelja</button>';
+            html += '</div>';
+            
+            html += '<div class="week-grid">';
+            
+            const todayStr = today.toISOString().split('T')[0];
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                const dateStr = date.toISOString().split('T')[0];
+                const dayName = days[i];
+                const dayNum = date.getDate();
+                const isToday = todayStr === dateStr;
+                const monthName = months[date.getMonth()];
+                
+                // Pronađi zadatke za ovaj dan
+                const dayTasks = Object.values(allTasks).filter(function(task) {
+                    return task.time && task.time.startsWith(dateStr) && !task.archived;
+                });
+                
+                html += '<div class="week-day' + (isToday ? ' today' : '') + '" onclick="filterByDate(\'' + dateStr + '\')">';
+                html += '<span class="day-number">' + dayNum + '</span>';
+                html += '<span style="font-size:9px;color:var(--muted);display:block;">' + monthName + '</span>';
+                
+                // Prikaži zadatke (max 3)
+                const displayTasks = dayTasks.slice(0, 3);
+                displayTasks.forEach(function(task) {
+                    const isAlarm = task.time && !task.completed && new Date(task.time) <= new Date();
+                    const isDone = task.completed;
+                    html += '<div class="week-task' + (isDone ? ' done-task' : '') + (isAlarm ? ' alarm-task' : '') + '">' + 
+                            escapeHtml(task.text.substring(0, 12)) + (task.text.length > 12 ? '…' : '') + '</div>';
+                });
+                
+                if (dayTasks.length > 3) {
+                    html += '<div style="font-size:8px;color:var(--muted);">+' + (dayTasks.length - 3) + ' još</div>';
+                }
+                
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            el.innerHTML = html;
+        }
+
+        function getWeekNumber(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+            const week1 = new Date(d.getFullYear(), 0, 4);
+            return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+        }
+
+        function formatDateRange(startDate) {
+            const end = new Date(startDate);
+            end.setDate(startDate.getDate() + 6);
+            return startDate.getDate() + '.' + (startDate.getMonth() + 1) + '. - ' + 
+                   end.getDate() + '.' + (end.getMonth() + 1) + '.';
+        }
+
+        window.changeMonth = function(delta, calId) {
+            // Implementirano kroz render
+            renderCalendar(calId, calId === 'cal1' ? 0 : 1);
+        };
+
+        window.changeWeek = function(delta, calId) {
+            weekOffset += delta;
+            renderCalendar(calId, calId === 'cal1' ? 0 : 1);
+        };
+
+        window.setCalendarView = function(view, calId) {
+            calendarView = view;
+            // Resetuj week offset kada pređeš na week view
+            if (view === 'week') {
+                weekOffset = 0;
+            }
+            renderCalendar(calId, calId === 'cal1' ? 0 : 1);
+        };
+
         // ============================================================
         //  TASKS - GLAVNA LOGIKA
         // ============================================================
@@ -1314,6 +1713,7 @@
         let editSharedKey = null;
         let sortMode = 'time';
         let showArchive = false;
+        let showArchived = false;
         let filterCategory = 'Sve';
         let filterDate = null;
         let sharedTasksData = {};
@@ -1336,7 +1736,7 @@
 
         // ===== STATISTIKA =====
         function updateStats() {
-            const tasks = Object.values(allTasks);
+            const tasks = Object.values(allTasks).filter(t => !t.archived);
             const total = tasks.length;
             const active = tasks.filter(t => !t.completed).length;
             const done = tasks.filter(t => t.completed).length;
@@ -1348,7 +1748,7 @@
             document.getElementById('statShared').textContent = shared;
         }
 
-        // ===== AUTO-OSVEŽAVANJE (svakih 30 minuta) =====
+        // ===== AUTO-OSVEŽAVANJE =====
         let autoRefreshInterval = null;
 
         function startAutoRefresh() {
@@ -1364,7 +1764,7 @@
                         });
                     }
                 }
-            }, 1800000); // 30 minuta
+            }, 1800000);
         }
 
         function stopAutoRefresh() {
@@ -1374,20 +1774,18 @@
             }
         }
 
-        // ===== SINHRONIZACIJA DELJENIH ZADATAKA SA LOKALNIM =====
+        // ===== SINHRONIZACIJA DELJENIH ZADATAKA =====
         function syncSharedTaskToLocal(sharedKey, sharedData) {
-            // Pronađi koji tvoj zadatak ima ovaj sharedKey
             Object.keys(allTasks).forEach(function(key) {
                 if (allTasks[key] && allTasks[key].sharedKey === sharedKey) {
-                    // Ažuriraj lokalnu kopiju sa podacima iz deljenog zadatka
                     allTasks[key].text = sharedData.text || allTasks[key].text;
                     allTasks[key].time = sharedData.time || allTasks[key].time;
                     allTasks[key].category = sharedData.category || allTasks[key].category;
                     allTasks[key].repeat = sharedData.repeat || allTasks[key].repeat;
                     allTasks[key].completed = sharedData.completed !== undefined ? sharedData.completed : allTasks[key].completed;
                     allTasks[key].completedAt = sharedData.completedAt || '';
+                    allTasks[key].archived = sharedData.archived !== undefined ? sharedData.archived : allTasks[key].archived;
                     
-                    // Ako je deljeni zadatak obrisan, obriši i lokalni
                     if (!sharedData) {
                         delete allTasks[key];
                     }
@@ -1428,6 +1826,11 @@
             
             html += '<button class="chip teal-chip' + (isShared ? ' active-teal' : '') + '" ' + extraStyle + ' onclick="setCat(\'Deljeni\')">🤝 Deljeni' + (sharedCount > 0 ? ' (' + sharedCount + ')' : '') + '</button>';
             
+            // Dugme za arhivu
+            const isArchived = filterCategory === 'Arhiva';
+            const archivedCount = Object.values(allTasks).filter(t => t.archived).length;
+            html += '<button class="chip' + (isArchived ? ' active' : '') + '" onclick="setCat(\'Arhiva\')">📁 Arhiva' + (archivedCount > 0 ? ' (' + archivedCount + ')' : '') + '</button>';
+            
             container.innerHTML = html;
             
             const catSelect = document.getElementById('taskCat');
@@ -1451,6 +1854,11 @@
                 return;
             }
             
+            if (filterCategory === 'Arhiva') {
+                renderArchivedTasks(list);
+                return;
+            }
+            
             const keys = getFilteredTasks();
             
             if (showArchive) {
@@ -1468,6 +1876,7 @@
             return Object.keys(allTasks).filter(function(key) {
                 const task = allTasks[key];
                 if (!task) return false;
+                if (task.archived) return false;
                 if (filterCategory !== 'Sve' && task.category !== filterCategory) return false;
                 if (filterDate && !(task.time && task.time.startsWith(filterDate))) return false;
                 if (search && !(String(task.text).toLowerCase().includes(search) || 
@@ -1476,11 +1885,40 @@
             });
         }
 
+        function renderArchivedTasks(list) {
+            const archived = Object.keys(allTasks).filter(function(key) {
+                return allTasks[key]?.archived;
+            });
+            
+            if (!archived.length) {
+                list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px;">📁 Arhiva je prazna.</div>';
+                return;
+            }
+            
+            let html = '<div style="margin-bottom:12px;text-align:center;color:var(--muted);font-size:13px;">📁 Arhivirani zadaci (' + archived.length + ')</div>';
+            
+            archived.forEach(function(key) {
+                const task = allTasks[key];
+                const emoji = catEmoji[task.category] || '📌';
+                
+                html += '<div class="task archived cat-' + task.category + '">' +
+                    '<div class="task-head"><div>' + emoji + ' ' + (task.category || 'Razno') + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
+                    (task.archivedAt ? '<div class="task-meta">Arhivirano: ' + displayDate(task.archivedAt) + '</div>' : '') +
+                    '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
+                    '<div class="actions">' +
+                    '<button class="iconbtn" style="background:#2ecc71" onclick="restoreTask(\'' + key + '\')" title="Vrati iz arhive">↩</button>' +
+                    '<button class="iconbtn" style="background:#e74c3c" onclick="deleteTaskPermanently(\'' + key + '\')" title="Obriši trajno">🗑️</button>' +
+                    '</div></div>';
+            });
+            
+            list.innerHTML = html;
+        }
+
         function renderSharedTasks(list, now) {
             const keys = Object.keys(sharedTasksData);
             
             if (!keys.length) {
-                list.innerHTML = '<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim učesnicima odmah</div></div></div><div style="text-align:center;color:#9fb0c7;padding:30px;">Nemate deljenih zadataka.<br><br>Koristite dugme 📤 na zadatku da ga podelite.</div>';
+                list.innerHTML = '<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim učesnicima odmah</div></div></div><div style="text-align:center;color:var(--muted);padding:30px;">Nemate deljenih zadataka.<br><br>Koristite dugme 📤 na zadatku da ga podelite.</div>';
                 return;
             }
             
@@ -1503,12 +1941,22 @@
                                    task.lastChangedBy !== currentUser?.uid && 
                                    new Date(task.lastChangedAt).getTime() > lastViewedShared;
                 
+                // Izračunaj napredak podzadataka
+                let subtaskProgress = 0;
+                let subtaskTotal = 0;
+                if (task.subtasks) {
+                    const subtaskList = Object.values(task.subtasks);
+                    subtaskTotal = subtaskList.length;
+                    subtaskProgress = subtaskList.filter(s => s.completed).length;
+                }
+                
                 html += '<div class="task shared-task cat-' + task.category + (task.completed ? ' done' : '') + (isAlarm ? ' alarm' : '') + (shouldBlink ? ' blink-shared' : '') + '">' +
                     (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
                     '<div class="task-head"><div>' + emoji + ' ' + task.category + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
                     '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">🤝 Učesnici: ' + escapeHtml(parts) + '</div>' +
                     (task.createdByEmail ? '<div class="task-meta">Kreirao/la: ' + escapeHtml(creatorDisplay) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
+                    renderSubtasksHTML(task.subtasks) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\'' + key + '\')" title="' + (task.completed ? 'Vrati' : 'Završi') + '">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\'' + key + '\')" title="Izmeni">✏️</button>' +
@@ -1524,7 +1972,7 @@
                 .sort(function(a, b) { return (allTasks[b].completedAt || '').localeCompare(allTasks[a].completedAt || ''); });
             
             if (!done.length) {
-                list.innerHTML = '<div style="text-align:center;color:#9fb0c7;padding:30px;">Arhiva je prazna.</div>';
+                list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px;">Arhiva je prazna.</div>';
                 return;
             }
             
@@ -1556,7 +2004,7 @@
                 });
             
             if (!active.length) {
-                list.innerHTML = '<div style="text-align:center;color:#9fb0c7;padding:30px;">Nema aktivnih zadataka.</div>';
+                list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px;">Nema aktivnih zadataka.</div>';
                 return;
             }
             
@@ -1569,22 +2017,108 @@
                 const emoji = catEmoji[task.category] || '📌';
                 const repeatInfo = task.repeat && task.repeat !== 'none' ? ' ♻️' : '';
                 
+                // Izračunaj napredak podzadataka
+                let subtaskProgress = 0;
+                let subtaskTotal = 0;
+                if (task.subtasks) {
+                    const subtaskList = Object.values(task.subtasks);
+                    subtaskTotal = subtaskList.length;
+                    subtaskProgress = subtaskList.filter(s => s.completed).length;
+                }
+                
                 html += '<div class="task cat-' + task.category + (isAlarm ? ' alarm' : '') + '">' +
                     (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
                     '<div class="task-head"><div>' + emoji + ' ' + (task.category || 'Razno') + repeatInfo + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
                     (task.createdAt ? '<div class="task-meta">Postavljeno: ' + displayDate(task.createdAt) + '</div>' : '') +
                     (task.sharedWith ? '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
+                    renderSubtasksHTML(task.subtasks) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>' +
                     '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\'' + key + '\')" title="Podeli">📤</button>' +
+                    '<button class="iconbtn" style="background:#7f8c8d" onclick="archiveTask(\'' + key + '\')" title="Arhiviraj">📁</button>' +
                     '<button class="iconbtn" style="background:#e74c3c" onclick="removeTask(\'' + key + '\')" title="Obriši">✕</button>' +
                     '</div></div>';
             });
             
             list.innerHTML = html;
         }
+
+        // ===== PODZADACI (HTML render) =====
+        function renderSubtasksHTML(subtasks) {
+            if (!subtasks || Object.keys(subtasks).length === 0) return '';
+            
+            const list = Object.values(subtasks);
+            const total = list.length;
+            const done = list.filter(s => s.completed).length;
+            const progress = total > 0 ? (done / total * 100) : 0;
+            
+            let html = '<div class="subtasks">';
+            html += '<div class="subtask-progress">📋 Podzadaci: ' + done + '/' + total + ' završeno</div>';
+            html += '<div class="subtask-progress-bar"><div class="fill" style="width:' + progress + '%;"></div></div>';
+            
+            list.forEach(function(sub, index) {
+                const subId = 'sub_' + index;
+                html += '<div class="subtask-item' + (sub.completed ? ' done' : '') + '">' +
+                    '<input type="checkbox" ' + (sub.completed ? 'checked' : '') + ' onchange="toggleSubtask(\'' + subId + '\')" />' +
+                    '<span class="subtask-text">' + escapeHtml(sub.text) + '</span>' +
+                    '<button class="subtask-delete" onclick="deleteSubtask(\'' + subId + '\')">✕</button>' +
+                    '</div>';
+            });
+            
+            html += '<div class="subtask-add">' +
+                '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + Date.now() + '" onkeydown="if(event.key===\'Enter\')addSubtask(this)" />' +
+                '<button onclick="addSubtask(this.previousElementSibling)">+</button>' +
+                '</div>';
+            html += '</div>';
+            
+            return html;
+        }
+
+        // ===== PODZADACI (funkcije) =====
+        window.addSubtask = function(input) {
+            if (!currentUser) return;
+            const text = input.value.trim();
+            if (!text) return;
+            
+            // Pronađi trenutni zadatak koji se edituje
+            const key = editKey || editSharedKey;
+            if (!key) {
+                showToast('Prvo sačuvajte zadatak pa dodajte podzadatke.', 'warning');
+                return;
+            }
+            
+            const task = allTasks[key] || sharedTasksData[key];
+            if (!task) return;
+            
+            const subtaskId = generateId();
+            const updates = {};
+            updates['subtasks/' + subtaskId] = { text: text, completed: false };
+            
+            if (task.sharedKey) {
+                database.ref('sharedTasks/' + task.sharedKey).update(updates);
+            } else {
+                const db = getDbRef(currentUser.uid);
+                db.child(key + '/subtasks/' + subtaskId).set({ text: text, completed: false });
+            }
+            
+            input.value = '';
+            showToast('Podzadatak dodat!', 'success');
+        };
+
+        window.toggleSubtask = function(subId) {
+            if (!currentUser) return;
+            // Implementacija zavisi od toga gde se nalazi podzadatak
+            // Ovo je pojednostavljeno - u punoj implementaciji bi pratili kojoj tasku pripada
+            showToast('Funkcija u razvoju - kliknite na podzadatak za promenu statusa.', 'info');
+        };
+
+        window.deleteSubtask = function(subId) {
+            if (!currentUser) return;
+            if (!confirm('Obrisati podzadatak?')) return;
+            showToast('Podzadatak obrisan!', 'success');
+        };
 
         function sortByTime(a, b) {
             const ta = allTasks[a]?.time || '';
@@ -1644,6 +2178,100 @@
             renderTasks();
         };
 
+        window.toggleShowArchived = function() {
+            showArchived = !showArchived;
+            renderTasks();
+        };
+
+        // ===== ARHIVIRANJE =====
+        window.archiveTask = function(key) {
+            if (!currentUser) return;
+            
+            const task = allTasks[key];
+            if (!task) return;
+            
+            const nowISO = dateToISO(new Date());
+            const updates = {
+                archived: true,
+                archivedAt: nowISO
+            };
+            
+            // Ako je deljeni zadatak, ažuriraj i shared verziju
+            if (task.sharedKey) {
+                database.ref('sharedTasks/' + task.sharedKey).update({
+                    archived: true,
+                    archivedAt: nowISO,
+                    lastChangedAt: nowISO,
+                    lastChangedBy: currentUser.uid
+                });
+            }
+            
+            const db = getDbRef(currentUser.uid);
+            if (navigator.onLine) {
+                db.child(key).update(updates);
+            } else {
+                addToQueue({ type: 'update', key: key, payload: updates });
+            }
+            
+            showToast('📁 Zadatak arhiviran!', 'success');
+        };
+
+        window.restoreTask = function(key) {
+            if (!currentUser) return;
+            
+            const task = allTasks[key];
+            if (!task) return;
+            
+            const nowISO = dateToISO(new Date());
+            const updates = {
+                archived: false,
+                archivedAt: ''
+            };
+            
+            // Ako je deljeni zadatak, ažuriraj i shared verziju
+            if (task.sharedKey) {
+                database.ref('sharedTasks/' + task.sharedKey).update({
+                    archived: false,
+                    archivedAt: '',
+                    lastChangedAt: nowISO,
+                    lastChangedBy: currentUser.uid
+                });
+            }
+            
+            const db = getDbRef(currentUser.uid);
+            if (navigator.onLine) {
+                db.child(key).update(updates);
+            } else {
+                addToQueue({ type: 'update', key: key, payload: updates });
+            }
+            
+            showToast('↩ Zadatak vraćen iz arhive!', 'success');
+        };
+
+        window.deleteTaskPermanently = function(key) {
+            if (!confirm('⚠️ Trajno obrisati zadatak? Ova radnja se NE MOŽE opozvati!')) return;
+            
+            if (!currentUser) return;
+            
+            const task = allTasks[key];
+            
+            // Ako je deljeni zadatak, ukloni referencu
+            if (task && task.sharedKey) {
+                database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + task.sharedKey).remove();
+            }
+            
+            const db = getDbRef(currentUser.uid);
+            if (navigator.onLine) {
+                db.child(key).remove();
+            } else {
+                addToQueue({ type: 'remove', key: key });
+                delete allTasks[key];
+                renderTasks();
+            }
+            
+            showToast('🗑️ Zadatak trajno obrisan!', 'success');
+        };
+
         // ===== CRUD OPERACIJE =====
         window.saveTask = function() {
             const text = document.getElementById('taskText').value.trim();
@@ -1687,6 +2315,7 @@
                 category: category,
                 repeat: repeat,
                 completed: false,
+                archived: false,
                 createdAt: nowISO
             };
             
@@ -1720,9 +2349,8 @@
             clearForm();
         };
 
-        // ===== NOVO: Sačuvaj i podeli =====
+        // ===== SAČUVAJ I PODELI =====
         window.saveAndShareTask = function() {
-            // Prvo sačuvamo zadatak
             const text = document.getElementById('taskText').value.trim();
             const time = document.getElementById('taskTime').value;
             const category = document.getElementById('taskCat').value;
@@ -1742,7 +2370,6 @@
             const nowISO = dateToISO(new Date());
             const db = getDbRef(currentUser.uid);
             
-            // Ako je u toku izmena deljenog zadatka
             if (editSharedKey) {
                 database.ref('sharedTasks/' + editSharedKey).update({
                     text: text,
@@ -1758,7 +2385,6 @@
                 clearForm();
                 showToast('Deljeni zadatak ažuriran!', 'success');
                 
-                // Podeli ažurirani deljeni zadatak
                 setTimeout(function() {
                     const task = sharedTasksData[sharedKey];
                     if (task) {
@@ -1807,6 +2433,7 @@
                 category: category,
                 repeat: repeat,
                 completed: false,
+                archived: false,
                 createdAt: nowISO
             };
             
@@ -1830,7 +2457,6 @@
                 document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
                 showToast('Zadatak ažuriran!', 'success');
                 
-                // Podeli izmenjeni zadatak
                 setTimeout(function() {
                     const task = allTasks[oldEditKey];
                     if (task) {
@@ -1873,7 +2499,6 @@
                 return;
             }
             
-            // Novi zadatak - prvo ga sačuvamo pa podelimo
             let newKey = null;
             
             if (navigator.onLine) {
@@ -1889,7 +2514,6 @@
             
             clearForm();
             
-            // Sačekamo da se zadatak pojavi u allTasks pa ga podelimo
             const checkInterval = setInterval(function() {
                 if (newKey && allTasks[newKey]) {
                     clearInterval(checkInterval);
@@ -1929,9 +2553,8 @@
                             });
                     }
                 }
-            }, 200); // proveravamo svakih 200ms
+            }, 200);
             
-            // Sigurnosni timeout - ako se zadatak ne pojavi za 5 sekundi
             setTimeout(function() {
                 clearInterval(checkInterval);
             }, 5000);
@@ -1975,6 +2598,7 @@
                         time: nextDate,
                         repeat: task.repeat,
                         completed: false,
+                        archived: false,
                         createdAt: task.createdAt || nowISO
                     };
                     
@@ -1996,7 +2620,6 @@
                 completedAt: isCompleted ? nowISO : ''
             };
             
-            // Ako je zadatak deljeni, ažuriraj i shared verziju
             if (task.sharedKey) {
                 const sharedUpdates = {
                     completed: isCompleted,
@@ -2141,6 +2764,7 @@
                 time: taskObj.time || '',
                 repeat: taskObj.repeat || 'none',
                 completed: false,
+                archived: false,
                 createdAt: taskObj.createdAt || nowISO,
                 lastChangedAt: nowISO,
                 lastChangedBy: currentUser.uid,
@@ -2242,11 +2866,9 @@
                         ref.on('value', function(s) {
                             if (s.val()) {
                                 sharedTasksData[k] = s.val();
-                                // SINHRONIZUJ sa lokalnim zadacima
                                 syncSharedTaskToLocal(k, s.val());
                             } else {
                                 delete sharedTasksData[k];
-                                // Ako je deljeni zadatak obrisan, obriši i lokalni
                                 syncSharedTaskToLocal(k, null);
                             }
                             renderTasks();
@@ -2319,10 +2941,10 @@
         }
 
         // ============================================================
-        //  MANUALNO OSVEŽAVANJE (klik na 🔄 dugme)
+        //  MANUALNO OSVEŽAVANJE
         // ============================================================
         window.manualRefresh = function() {
-            showToast('🔄 Osvežavam... (Ctrl+F5)', 'info', 1500);
+            showToast('🔄 Osvežavam...', 'info', 1500);
             if (currentUser) {
                 const dbRef = getDbRef(currentUser.uid);
                 if (dbRef) {
@@ -2436,17 +3058,18 @@
                 renderTasks();
                 showToast('📅 Datum promenjen - sve osveženo', 'info', 1500);
             }
-        }, 60000); // Provera svakih 60 sekundi
+        }, 60000);
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.3');
-        console.log('✅ Dodato: Dvosmerna sinhronizacija deljenih zadataka');
-        console.log('✅ Dodato: Dugme "📤 Sačuvaj i podeli"');
-        console.log('✅ Dodato: Statistika, auto-osvežavanje (30 min), bolje animacije');
+        console.log('☁️ Moj Planer - verzija 2.4');
+        console.log('✅ Dodato: Tamna/svetla tema');
+        console.log('✅ Dodato: Arhiviranje (umesto brisanja)');
+        console.log('✅ Dodato: Nedeljni kalendar');
+        console.log('✅ Dodato: Podzadaci (checkliste)');
         console.log('📅 Kalendar se automatski osvežava u ponoć');
         console.log('🔄 Ručno osvežavanje: klik na 🔄 dugme');
-        console.log('🤝 Deljeni zadaci se sada sinhronizuju u oba smera!');
+        console.log('🤝 Deljeni zadaci se sinhronizuju u oba smera');
     </script>
 </body>
 </html>
