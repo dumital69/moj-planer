@@ -1374,6 +1374,27 @@
             }
         }
 
+        // ===== SINHRONIZACIJA DELJENIH ZADATAKA SA LOKALNIM =====
+        function syncSharedTaskToLocal(sharedKey, sharedData) {
+            // Pronađi koji tvoj zadatak ima ovaj sharedKey
+            Object.keys(allTasks).forEach(function(key) {
+                if (allTasks[key] && allTasks[key].sharedKey === sharedKey) {
+                    // Ažuriraj lokalnu kopiju sa podacima iz deljenog zadatka
+                    allTasks[key].text = sharedData.text || allTasks[key].text;
+                    allTasks[key].time = sharedData.time || allTasks[key].time;
+                    allTasks[key].category = sharedData.category || allTasks[key].category;
+                    allTasks[key].repeat = sharedData.repeat || allTasks[key].repeat;
+                    allTasks[key].completed = sharedData.completed !== undefined ? sharedData.completed : allTasks[key].completed;
+                    allTasks[key].completedAt = sharedData.completedAt || '';
+                    
+                    // Ako je deljeni zadatak obrisan, obriši i lokalni
+                    if (!sharedData) {
+                        delete allTasks[key];
+                    }
+                }
+            });
+        }
+
         // ===== RENDER ZADATAKA =====
         window.renderTasks = function() {
             initCalendars();
@@ -1731,6 +1752,7 @@
                     lastChangedAt: nowISO,
                     lastChangedBy: currentUser.uid
                 });
+                const sharedKey = editSharedKey;
                 editSharedKey = null;
                 document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
                 clearForm();
@@ -1738,7 +1760,7 @@
                 
                 // Podeli ažurirani deljeni zadatak
                 setTimeout(function() {
-                    const task = sharedTasksData[editSharedKey];
+                    const task = sharedTasksData[sharedKey];
                     if (task) {
                         const userInput = prompt(
                             'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n' + 
@@ -1767,7 +1789,7 @@
                                         showToast('Korisnik "' + target + '" nije pronađen.', 'error');
                                         return;
                                     }
-                                    executeSharing(editSharedKey, task, recipientUid, target);
+                                    executeSharing(sharedKey, task, recipientUid, target);
                                 })
                                 .catch(function(err) {
                                     console.error('Greška pri deljenju:', err);
@@ -1791,6 +1813,7 @@
             if (editKey) {
                 const data = { text: text, time: time, category: category, repeat: repeat };
                 const currentTask = allTasks[editKey];
+                const oldEditKey = editKey;
                 
                 if (currentTask && currentTask.sharedKey) {
                     data.lastChangedAt = nowISO;
@@ -1809,7 +1832,7 @@
                 
                 // Podeli izmenjeni zadatak
                 setTimeout(function() {
-                    const task = allTasks[editKey];
+                    const task = allTasks[oldEditKey];
                     if (task) {
                         const userInput = prompt(
                             'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n' + 
@@ -1838,7 +1861,7 @@
                                         showToast('Korisnik "' + target + '" nije pronađen.', 'error');
                                         return;
                                     }
-                                    executeSharing(editKey, task, recipientUid, target);
+                                    executeSharing(oldEditKey, task, recipientUid, target);
                                 })
                                 .catch(function(err) {
                                     console.error('Greška pri deljenju:', err);
@@ -1972,6 +1995,17 @@
                 completed: isCompleted,
                 completedAt: isCompleted ? nowISO : ''
             };
+            
+            // Ako je zadatak deljeni, ažuriraj i shared verziju
+            if (task.sharedKey) {
+                const sharedUpdates = {
+                    completed: isCompleted,
+                    completedAt: isCompleted ? nowISO : '',
+                    lastChangedAt: nowISO,
+                    lastChangedBy: currentUser.uid
+                };
+                database.ref('sharedTasks/' + task.sharedKey).update(sharedUpdates);
+            }
             
             if (navigator.onLine) {
                 db.child(key).update(updates);
@@ -2208,8 +2242,12 @@
                         ref.on('value', function(s) {
                             if (s.val()) {
                                 sharedTasksData[k] = s.val();
+                                // SINHRONIZUJ sa lokalnim zadacima
+                                syncSharedTaskToLocal(k, s.val());
                             } else {
                                 delete sharedTasksData[k];
+                                // Ako je deljeni zadatak obrisan, obriši i lokalni
+                                syncSharedTaskToLocal(k, null);
                             }
                             renderTasks();
                         });
@@ -2402,11 +2440,13 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.2');
+        console.log('☁️ Moj Planer - verzija 2.3');
+        console.log('✅ Dodato: Dvosmerna sinhronizacija deljenih zadataka');
         console.log('✅ Dodato: Dugme "📤 Sačuvaj i podeli"');
         console.log('✅ Dodato: Statistika, auto-osvežavanje (30 min), bolje animacije');
         console.log('📅 Kalendar se automatski osvežava u ponoć');
         console.log('🔄 Ručno osvežavanje: klik na 🔄 dugme');
+        console.log('🤝 Deljeni zadaci se sada sinhronizuju u oba smera!');
     </script>
 </body>
 </html>
