@@ -243,7 +243,8 @@
             margin-bottom: 8px;
         }
         .save-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 8px;
             align-items: stretch;
         }
@@ -597,7 +598,7 @@
             .tasks { overflow: visible; }
             .toolbar { grid-template-columns: 1fr; }
             .input-row { grid-template-columns: 1fr; }
-            .save-row { flex-direction: column; }
+            .save-row { grid-template-columns: 1fr; }
             #notif-bar { width: 100%; }
             .form-top { flex-direction: column; align-items: stretch; }
             .stats {
@@ -714,6 +715,7 @@
                 <div class="save-row">
                     <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
                     <button class="btn green" id="saveBtn" onclick="saveTask()">💾 Sačuvaj</button>
+                    <button class="btn teal" id="saveShareBtn" onclick="saveAndShareTask()">📤 Sačuvaj i podeli</button>
                 </div>
             </div>
 
@@ -1697,6 +1699,221 @@
             clearForm();
         };
 
+        // ===== NOVO: Sačuvaj i podeli =====
+        window.saveAndShareTask = function() {
+            // Prvo sačuvamo zadatak
+            const text = document.getElementById('taskText').value.trim();
+            const time = document.getElementById('taskTime').value;
+            const category = document.getElementById('taskCat').value;
+            const repeat = document.getElementById('taskRepeat').value;
+            
+            const errors = validateTaskInput(text, time, category);
+            if (errors.length > 0) {
+                showToast(errors.join('\n'), 'error');
+                return;
+            }
+            
+            if (!currentUser) {
+                showToast('Niste prijavljeni.', 'error');
+                return;
+            }
+            
+            const nowISO = dateToISO(new Date());
+            const db = getDbRef(currentUser.uid);
+            
+            // Ako je u toku izmena deljenog zadatka
+            if (editSharedKey) {
+                database.ref('sharedTasks/' + editSharedKey).update({
+                    text: text,
+                    time: time,
+                    category: category,
+                    repeat: repeat,
+                    lastChangedAt: nowISO,
+                    lastChangedBy: currentUser.uid
+                });
+                editSharedKey = null;
+                document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
+                clearForm();
+                showToast('Deljeni zadatak ažuriran!', 'success');
+                
+                // Podeli ažurirani deljeni zadatak
+                setTimeout(function() {
+                    const task = sharedTasksData[editSharedKey];
+                    if (task) {
+                        const userInput = prompt(
+                            'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n' + 
+                            task.text.slice(0, 60) + (task.text.length > 60 ? '...' : '')
+                        );
+                        if (userInput) {
+                            const target = userInput.trim();
+                            const lookupKey = emailToKey(target.toLowerCase());
+                            const isEmail = target.includes('@');
+                            
+                            if (isEmail && target.toLowerCase() === currentUser.email.toLowerCase()) {
+                                showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                                return;
+                            }
+                            
+                            if (!isEmail && currentNickname && target.toLowerCase() === currentNickname.toLowerCase()) {
+                                showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                                return;
+                            }
+                            
+                            const refPath = isEmail ? 'emailToUid' : 'nicknameToUid';
+                            database.ref(refPath + '/' + lookupKey).once('value')
+                                .then(function(snap) {
+                                    const recipientUid = snap.val();
+                                    if (!recipientUid) {
+                                        showToast('Korisnik "' + target + '" nije pronađen.', 'error');
+                                        return;
+                                    }
+                                    executeSharing(editSharedKey, task, recipientUid, target);
+                                })
+                                .catch(function(err) {
+                                    console.error('Greška pri deljenju:', err);
+                                    showToast('Greška: ' + err.message, 'error');
+                                });
+                        }
+                    }
+                }, 500);
+                return;
+            }
+            
+            const payload = {
+                text: text,
+                time: time,
+                category: category,
+                repeat: repeat,
+                completed: false,
+                createdAt: nowISO
+            };
+            
+            if (editKey) {
+                const data = { text: text, time: time, category: category, repeat: repeat };
+                const currentTask = allTasks[editKey];
+                
+                if (currentTask && currentTask.sharedKey) {
+                    data.lastChangedAt = nowISO;
+                    data.lastChangedBy = currentUser.uid;
+                    database.ref('sharedTasks/' + currentTask.sharedKey).update(data);
+                }
+                
+                if (navigator.onLine) {
+                    db.child(editKey).update(data);
+                } else {
+                    addToQueue({ type: 'update', key: editKey, payload: data });
+                }
+                editKey = null;
+                document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
+                showToast('Zadatak ažuriran!', 'success');
+                
+                // Podeli izmenjeni zadatak
+                setTimeout(function() {
+                    const task = allTasks[editKey];
+                    if (task) {
+                        const userInput = prompt(
+                            'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n' + 
+                            task.text.slice(0, 60) + (task.text.length > 60 ? '...' : '')
+                        );
+                        if (userInput) {
+                            const target = userInput.trim();
+                            const lookupKey = emailToKey(target.toLowerCase());
+                            const isEmail = target.includes('@');
+                            
+                            if (isEmail && target.toLowerCase() === currentUser.email.toLowerCase()) {
+                                showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                                return;
+                            }
+                            
+                            if (!isEmail && currentNickname && target.toLowerCase() === currentNickname.toLowerCase()) {
+                                showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                                return;
+                            }
+                            
+                            const refPath = isEmail ? 'emailToUid' : 'nicknameToUid';
+                            database.ref(refPath + '/' + lookupKey).once('value')
+                                .then(function(snap) {
+                                    const recipientUid = snap.val();
+                                    if (!recipientUid) {
+                                        showToast('Korisnik "' + target + '" nije pronađen.', 'error');
+                                        return;
+                                    }
+                                    executeSharing(editKey, task, recipientUid, target);
+                                })
+                                .catch(function(err) {
+                                    console.error('Greška pri deljenju:', err);
+                                    showToast('Greška: ' + err.message, 'error');
+                                });
+                        }
+                    }
+                }, 500);
+                return;
+            }
+            
+            // Novi zadatak - prvo ga sačuvamo pa podelimo
+            let newKey = null;
+            
+            if (navigator.onLine) {
+                const newRef = db.push(payload);
+                newKey = newRef.key;
+                showToast('Zadatak dodat!', 'success');
+            } else {
+                addToQueue({ type: 'push', payload: payload });
+                showToast('Zadatak dodat (offline)!', 'success');
+                clearForm();
+                return;
+            }
+            
+            clearForm();
+            
+            // Sačekamo da se zadatak pojavi u allTasks pa ga podelimo
+            const checkInterval = setInterval(function() {
+                if (newKey && allTasks[newKey]) {
+                    clearInterval(checkInterval);
+                    const task = allTasks[newKey];
+                    const userInput = prompt(
+                        'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n' + 
+                        task.text.slice(0, 60) + (task.text.length > 60 ? '...' : '')
+                    );
+                    if (userInput) {
+                        const target = userInput.trim();
+                        const lookupKey = emailToKey(target.toLowerCase());
+                        const isEmail = target.includes('@');
+                        
+                        if (isEmail && target.toLowerCase() === currentUser.email.toLowerCase()) {
+                            showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                            return;
+                        }
+                        
+                        if (!isEmail && currentNickname && target.toLowerCase() === currentNickname.toLowerCase()) {
+                            showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                            return;
+                        }
+                        
+                        const refPath = isEmail ? 'emailToUid' : 'nicknameToUid';
+                        database.ref(refPath + '/' + lookupKey).once('value')
+                            .then(function(snap) {
+                                const recipientUid = snap.val();
+                                if (!recipientUid) {
+                                    showToast('Korisnik "' + target + '" nije pronađen.', 'error');
+                                    return;
+                                }
+                                executeSharing(newKey, task, recipientUid, target);
+                            })
+                            .catch(function(err) {
+                                console.error('Greška pri deljenju:', err);
+                                showToast('Greška: ' + err.message, 'error');
+                            });
+                    }
+                }
+            }, 200); // proveravamo svakih 200ms
+            
+            // Sigurnosni timeout - ako se zadatak ne pojavi za 5 sekundi
+            setTimeout(function() {
+                clearInterval(checkInterval);
+            }, 5000);
+        };
+
         function clearForm() {
             document.getElementById('taskText').value = '';
             document.getElementById('taskTime').value = '';
@@ -2185,9 +2402,9 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.1');
+        console.log('☁️ Moj Planer - verzija 2.2');
+        console.log('✅ Dodato: Dugme "📤 Sačuvaj i podeli"');
         console.log('✅ Dodato: Statistika, auto-osvežavanje (30 min), bolje animacije');
-        console.log('🗑️ Uklonjeno: Dugme "Kopiraj"');
         console.log('📅 Kalendar se automatski osvežava u ponoć');
         console.log('🔄 Ručno osvežavanje: klik na 🔄 dugme');
     </script>
