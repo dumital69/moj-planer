@@ -1037,7 +1037,6 @@
             setTheme(current === 'dark' ? 'light' : 'dark');
         };
 
-        // Inicijalizacija teme
         setTheme(getStoredTheme());
 
         // ============================================================
@@ -1525,7 +1524,7 @@
         const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", 
                         "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
         const days = ["Po", "Ut", "Sr", "Če", "Pe", "Su", "Ne"];
-        let calendarView = 'month'; // 'month' ili 'week'
+        let calendarView = 'month';
         let weekOffset = 0;
 
         let lastDateChecked = new Date().toDateString();
@@ -1612,8 +1611,7 @@
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
-            // Pronađi početak nedelje (ponedeljak)
-            const dayOfWeek = today.getDay(); // 0 = nedelja
+            const dayOfWeek = today.getDay();
             const startOfWeek = new Date(today);
             startOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
             startOfWeek.setDate(startOfWeek.getDate() + (weekOffset * 7));
@@ -1642,7 +1640,6 @@
                 const isToday = todayStr === dateStr;
                 const monthName = months[date.getMonth()];
                 
-                // Pronađi zadatke za ovaj dan
                 const dayTasks = Object.values(allTasks).filter(function(task) {
                     return task.time && task.time.startsWith(dateStr) && !task.archived;
                 });
@@ -1651,7 +1648,6 @@
                 html += '<span class="day-number">' + dayNum + '</span>';
                 html += '<span style="font-size:9px;color:var(--muted);display:block;">' + monthName + '</span>';
                 
-                // Prikaži zadatke (max 3)
                 const displayTasks = dayTasks.slice(0, 3);
                 displayTasks.forEach(function(task) {
                     const isAlarm = task.time && !task.completed && new Date(task.time) <= new Date();
@@ -1687,7 +1683,6 @@
         }
 
         window.changeMonth = function(delta, calId) {
-            // Implementirano kroz render
             renderCalendar(calId, calId === 'cal1' ? 0 : 1);
         };
 
@@ -1698,7 +1693,6 @@
 
         window.setCalendarView = function(view, calId) {
             calendarView = view;
-            // Resetuj week offset kada pređeš na week view
             if (view === 'week') {
                 weekOffset = 0;
             }
@@ -1774,23 +1768,55 @@
             }
         }
 
-        // ===== SINHRONIZACIJA DELJENIH ZADATAKA =====
+        // ===== SINHRONIZACIJA DELJENIH ZADATAKA (POPRAVLJENO) =====
         function syncSharedTaskToLocal(sharedKey, sharedData) {
+            let found = false;
+            
+            // Prvo pokušaj da pronađeš postojeći lokalni zadatak
             Object.keys(allTasks).forEach(function(key) {
                 if (allTasks[key] && allTasks[key].sharedKey === sharedKey) {
-                    allTasks[key].text = sharedData.text || allTasks[key].text;
-                    allTasks[key].time = sharedData.time || allTasks[key].time;
-                    allTasks[key].category = sharedData.category || allTasks[key].category;
-                    allTasks[key].repeat = sharedData.repeat || allTasks[key].repeat;
-                    allTasks[key].completed = sharedData.completed !== undefined ? sharedData.completed : allTasks[key].completed;
-                    allTasks[key].completedAt = sharedData.completedAt || '';
-                    allTasks[key].archived = sharedData.archived !== undefined ? sharedData.archived : allTasks[key].archived;
-                    
-                    if (!sharedData) {
+                    found = true;
+                    if (sharedData) {
+                        // Ažuriraj postojeći
+                        allTasks[key].text = sharedData.text || allTasks[key].text;
+                        allTasks[key].time = sharedData.time || allTasks[key].time;
+                        allTasks[key].category = sharedData.category || allTasks[key].category;
+                        allTasks[key].repeat = sharedData.repeat || allTasks[key].repeat;
+                        allTasks[key].completed = sharedData.completed !== undefined ? sharedData.completed : allTasks[key].completed;
+                        allTasks[key].completedAt = sharedData.completedAt || '';
+                        allTasks[key].archived = sharedData.archived !== undefined ? sharedData.archived : allTasks[key].archived;
+                        allTasks[key].subtasks = sharedData.subtasks || allTasks[key].subtasks;
+                    } else {
+                        // Ako je deljeni zadatak obrisan, obriši i lokalni
                         delete allTasks[key];
                     }
                 }
             });
+            
+            // Ako nije pronađen i sharedData postoji, KREIRAJ GA!
+            if (!found && sharedData && currentUser) {
+                const newKey = generateId();
+                allTasks[newKey] = {
+                    text: sharedData.text || 'Deljeni zadatak',
+                    time: sharedData.time || '',
+                    category: sharedData.category || 'Razno',
+                    repeat: sharedData.repeat || 'none',
+                    completed: sharedData.completed || false,
+                    completedAt: sharedData.completedAt || '',
+                    archived: sharedData.archived || false,
+                    archivedAt: sharedData.archivedAt || '',
+                    createdAt: sharedData.createdAt || dateToISO(new Date()),
+                    sharedKey: sharedKey,
+                    sharedWith: Object.values(sharedData.participants || {}).join(', ') || '',
+                    subtasks: sharedData.subtasks || {}
+                };
+                
+                // Dodaj u Firebase ako nije već tamo
+                const dbRef = getDbRef(currentUser.uid);
+                if (dbRef) {
+                    dbRef.child(newKey).set(allTasks[newKey]);
+                }
+            }
         }
 
         // ===== RENDER ZADATAKA =====
@@ -1826,9 +1852,8 @@
             
             html += '<button class="chip teal-chip' + (isShared ? ' active-teal' : '') + '" ' + extraStyle + ' onclick="setCat(\'Deljeni\')">🤝 Deljeni' + (sharedCount > 0 ? ' (' + sharedCount + ')' : '') + '</button>';
             
-            // Dugme za arhivu
-            const isArchived = filterCategory === 'Arhiva';
             const archivedCount = Object.values(allTasks).filter(t => t.archived).length;
+            const isArchived = filterCategory === 'Arhiva';
             html += '<button class="chip' + (isArchived ? ' active' : '') + '" onclick="setCat(\'Arhiva\')">📁 Arhiva' + (archivedCount > 0 ? ' (' + archivedCount + ')' : '') + '</button>';
             
             container.innerHTML = html;
@@ -1941,22 +1966,13 @@
                                    task.lastChangedBy !== currentUser?.uid && 
                                    new Date(task.lastChangedAt).getTime() > lastViewedShared;
                 
-                // Izračunaj napredak podzadataka
-                let subtaskProgress = 0;
-                let subtaskTotal = 0;
-                if (task.subtasks) {
-                    const subtaskList = Object.values(task.subtasks);
-                    subtaskTotal = subtaskList.length;
-                    subtaskProgress = subtaskList.filter(s => s.completed).length;
-                }
-                
                 html += '<div class="task shared-task cat-' + task.category + (task.completed ? ' done' : '') + (isAlarm ? ' alarm' : '') + (shouldBlink ? ' blink-shared' : '') + '">' +
                     (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
                     '<div class="task-head"><div>' + emoji + ' ' + task.category + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
                     '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">🤝 Učesnici: ' + escapeHtml(parts) + '</div>' +
                     (task.createdByEmail ? '<div class="task-meta">Kreirao/la: ' + escapeHtml(creatorDisplay) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
-                    renderSubtasksHTML(task.subtasks) +
+                    renderSubtasksHTML(task.subtasks, key, true) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\'' + key + '\')" title="' + (task.completed ? 'Vrati' : 'Završi') + '">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\'' + key + '\')" title="Izmeni">✏️</button>' +
@@ -2017,22 +2033,13 @@
                 const emoji = catEmoji[task.category] || '📌';
                 const repeatInfo = task.repeat && task.repeat !== 'none' ? ' ♻️' : '';
                 
-                // Izračunaj napredak podzadataka
-                let subtaskProgress = 0;
-                let subtaskTotal = 0;
-                if (task.subtasks) {
-                    const subtaskList = Object.values(task.subtasks);
-                    subtaskTotal = subtaskList.length;
-                    subtaskProgress = subtaskList.filter(s => s.completed).length;
-                }
-                
                 html += '<div class="task cat-' + task.category + (isAlarm ? ' alarm' : '') + '">' +
                     (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
                     '<div class="task-head"><div>' + emoji + ' ' + (task.category || 'Razno') + repeatInfo + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
                     (task.createdAt ? '<div class="task-meta">Postavljeno: ' + displayDate(task.createdAt) + '</div>' : '') +
                     (task.sharedWith ? '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
-                    renderSubtasksHTML(task.subtasks) +
+                    renderSubtasksHTML(task.subtasks, key, false) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>' +
@@ -2045,9 +2052,15 @@
             list.innerHTML = html;
         }
 
-        // ===== PODZADACI (HTML render) =====
-        function renderSubtasksHTML(subtasks) {
-            if (!subtasks || Object.keys(subtasks).length === 0) return '';
+        // ===== PODZADACI (HTML render) - POPRAVLJENO =====
+        function renderSubtasksHTML(subtasks, taskKey, isShared) {
+            if (!subtasks || Object.keys(subtasks).length === 0) {
+                // Prikaži prazno polje za dodavanje podzadataka
+                return '<div class="subtasks"><div class="subtask-add">' +
+                    '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
+                    '<button onclick="addSubtask(document.getElementById(\'subtaskInput_' + taskKey + '\'), \'' + taskKey + '\', ' + isShared + ')">+</button>' +
+                    '</div></div>';
+            }
             
             const list = Object.values(subtasks);
             const total = list.length;
@@ -2058,66 +2071,107 @@
             html += '<div class="subtask-progress">📋 Podzadaci: ' + done + '/' + total + ' završeno</div>';
             html += '<div class="subtask-progress-bar"><div class="fill" style="width:' + progress + '%;"></div></div>';
             
-            list.forEach(function(sub, index) {
-                const subId = 'sub_' + index;
+            Object.keys(subtasks).forEach(function(subId) {
+                const sub = subtasks[subId];
                 html += '<div class="subtask-item' + (sub.completed ? ' done' : '') + '">' +
-                    '<input type="checkbox" ' + (sub.completed ? 'checked' : '') + ' onchange="toggleSubtask(\'' + subId + '\')" />' +
+                    '<input type="checkbox" ' + (sub.completed ? 'checked' : '') + ' onchange="toggleSubtask(\'' + taskKey + '\', \'' + subId + '\', ' + isShared + ')" />' +
                     '<span class="subtask-text">' + escapeHtml(sub.text) + '</span>' +
-                    '<button class="subtask-delete" onclick="deleteSubtask(\'' + subId + '\')">✕</button>' +
+                    '<button class="subtask-delete" onclick="deleteSubtask(\'' + taskKey + '\', \'' + subId + '\', ' + isShared + ')">✕</button>' +
                     '</div>';
             });
             
             html += '<div class="subtask-add">' +
-                '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + Date.now() + '" onkeydown="if(event.key===\'Enter\')addSubtask(this)" />' +
-                '<button onclick="addSubtask(this.previousElementSibling)">+</button>' +
+                '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
+                '<button onclick="addSubtask(document.getElementById(\'subtaskInput_' + taskKey + '\'), \'' + taskKey + '\', ' + isShared + ')">+</button>' +
                 '</div>';
             html += '</div>';
             
             return html;
         }
 
-        // ===== PODZADACI (funkcije) =====
-        window.addSubtask = function(input) {
-            if (!currentUser) return;
-            const text = input.value.trim();
-            if (!text) return;
+        // ===== PODZADACI (funkcije) - POPRAVLJENE =====
+        window.addSubtask = function(input, taskKey, isShared) {
+            if (!currentUser) {
+                showToast('Niste prijavljeni.', 'error');
+                return;
+            }
             
-            // Pronađi trenutni zadatak koji se edituje
-            const key = editKey || editSharedKey;
-            if (!key) {
+            const text = input.value.trim();
+            if (!text) {
+                showToast('Unesite tekst podzadatka.', 'warning');
+                return;
+            }
+            
+            if (!taskKey) {
                 showToast('Prvo sačuvajte zadatak pa dodajte podzadatke.', 'warning');
                 return;
             }
             
-            const task = allTasks[key] || sharedTasksData[key];
-            if (!task) return;
-            
             const subtaskId = generateId();
-            const updates = {};
-            updates['subtasks/' + subtaskId] = { text: text, completed: false };
+            const nowISO = dateToISO(new Date());
             
-            if (task.sharedKey) {
-                database.ref('sharedTasks/' + task.sharedKey).update(updates);
+            if (isShared) {
+                // Deljeni zadatak - ažuriraj sharedTasks
+                const updates = {};
+                updates['subtasks/' + subtaskId] = { text: text, completed: false };
+                updates['lastChangedAt'] = nowISO;
+                updates['lastChangedBy'] = currentUser.uid;
+                database.ref('sharedTasks/' + taskKey).update(updates);
             } else {
+                // Lokalni zadatak
                 const db = getDbRef(currentUser.uid);
-                db.child(key + '/subtasks/' + subtaskId).set({ text: text, completed: false });
+                if (db) {
+                    db.child(taskKey + '/subtasks/' + subtaskId).set({ text: text, completed: false });
+                }
             }
             
             input.value = '';
-            showToast('Podzadatak dodat!', 'success');
+            showToast('✅ Podzadatak dodat!', 'success');
         };
 
-        window.toggleSubtask = function(subId) {
+        window.toggleSubtask = function(taskKey, subId, isShared) {
             if (!currentUser) return;
-            // Implementacija zavisi od toga gde se nalazi podzadatak
-            // Ovo je pojednostavljeno - u punoj implementaciji bi pratili kojoj tasku pripada
-            showToast('Funkcija u razvoju - kliknite na podzadatak za promenu statusa.', 'info');
+            
+            const task = isShared ? sharedTasksData[taskKey] : allTasks[taskKey];
+            if (!task || !task.subtasks || !task.subtasks[subId]) return;
+            
+            const newStatus = !task.subtasks[subId].completed;
+            const nowISO = dateToISO(new Date());
+            
+            if (isShared) {
+                const updates = {};
+                updates['subtasks/' + subId + '/completed'] = newStatus;
+                updates['lastChangedAt'] = nowISO;
+                updates['lastChangedBy'] = currentUser.uid;
+                database.ref('sharedTasks/' + taskKey).update(updates);
+            } else {
+                const db = getDbRef(currentUser.uid);
+                if (db) {
+                    db.child(taskKey + '/subtasks/' + subId + '/completed').set(newStatus);
+                }
+            }
         };
 
-        window.deleteSubtask = function(subId) {
+        window.deleteSubtask = function(taskKey, subId, isShared) {
             if (!currentUser) return;
             if (!confirm('Obrisati podzadatak?')) return;
-            showToast('Podzadatak obrisan!', 'success');
+            
+            const nowISO = dateToISO(new Date());
+            
+            if (isShared) {
+                const updates = {};
+                updates['subtasks/' + subId] = null;
+                updates['lastChangedAt'] = nowISO;
+                updates['lastChangedBy'] = currentUser.uid;
+                database.ref('sharedTasks/' + taskKey).update(updates);
+            } else {
+                const db = getDbRef(currentUser.uid);
+                if (db) {
+                    db.child(taskKey + '/subtasks/' + subId).remove();
+                }
+            }
+            
+            showToast('🗑️ Podzadatak obrisan!', 'success');
         };
 
         function sortByTime(a, b) {
@@ -2196,7 +2250,6 @@
                 archivedAt: nowISO
             };
             
-            // Ako je deljeni zadatak, ažuriraj i shared verziju
             if (task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
                     archived: true,
@@ -2228,7 +2281,6 @@
                 archivedAt: ''
             };
             
-            // Ako je deljeni zadatak, ažuriraj i shared verziju
             if (task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
                     archived: false,
@@ -2255,7 +2307,6 @@
             
             const task = allTasks[key];
             
-            // Ako je deljeni zadatak, ukloni referencu
             if (task && task.sharedKey) {
                 database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + task.sharedKey).remove();
             }
@@ -2771,7 +2822,8 @@
                 participants: participants,
                 createdBy: currentUser.uid,
                 createdByEmail: currentUser.email,
-                createdByNickname: currentNickname || ''
+                createdByNickname: currentNickname || '',
+                subtasks: taskObj.subtasks || {}
             };
             
             newRef.set(taskData)
@@ -2845,7 +2897,7 @@
         };
 
         // ============================================================
-        //  SHARED LISTENERS
+        //  SHARED LISTENERS (POPRAVLJENO)
         // ============================================================
         function setupSharedListeners(uid) {
             sharedRefsRef = database.ref('users/' + uid + '/sharedTaskRefs');
@@ -2857,6 +2909,12 @@
                         sharedTaskListeners[k].off();
                         delete sharedTaskListeners[k];
                         delete sharedTasksData[k];
+                        // Ukloni i lokalni zadatak ako postoji
+                        Object.keys(allTasks).forEach(function(key) {
+                            if (allTasks[key] && allTasks[key].sharedKey === k) {
+                                delete allTasks[key];
+                            }
+                        });
                     }
                 });
                 
@@ -3050,7 +3108,6 @@
             }).join('');
         }
 
-        // Provera datuma pri svakom renderu
         setInterval(function() {
             const today = new Date().toDateString();
             if (today !== lastDateChecked) {
@@ -3062,14 +3119,12 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.4');
+        console.log('☁️ Moj Planer - verzija 2.5 (POPRAVLJENO)');
+        console.log('✅ Popravljeno: Podzadaci - sada se uvek prikazuju');
+        console.log('✅ Popravljeno: Deljeni zadaci - sada se uvek pojavljuju u listi');
         console.log('✅ Dodato: Tamna/svetla tema');
-        console.log('✅ Dodato: Arhiviranje (umesto brisanja)');
+        console.log('✅ Dodato: Arhiviranje');
         console.log('✅ Dodato: Nedeljni kalendar');
-        console.log('✅ Dodato: Podzadaci (checkliste)');
-        console.log('📅 Kalendar se automatski osvežava u ponoć');
-        console.log('🔄 Ručno osvežavanje: klik na 🔄 dugme');
-        console.log('🤝 Deljeni zadaci se sinhronizuju u oba smera');
     </script>
 </body>
-</html>
+</htm
