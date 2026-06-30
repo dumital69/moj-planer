@@ -1,15 +1,15 @@
 self.addEventListener('install', function(e) {
-    console.log('Service Worker instaliran');
+    console.log('🔧 Service Worker instaliran');
     self.skipWaiting();
 });
 
 self.addEventListener('activate', function(e) {
-    console.log('Service Worker aktiviran');
+    console.log('✅ Service Worker aktiviran');
     e.waitUntil(clients.claim());
 });
 
 self.addEventListener('notificationclick', function(e) {
-    console.log('Kliknuto na notifikaciju', e.notification);
+    console.log('🔔 Kliknuto na notifikaciju', e.notification);
     e.notification.close();
     e.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
