@@ -8,9 +8,9 @@
     <meta http-equiv="Expires" content="0" />
     <title>Moj Planer</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="apple-touch-icon" href="/favicon.ico">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="favicon.png">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -175,8 +175,14 @@
         .btn.teal { background: linear-gradient(180deg, #1abc9c, #16a085); }
         .btn.purple { background: linear-gradient(180deg, #9b59b6, #7d3c98); }
         .btn.orange { background: linear-gradient(180deg, #e67e22, #d35400); }
+        .btn.alarm-btn { background: linear-gradient(180deg, #e74c3c, #c0392b); animation: pulse-alarm 1s infinite; }
 
         .btn.small { padding: 8px 10px; font-size: 12px; border-radius: 10px; }
+
+        @keyframes pulse-alarm {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
 
         /* ===== DUGME ZA TEMU ===== */
         .theme-toggle {
@@ -393,7 +399,7 @@
         }
         .save-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 8px;
             align-items: stretch;
         }
@@ -410,6 +416,64 @@
             grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 8px;
             margin-bottom: 10px;
+        }
+
+        /* ===== ALARM POPUP ===== */
+        #alarmOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        #alarmOverlay.active {
+            display: flex;
+        }
+        .alarm-box {
+            background: var(--panel);
+            border: 3px solid var(--red);
+            border-radius: 24px;
+            padding: 30px 40px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(231, 76, 60, 0.4);
+            animation: pulse-alarm-box 1s infinite;
+        }
+        @keyframes pulse-alarm-box {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(231, 76, 60, 0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 0 80px rgba(231, 76, 60, 0.6); }
+        }
+        .alarm-box .alarm-icon {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .alarm-box .alarm-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--red);
+            margin-bottom: 8px;
+        }
+        .alarm-box .alarm-text {
+            font-size: 18px;
+            color: var(--text);
+            margin-bottom: 20px;
+            word-break: break-word;
+        }
+        .alarm-box .alarm-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .alarm-box .alarm-actions .btn {
+            min-width: 120px;
+            padding: 14px 20px;
+            font-size: 16px;
         }
 
         /* ===== ZADACI ===== */
@@ -852,6 +916,15 @@
             .stats {
                 grid-template-columns: repeat(2, 1fr);
             }
+            .alarm-box {
+                padding: 20px;
+            }
+            .alarm-box .alarm-title {
+                font-size: 20px;
+            }
+            .alarm-box .alarm-text {
+                font-size: 16px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -872,10 +945,28 @@
                 font-size: 8px;
                 padding: 1px 3px;
             }
+            .alarm-box .alarm-actions .btn {
+                min-width: 100px;
+                padding: 12px 16px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Alarm Overlay -->
+    <div id="alarmOverlay">
+        <div class="alarm-box">
+            <span class="alarm-icon">🔔</span>
+            <div class="alarm-title">⏰ VREME JE!</div>
+            <div class="alarm-text" id="alarmText">Zadatak</div>
+            <div class="alarm-actions">
+                <button class="btn green" onclick="snoozeAlarm()">😴 Snooze (5 min)</button>
+                <button class="btn gray" onclick="stopAlarm()">✅ OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Login Overlay -->
     <div id="loginOverlay">
         <div class="login-box">
@@ -976,6 +1067,7 @@
                     <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
                     <button class="btn green" id="saveBtn" onclick="saveTask()">💾 Sačuvaj</button>
                     <button class="btn teal" id="saveShareBtn" onclick="saveAndShareTask()">📤 Sačuvaj i podeli</button>
+                    <button class="btn orange" onclick="testAlarm()">🔊 Test zvuka</button>
                 </div>
             </div>
 
@@ -1040,6 +1132,142 @@
         };
 
         setTheme(getStoredTheme());
+
+        // ============================================================
+        //  ZVUČNI ALARM
+        // ============================================================
+        let alarmTimeout = null;
+        let alarmAudio = null;
+        let isAlarmPlaying = false;
+        let currentAlarmTaskKey = null;
+
+        function playAlarmSound() {
+            try {
+                // Koristimo Web Audio API za generisanje zvuka
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Prvi ton
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'square';
+                osc1.frequency.value = 800;
+                gain1.gain.value = 0.3;
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.start();
+                
+                // Drugi ton (posle 200ms)
+                setTimeout(function() {
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'square';
+                    osc2.frequency.value = 1000;
+                    gain2.gain.value = 0.3;
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.start();
+                    setTimeout(function() {
+                        osc2.stop();
+                    }, 200);
+                }, 200);
+                
+                setTimeout(function() {
+                    osc1.stop();
+                }, 400);
+                
+                // Ponavljamo ako je alarm aktivan
+                if (isAlarmPlaying) {
+                    alarmTimeout = setTimeout(function() {
+                        playAlarmSound();
+                    }, 800);
+                }
+            } catch (e) {
+                console.log('Zvuk nije podržan:', e);
+            }
+        }
+
+        function showAlarm(taskKey, taskText) {
+            currentAlarmTaskKey = taskKey;
+            isAlarmPlaying = true;
+            
+            document.getElementById('alarmText').textContent = taskText || 'Zadatak!';
+            document.getElementById('alarmOverlay').classList.add('active');
+            
+            playAlarmSound();
+            
+            // Vibracija na mobilnim uređajima
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+        }
+
+        window.stopAlarm = function() {
+            isAlarmPlaying = false;
+            if (alarmTimeout) {
+                clearTimeout(alarmTimeout);
+                alarmTimeout = null;
+            }
+            document.getElementById('alarmOverlay').classList.remove('active');
+            currentAlarmTaskKey = null;
+            
+            // Označi zadatak kao obavešten
+            if (currentAlarmTaskKey) {
+                // Opciono: možeš da označiš da je alarm prikazan
+            }
+        };
+
+        window.snoozeAlarm = function() {
+            isAlarmPlaying = false;
+            if (alarmTimeout) {
+                clearTimeout(alarmTimeout);
+                alarmTimeout = null;
+            }
+            document.getElementById('alarmOverlay').classList.remove('active');
+            
+            // Snooze 5 minuta
+            showToast('😴 Alarm odložen na 5 minuta', 'warning', 3000);
+            setTimeout(function() {
+                if (currentAlarmTaskKey && allTasks[currentAlarmTaskKey]) {
+                    const task = allTasks[currentAlarmTaskKey];
+                    if (task && !task.completed) {
+                        showAlarm(currentAlarmTaskKey, task.text);
+                    }
+                }
+            }, 300000); // 5 minuta
+        };
+
+        window.testAlarm = function() {
+            showAlarm('test', '🧪 Test zvučnog alarma!');
+            setTimeout(function() {
+                stopAlarm();
+            }, 5000);
+        };
+
+        function checkAlarms() {
+            const now = new Date();
+            
+            Object.keys(allTasks).forEach(function(key) {
+                const task = allTasks[key];
+                if (!task || task.completed || task.deleted) return;
+                if (!task.time) return;
+                
+                const taskTime = new Date(task.time);
+                if (isNaN(taskTime.getTime())) return;
+                
+                // Proveri da li je vreme za alarm (u roku od 1 minuta)
+                const diff = taskTime.getTime() - now.getTime();
+                if (diff > -60000 && diff < 60000 && !task._alarmed) {
+                    // Označi da je alarm već prikazan
+                    allTasks[key]._alarmed = true;
+                    showAlarm(key, task.text);
+                }
+            });
+        }
+
+        // Pokreni proveru alarma svakih 30 sekundi
+        setInterval(function() {
+            checkAlarms();
+        }, 30000);
 
         // ============================================================
         //  POMOĆNE FUNKCIJE (UTILS)
@@ -1380,7 +1608,7 @@
         }
 
         // ============================================================
-        //  NOTIFIKACIJE - POPRAVLJENE
+        //  NOTIFIKACIJE
         // ============================================================
         let notifiedTasks = new Set();
         let notifyInterval = null;
@@ -1456,7 +1684,6 @@
                 const timeDiff = taskTime.getTime() - now.getTime();
                 const hoursDiff = timeDiff / (1000 * 60 * 60);
                 
-                // Alarm - vreme je (prošlo ili sada)
                 if (!notifiedTasks.has(key) && taskTime <= now) {
                     notifiedTasks.add(key);
                     showPushNotification(
@@ -1466,7 +1693,6 @@
                     );
                 }
                 
-                // 24h pre - samo ako je zadatak za više od 0h a manje od 24h
                 if (!notifiedTasks.has(key + '_s') && hoursDiff > 0 && hoursDiff <= 24) {
                     notifiedTasks.add(key + '_s');
                     showPushNotification(
@@ -1476,7 +1702,6 @@
                     );
                 }
                 
-                // 48h pre - samo ako je zadatak za više od 24h a manje od 48h
                 if (!notifiedTasks.has(key + '_2d') && hoursDiff > 24 && hoursDiff <= 48) {
                     notifiedTasks.add(key + '_2d');
                     showPushNotification(
@@ -1875,6 +2100,8 @@
                 updateButtons();
                 updateStats();
                 checkTrashExpiry();
+                // Proveri alarme pri svakom renderu
+                checkAlarms();
                 renderTimeout = null;
             });
         };
@@ -3083,7 +3310,7 @@
         };
 
         // ============================================================
-        //  SERVICE WORKER - POPRAVLJEN
+        //  SERVICE WORKER
         // ============================================================
         function registerServiceWorker() {
             if (!('serviceWorker' in navigator)) {
@@ -3091,8 +3318,7 @@
                 return;
             }
             
-            // Registruj SW iz posebnog fajla
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.register('/moj-planer/sw.js')
                 .then(function(reg) {
                     console.log('✅ Service Worker registrovan!', reg);
                 })
@@ -3179,7 +3405,6 @@
             }).join('');
         }
 
-        // Provera datuma - smanjeno na 5 minuta
         setInterval(function() {
             const today = new Date().toDateString();
             if (today !== lastDateChecked) {
@@ -3191,13 +3416,14 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.7');
-        console.log('✅ Popravljen: Service Worker (poseban fajl)');
+        console.log('☁️ Moj Planer - verzija 2.8');
+        console.log('✅ Dodato: Zvučni alarm');
+        console.log('✅ Dodato: Test zvuka dugme');
+        console.log('✅ Dodato: Snooze (5 min)');
+        console.log('✅ Popravljen: Service Worker');
         console.log('✅ Popravljeno: Notifikacije (24h i 48h)');
         console.log('✅ Popravljeno: Nedeljni kalendar (datumi)');
-        console.log('✅ Dodato: Tooltip za dugmad');
-        console.log('✅ Nova Arhiva: Završeni + Smeće');
-        console.log('📌 Kreiraj fajl sw.js u root folderu!');
+        console.log('📌 Ikona: favicon.ico');
     </script>
 </body>
 </html>
