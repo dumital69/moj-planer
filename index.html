@@ -921,9 +921,9 @@
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Promeni temu">🌙</button>
                         <input type="text" id="userNickname" placeholder="Vaš nadimak..." style="max-width:130px;padding:5px 8px;font-size:12px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);" />
-                        <button class="btn teal small" onclick="saveNickname()" style="padding:6px 9px;height:30px;">💾</button>
-                        <button class="btn gray small" onclick="doSignOut()" style="padding:6px 10px;">🚪</button>
-                        <button class="btn blue small" onclick="manualRefresh()" style="padding:6px 10px;font-size:12px;">🔄</button>
+                        <button class="btn teal small" onclick="saveNickname()" title="Sačuvaj nadimak" style="padding:6px 9px;height:30px;">💾</button>
+                        <button class="btn gray small" onclick="doSignOut()" title="Odjavi se" style="padding:6px 10px;">🚪</button>
+                        <button class="btn blue small" onclick="manualRefresh()" title="Osveži podatke" style="padding:6px 10px;font-size:12px;">🔄</button>
                     </div>
                 </div>
                 <div class="offline" id="offlineBar">Rad bez interneta — sinhronizacija kasnije.</div>
@@ -1376,7 +1376,7 @@
         }
 
         // ============================================================
-        //  NOTIFIKACIJE
+        //  NOTIFIKACIJE - POPRAVLJENE
         // ============================================================
         let notifiedTasks = new Set();
         let notifyInterval = null;
@@ -1429,8 +1429,6 @@
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
             
             const now = new Date();
-            const in24h = new Date(now.getTime() + 86400000);
-            const in48h = new Date(now.getTime() + 172800000);
             
             const catEmoji = {
                 'Kola': '🚗', 'Zdravlje': '💊', 'Kupovina': '🛒',
@@ -1451,7 +1449,10 @@
                 if (isNaN(taskTime.getTime())) return;
                 
                 const emoji = catEmoji[task.category] || '📌';
+                const timeDiff = taskTime.getTime() - now.getTime();
+                const hoursDiff = timeDiff / (1000 * 60 * 60);
                 
+                // Alarm - vreme je (prošlo ili sada)
                 if (!notifiedTasks.has(key) && taskTime <= now) {
                     notifiedTasks.add(key);
                     showPushNotification(
@@ -1461,7 +1462,8 @@
                     );
                 }
                 
-                if (!notifiedTasks.has(key + '_s') && taskTime > now && taskTime <= in24h) {
+                // 24h pre - samo ako je zadatak za više od 0h a manje od 24h
+                if (!notifiedTasks.has(key + '_s') && hoursDiff > 0 && hoursDiff <= 24) {
                     notifiedTasks.add(key + '_s');
                     showPushNotification(
                         'Sutra vas čeka zadatak',
@@ -1470,7 +1472,8 @@
                     );
                 }
                 
-                if (!notifiedTasks.has(key + '_2d') && taskTime > in24h && taskTime <= in48h) {
+                // 48h pre - samo ako je zadatak za više od 24h a manje od 48h
+                if (!notifiedTasks.has(key + '_2d') && hoursDiff > 24 && hoursDiff <= 48) {
                     notifiedTasks.add(key + '_2d');
                     showPushNotification(
                         'Za 2 dana vas čeka zadatak',
@@ -1610,10 +1613,13 @@
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
-            const dayOfWeek = today.getDay();
+            // Dobij prvi dan nedelje (ponedeljak) - ispravno računanje
+            const dayOfWeek = today.getDay(); // 0 = nedelja
             const startOfWeek = new Date(today);
             startOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
             startOfWeek.setDate(startOfWeek.getDate() + (weekOffset * 7));
+            // Resetujemo vreme na 00:00:00
+            startOfWeek.setHours(0, 0, 0, 0);
             
             let html = '<div class="cal-head">';
             html += '<button class="cal-nav" onclick="changeWeek(-1, \'' + el.id + '\')">◀</button>';
@@ -1633,13 +1639,18 @@
             for (let i = 0; i < 7; i++) {
                 const date = new Date(startOfWeek);
                 date.setDate(startOfWeek.getDate() + i);
-                const dateStr = date.toISOString().split('T')[0];
+                date.setHours(0, 0, 0, 0);
+                
+                const dateStr = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
                 const dayNum = date.getDate();
                 const isToday = todayStr === dateStr;
                 const monthName = months[date.getMonth()];
                 
+                // Pronađi zadatke za ovaj dan - koristi istu logiku kao mesečni kalendar
                 const dayTasks = Object.values(allTasks).filter(function(task) {
-                    return task.time && task.time.startsWith(dateStr) && !task.deleted;
+                    if (!task.time || task.deleted) return false;
+                    const taskDate = task.time.split('T')[0];
+                    return taskDate === dateStr;
                 });
                 
                 html += '<div class="week-day' + (isToday ? ' today' : '') + '" onclick="filterByDate(\'' + dateStr + '\')">';
@@ -1777,7 +1788,6 @@
                 if (task.deleted && task.deletedAt) {
                     const deletedTime = new Date(task.deletedAt).getTime();
                     if (now - deletedTime > thirtyDays) {
-                        // Trajno obriši
                         if (currentUser) {
                             const db = getDbRef(currentUser.uid);
                             if (db && navigator.onLine) {
@@ -1847,7 +1857,6 @@
 
         // ===== RENDER ZADATAKA =====
         window.renderTasks = function() {
-            // Spreči prečesto renderovanje (debounce)
             if (renderTimeout) {
                 cancelAnimationFrame(renderTimeout);
             }
@@ -1986,7 +1995,6 @@
             }
             
             const now = Date.now();
-            const thirtyDays = 30 * 24 * 60 * 60 * 1000;
             
             let html = '<div style="margin-bottom:12px;text-align:center;color:var(--muted);font-size:13px;">🗑️ Smeće (' + trashed.length + ') - zadaci se automatski brišu nakon 30 dana</div>';
             
@@ -3159,7 +3167,7 @@
             }).join('');
         }
 
-        // Provera datuma - smanjeno na 5 minuta da se smanji treptanje
+        // Provera datuma - smanjeno na 5 minuta
         setInterval(function() {
             const today = new Date().toDateString();
             if (today !== lastDateChecked) {
@@ -3167,15 +3175,15 @@
                 renderTasks();
                 showToast('📅 Datum promenjen - sve osveženo', 'info', 1500);
             }
-        }, 300000); // 5 minuta
+        }, 300000);
 
         renderTasks();
 
         console.log('☁️ Moj Planer - verzija 2.6');
-        console.log('✅ Nova Arhiva: Završeni (čekirani) + Smeće (obrisani)');
-        console.log('✅ Smeće: automatsko brisanje nakon 30 dana');
-        console.log('✅ Smanjeno treptanje (debounce + manje provera)');
-        console.log('✅ Tamna/svetla tema, Nedeljni kalendar, Podzadaci');
+        console.log('✅ Popravljeno: Notifikacije (24h i 48h)');
+        console.log('✅ Popravljeno: Nedeljni kalendar (datumi)');
+        console.log('✅ Dodato: Tooltip za dugmad');
+        console.log('✅ Nova Arhiva: Završeni + Smeće');
     </script>
 </body>
-</html>
+</htm
