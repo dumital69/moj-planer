@@ -1489,7 +1489,8 @@
                 body: body,
                 icon: '/favicon.ico',
                 tag: tag || title,
-                renotify: true
+                renotify: true,
+                requireInteraction: true
             };
             
             if ('serviceWorker' in navigator) {
@@ -1497,12 +1498,16 @@
                     const reg = await navigator.serviceWorker.ready;
                     await reg.showNotification(title, opts);
                     return;
-                } catch (e) {}
+                } catch (e) {
+                    console.log('SW notifikacija:', e);
+                }
             }
             
             try {
                 new Notification(title, opts);
-            } catch (e) {}
+            } catch (e) {
+                console.log('Notifikacija:', e);
+            }
         }
 
         function startNotificationTimer() {
@@ -1613,12 +1618,10 @@
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             
-            // Dobij prvi dan nedelje (ponedeljak) - ispravno računanje
-            const dayOfWeek = today.getDay(); // 0 = nedelja
+            const dayOfWeek = today.getDay();
             const startOfWeek = new Date(today);
             startOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
             startOfWeek.setDate(startOfWeek.getDate() + (weekOffset * 7));
-            // Resetujemo vreme na 00:00:00
             startOfWeek.setHours(0, 0, 0, 0);
             
             let html = '<div class="cal-head">';
@@ -1646,7 +1649,6 @@
                 const isToday = todayStr === dateStr;
                 const monthName = months[date.getMonth()];
                 
-                // Pronađi zadatke za ovaj dan - koristi istu logiku kao mesečni kalendar
                 const dayTasks = Object.values(allTasks).filter(function(task) {
                     if (!task.time || task.deleted) return false;
                     const taskDate = task.time.split('T')[0];
@@ -3077,6 +3079,25 @@
         };
 
         // ============================================================
+        //  SERVICE WORKER - POPRAVLJEN
+        // ============================================================
+        function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                console.log('❌ Service Worker nije podržan');
+                return;
+            }
+            
+            // Registruj SW iz posebnog fajla
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(reg) {
+                    console.log('✅ Service Worker registrovan!', reg);
+                })
+                .catch(function(e) {
+                    console.warn('⚠️ SW greška:', e);
+                });
+        }
+
+        // ============================================================
         //  ONLINE/OFFLINE HANDLERI
         // ============================================================
         window.addEventListener('online', async function() {
@@ -3095,19 +3116,6 @@
             document.getElementById('offlineBar').style.display = 'block';
             showToast('Radite offline. Promene će biti sinhronizovane kasnije.', 'warning', 3000);
         });
-
-        // ============================================================
-        //  SERVICE WORKER
-        // ============================================================
-        function registerServiceWorker() {
-            if (!('serviceWorker' in navigator)) return;
-            
-            const sw = "self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(function(clientList){for(var i=0;i<clientList.length;i++){if(clientList[i].url&&'focus'in clientList[i])return clientList[i].focus();}if(clients.openWindow)return clients.openWindow('/');}));});self.addEventListener('push',function(e){var d=e.data?e.data.json():{};e.waitUntil(self.registration.showNotification(d.title||'Moj Planer',{body:d.body||'',icon:'/favicon.ico',tag:d.tag||'mp',renotify:true}));});";
-            
-            const blob = new Blob([sw], { type: 'application/javascript' });
-            navigator.serviceWorker.register(URL.createObjectURL(blob))
-                .catch(function(e) { console.warn('SW:', e); });
-        }
 
         // ============================================================
         //  AUTH STATE LISTENER
@@ -3179,11 +3187,13 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.6');
+        console.log('☁️ Moj Planer - verzija 2.7');
+        console.log('✅ Popravljen: Service Worker (poseban fajl)');
         console.log('✅ Popravljeno: Notifikacije (24h i 48h)');
         console.log('✅ Popravljeno: Nedeljni kalendar (datumi)');
         console.log('✅ Dodato: Tooltip za dugmad');
         console.log('✅ Nova Arhiva: Završeni + Smeće');
+        console.log('📌 Kreiraj fajl sw.js u root folderu!');
     </script>
 </body>
-</htm
+</html>
