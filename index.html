@@ -7,10 +7,9 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Moj Planer</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/favicon.ico">
-    <link rel="shortcut icon" href="favicon.ico">
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/x-icon" href="/moj-planer/favicon.ico">
+    <link rel="apple-touch-icon" href="/moj-planer/favicon.ico">
+    <link rel="shortcut icon" href="/moj-planer/favicon.ico">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -950,6 +949,9 @@
                 padding: 12px 16px;
                 font-size: 14px;
             }
+            .input-row[style*="grid-template-columns: 1fr 1fr;"] {
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 </head>
@@ -1062,6 +1064,18 @@
                         <option value="weekdays">Radni dani (pon-pet)</option>
                     </select>
                 </div>
+
+                <!-- ===== NOVI CHECKBOX-OVI ===== -->
+                <div class="input-row" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px;">
+                    <label style="display:flex;align-items:center;gap:10px;color:var(--text);font-size:14px;cursor:pointer;background:var(--input-bg);padding:10px 14px;border-radius:12px;border:1px solid var(--border);transition:var(--transition);">
+                        <input type="checkbox" id="taskAlarm" checked style="width:18px;height:18px;accent-color:var(--orange);cursor:pointer;" />
+                        <span>🔔 Zvučni alarm</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:10px;color:var(--text);font-size:14px;cursor:pointer;background:var(--input-bg);padding:10px 14px;border-radius:12px;border:1px solid var(--border);transition:var(--transition);">
+                        <input type="checkbox" id="taskEmail" style="width:18px;height:18px;accent-color:var(--blue);cursor:pointer;" />
+                        <span>📧 Email podsetnik</span>
+                    </label>
+                </div>
                 
                 <div class="save-row">
                     <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
@@ -1143,10 +1157,8 @@
 
         function playAlarmSound() {
             try {
-                // Koristimo Web Audio API za generisanje zvuka
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // Prvi ton
                 const osc1 = audioCtx.createOscillator();
                 const gain1 = audioCtx.createGain();
                 osc1.type = 'square';
@@ -1156,7 +1168,6 @@
                 gain1.connect(audioCtx.destination);
                 osc1.start();
                 
-                // Drugi ton (posle 200ms)
                 setTimeout(function() {
                     const osc2 = audioCtx.createOscillator();
                     const gain2 = audioCtx.createGain();
@@ -1175,7 +1186,6 @@
                     osc1.stop();
                 }, 400);
                 
-                // Ponavljamo ako je alarm aktivan
                 if (isAlarmPlaying) {
                     alarmTimeout = setTimeout(function() {
                         playAlarmSound();
@@ -1195,7 +1205,6 @@
             
             playAlarmSound();
             
-            // Vibracija na mobilnim uređajima
             if (navigator.vibrate) {
                 navigator.vibrate([200, 100, 200, 100, 200]);
             }
@@ -1209,11 +1218,6 @@
             }
             document.getElementById('alarmOverlay').classList.remove('active');
             currentAlarmTaskKey = null;
-            
-            // Označi zadatak kao obavešten
-            if (currentAlarmTaskKey) {
-                // Opciono: možeš da označiš da je alarm prikazan
-            }
         };
 
         window.snoozeAlarm = function() {
@@ -1224,16 +1228,15 @@
             }
             document.getElementById('alarmOverlay').classList.remove('active');
             
-            // Snooze 5 minuta
             showToast('😴 Alarm odložen na 5 minuta', 'warning', 3000);
             setTimeout(function() {
                 if (currentAlarmTaskKey && allTasks[currentAlarmTaskKey]) {
                     const task = allTasks[currentAlarmTaskKey];
-                    if (task && !task.completed) {
+                    if (task && !task.completed && task.alarm !== false) {
                         showAlarm(currentAlarmTaskKey, task.text);
                     }
                 }
-            }, 300000); // 5 minuta
+            }, 300000);
         };
 
         window.testAlarm = function() {
@@ -1250,21 +1253,20 @@
                 const task = allTasks[key];
                 if (!task || task.completed || task.deleted) return;
                 if (!task.time) return;
+                // Proveri da li je alarm uključen (default true ako nije definisan)
+                if (task.alarm === false) return;
                 
                 const taskTime = new Date(task.time);
                 if (isNaN(taskTime.getTime())) return;
                 
-                // Proveri da li je vreme za alarm (u roku od 1 minuta)
                 const diff = taskTime.getTime() - now.getTime();
                 if (diff > -60000 && diff < 60000 && !task._alarmed) {
-                    // Označi da je alarm već prikazan
                     allTasks[key]._alarmed = true;
                     showAlarm(key, task.text);
                 }
             });
         }
 
-        // Pokreni proveru alarma svakih 30 sekundi
         setInterval(function() {
             checkAlarms();
         }, 30000);
@@ -1716,7 +1718,7 @@
         async function showPushNotification(title, body, tag) {
             const opts = {
                 body: body,
-                icon: '/favicon.ico',
+                icon: '/moj-planer/favicon.ico',
                 tag: tag || title,
                 renotify: true,
                 requireInteraction: true
@@ -2056,6 +2058,8 @@
                         allTasks[key].deleted = sharedData.deleted !== undefined ? sharedData.deleted : allTasks[key].deleted;
                         allTasks[key].deletedAt = sharedData.deletedAt || '';
                         allTasks[key].subtasks = sharedData.subtasks || allTasks[key].subtasks;
+                        allTasks[key].alarm = sharedData.alarm !== undefined ? sharedData.alarm : allTasks[key].alarm;
+                        allTasks[key].email = sharedData.email !== undefined ? sharedData.email : allTasks[key].email;
                     } else {
                         delete allTasks[key];
                     }
@@ -2076,7 +2080,9 @@
                     createdAt: sharedData.createdAt || dateToISO(new Date()),
                     sharedKey: sharedKey,
                     sharedWith: Object.values(sharedData.participants || {}).join(', ') || '',
-                    subtasks: sharedData.subtasks || {}
+                    subtasks: sharedData.subtasks || {},
+                    alarm: sharedData.alarm !== undefined ? sharedData.alarm : true,
+                    email: sharedData.email !== undefined ? sharedData.email : false
                 };
                 
                 const dbRef = getDbRef(currentUser.uid);
@@ -2100,7 +2106,6 @@
                 updateButtons();
                 updateStats();
                 checkTrashExpiry();
-                // Proveri alarme pri svakom renderu
                 checkAlarms();
                 renderTimeout = null;
             });
@@ -2323,6 +2328,8 @@
                     (task.createdAt ? '<div class="task-meta">Postavljeno: ' + displayDate(task.createdAt) + '</div>' : '') +
                     (task.sharedWith ? '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
+                    (task.alarm !== false ? '<div style="font-size:11px;color:var(--orange);margin-bottom:4px;">🔔 Zvučni alarm uključen</div>' : '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">🔕 Zvučni alarm isključen</div>') +
+                    (task.email === true ? '<div style="font-size:11px;color:var(--blue);margin-bottom:4px;">📧 Email podsetnik uključen</div>' : '') +
                     renderSubtasksHTML(task.subtasks, key, false) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>' +
@@ -2553,7 +2560,9 @@
                         repeat: task.repeat,
                         completed: false,
                         deleted: false,
-                        createdAt: task.createdAt || nowISO
+                        createdAt: task.createdAt || nowISO,
+                        alarm: task.alarm !== false,
+                        email: task.email === true
                     };
                     
                     if (navigator.onLine) {
@@ -2717,7 +2726,9 @@
                     category: category,
                     repeat: repeat,
                     lastChangedAt: nowISO,
-                    lastChangedBy: currentUser.uid
+                    lastChangedBy: currentUser.uid,
+                    alarm: document.getElementById('taskAlarm').checked,
+                    email: document.getElementById('taskEmail').checked
                 });
                 editSharedKey = null;
                 document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
@@ -2733,11 +2744,20 @@
                 repeat: repeat,
                 completed: false,
                 deleted: false,
-                createdAt: nowISO
+                createdAt: nowISO,
+                alarm: document.getElementById('taskAlarm').checked,
+                email: document.getElementById('taskEmail').checked
             };
             
             if (editKey) {
-                const data = { text: text, time: time, category: category, repeat: repeat };
+                const data = {
+                    text: text,
+                    time: time,
+                    category: category,
+                    repeat: repeat,
+                    alarm: document.getElementById('taskAlarm').checked,
+                    email: document.getElementById('taskEmail').checked
+                };
                 const currentTask = allTasks[editKey];
                 
                 if (currentTask && currentTask.sharedKey) {
@@ -2793,7 +2813,9 @@
                     category: category,
                     repeat: repeat,
                     lastChangedAt: nowISO,
-                    lastChangedBy: currentUser.uid
+                    lastChangedBy: currentUser.uid,
+                    alarm: document.getElementById('taskAlarm').checked,
+                    email: document.getElementById('taskEmail').checked
                 });
                 const sharedKey = editSharedKey;
                 editSharedKey = null;
@@ -2850,11 +2872,20 @@
                 repeat: repeat,
                 completed: false,
                 deleted: false,
-                createdAt: nowISO
+                createdAt: nowISO,
+                alarm: document.getElementById('taskAlarm').checked,
+                email: document.getElementById('taskEmail').checked
             };
             
             if (editKey) {
-                const data = { text: text, time: time, category: category, repeat: repeat };
+                const data = {
+                    text: text,
+                    time: time,
+                    category: category,
+                    repeat: repeat,
+                    alarm: document.getElementById('taskAlarm').checked,
+                    email: document.getElementById('taskEmail').checked
+                };
                 const currentTask = allTasks[editKey];
                 const oldEditKey = editKey;
                 
@@ -2980,6 +3011,7 @@
             document.getElementById('taskText').value = '';
             document.getElementById('taskTime').value = '';
             document.getElementById('taskRepeat').value = 'none';
+            // Ne resetujemo checkbox-ove - ostaju kako su bili
         }
 
         window.prepareEdit = function(key) {
@@ -2992,6 +3024,8 @@
             document.getElementById('taskTime').value = task.time || '';
             document.getElementById('taskCat').value = task.category || 'Razno';
             document.getElementById('taskRepeat').value = task.repeat || 'none';
+            document.getElementById('taskAlarm').checked = task.alarm !== false;
+            document.getElementById('taskEmail').checked = task.email === true;
             document.getElementById('saveBtn').textContent = '✏️ Izmeni';
             document.getElementById('taskText').focus();
         };
@@ -3116,7 +3150,9 @@
                 createdBy: currentUser.uid,
                 createdByEmail: currentUser.email,
                 createdByNickname: currentNickname || '',
-                subtasks: taskObj.subtasks || {}
+                subtasks: taskObj.subtasks || {},
+                alarm: taskObj.alarm !== false,
+                email: taskObj.email === true
             };
             
             newRef.set(taskData)
@@ -3170,6 +3206,8 @@
             document.getElementById('taskTime').value = task.time || '';
             document.getElementById('taskCat').value = task.category || 'Razno';
             document.getElementById('taskRepeat').value = task.repeat || 'none';
+            document.getElementById('taskAlarm').checked = task.alarm !== false;
+            document.getElementById('taskEmail').checked = task.email === true;
             document.getElementById('saveBtn').textContent = '✏️ Izmeni deljeni';
             document.getElementById('taskText').focus();
         };
@@ -3260,6 +3298,12 @@
                     if (!confirm('Prebaciti ' + oldCount + ' starih zadataka?\n\nVeć imate ' + existingCount + ' zadataka - biće DODATI.')) {
                         return;
                     }
+                    
+                    // Dodaj default vrednosti za alarm i email
+                    Object.keys(old).forEach(function(key) {
+                        if (old[key].alarm === undefined) old[key].alarm = true;
+                        if (old[key].email === undefined) old[key].email = false;
+                    });
                     
                     newRef.update(old).then(function() {
                         database.ref('tasks').remove();
@@ -3416,13 +3460,13 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.8');
-        console.log('✅ Dodato: Zvučni alarm');
-        console.log('✅ Dodato: Test zvuka dugme');
-        console.log('✅ Dodato: Snooze (5 min)');
-        console.log('✅ Popravljen: Service Worker');
-        console.log('✅ Popravljeno: Notifikacije (24h i 48h)');
-        console.log('✅ Popravljeno: Nedeljni kalendar (datumi)');
+        console.log('☁️ Moj Planer - verzija 2.9');
+        console.log('✅ Dodato: Checkbox za zvučni alarm');
+        console.log('✅ Dodato: Checkbox za email podsetnik');
+        console.log('✅ Alarm se aktivira samo ako je uključen');
+        console.log('✅ Prikaz statusa u zadacima');
+        console.log('✅ Zvučni alarm');
+        console.log('✅ Service Worker');
         console.log('📌 Ikona: favicon.ico');
     </script>
 </body>
