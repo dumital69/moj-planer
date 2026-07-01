@@ -708,6 +708,40 @@
         .shared-header-text { font-size: 15px; font-weight: 800; color: #1abc9c; }
         .shared-header-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
+        /* ===== NOTIFIKACIJE U ZADATKU ===== */
+        .task-notifications {
+            display: flex;
+            gap: 16px;
+            margin: 8px 0 10px 0;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .task-notifications label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .task-notifications label:hover {
+            color: var(--text);
+        }
+        .task-notifications input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--blue);
+            flex-shrink: 0;
+        }
+        .task-notifications input[type="checkbox"].alarm-check {
+            accent-color: var(--orange);
+        }
+
         .actions {
             display: flex;
             justify-content: flex-end;
@@ -924,6 +958,10 @@
             .alarm-box .alarm-text {
                 font-size: 16px;
             }
+            .task-notifications {
+                flex-direction: column;
+                gap: 6px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -948,9 +986,6 @@
                 min-width: 100px;
                 padding: 12px 16px;
                 font-size: 14px;
-            }
-            .input-row[style*="grid-template-columns: 1fr 1fr;"] {
-                grid-template-columns: 1fr !important;
             }
         }
     </style>
@@ -1064,18 +1099,6 @@
                         <option value="weekdays">Radni dani (pon-pet)</option>
                     </select>
                 </div>
-
-                <!-- ===== NOVI CHECKBOX-OVI ===== -->
-                <div class="input-row" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px;">
-                    <label style="display:flex;align-items:center;gap:10px;color:var(--text);font-size:14px;cursor:pointer;background:var(--input-bg);padding:10px 14px;border-radius:12px;border:1px solid var(--border);transition:var(--transition);">
-                        <input type="checkbox" id="taskAlarm" checked style="width:18px;height:18px;accent-color:var(--orange);cursor:pointer;" />
-                        <span>🔔 Zvučni alarm</span>
-                    </label>
-                    <label style="display:flex;align-items:center;gap:10px;color:var(--text);font-size:14px;cursor:pointer;background:var(--input-bg);padding:10px 14px;border-radius:12px;border:1px solid var(--border);transition:var(--transition);">
-                        <input type="checkbox" id="taskEmail" style="width:18px;height:18px;accent-color:var(--blue);cursor:pointer;" />
-                        <span>📧 Email podsetnik</span>
-                    </label>
-                </div>
                 
                 <div class="save-row">
                     <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
@@ -1151,7 +1174,6 @@
         //  ZVUČNI ALARM
         // ============================================================
         let alarmTimeout = null;
-        let alarmAudio = null;
         let isAlarmPlaying = false;
         let currentAlarmTaskKey = null;
 
@@ -1253,7 +1275,6 @@
                 const task = allTasks[key];
                 if (!task || task.completed || task.deleted) return;
                 if (!task.time) return;
-                // Proveri da li je alarm uključen (default true ako nije definisan)
                 if (task.alarm === false) return;
                 
                 const taskTime = new Date(task.time);
@@ -2211,6 +2232,7 @@
                     (task.completedAt ? '<div class="task-meta">Završeno: ' + displayDate(task.completedAt) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
                     renderSubtasksHTML(task.subtasks, key, false) +
+                    renderNotificationCheckboxes(key, task) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromDone(\'' + key + '\')" title="Vrati kao nezavršen">↩</button>' +
                     '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>' +
@@ -2246,6 +2268,7 @@
                     (task.deletedAt ? '<div class="task-meta">🗑️ U smeću: ' + displayDate(task.deletedAt) + ' (još ' + daysLeft + ' dana)</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
                     renderSubtasksHTML(task.subtasks, key, false) +
+                    renderNotificationCheckboxes(key, task) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromTrash(\'' + key + '\')" title="Vrati kao aktivan">↩</button>' +
                     '<button class="iconbtn" style="background:#e74c3c" onclick="deleteTaskPermanently(\'' + key + '\')" title="Obriši trajno">🗑️</button>' +
@@ -2289,6 +2312,7 @@
                     (task.createdByEmail ? '<div class="task-meta">Kreirao/la: ' + escapeHtml(creatorDisplay) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
                     renderSubtasksHTML(task.subtasks, key, true) +
+                    renderNotificationCheckboxes(key, task) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\'' + key + '\')" title="' + (task.completed ? 'Vrati' : 'Završi') + '">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\'' + key + '\')" title="Izmeni">✏️</button>' +
@@ -2328,9 +2352,8 @@
                     (task.createdAt ? '<div class="task-meta">Postavljeno: ' + displayDate(task.createdAt) + '</div>' : '') +
                     (task.sharedWith ? '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
-                    (task.alarm !== false ? '<div style="font-size:11px;color:var(--orange);margin-bottom:4px;">🔔 Zvučni alarm uključen</div>' : '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">🔕 Zvučni alarm isključen</div>') +
-                    (task.email === true ? '<div style="font-size:11px;color:var(--blue);margin-bottom:4px;">📧 Email podsetnik uključen</div>' : '') +
                     renderSubtasksHTML(task.subtasks, key, false) +
+                    renderNotificationCheckboxes(key, task) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>' +
@@ -2341,6 +2364,77 @@
             
             list.innerHTML = html;
         }
+
+        // ===== NOTIFIKACIJE U ZADATKU =====
+        function renderNotificationCheckboxes(key, task) {
+            const isAlarmOn = task.alarm !== false;
+            const isEmailOn = task.email === true;
+            
+            return '<div class="task-notifications">' +
+                '<label>' +
+                    '<input type="checkbox" class="alarm-check" ' + (isAlarmOn ? 'checked' : '') + 
+                    ' onchange="toggleAlarm(\'' + key + '\', this.checked)" />' +
+                    ' 🔔 Zvučni alarm' +
+                '</label>' +
+                '<label>' +
+                    '<input type="checkbox" ' + (isEmailOn ? 'checked' : '') + 
+                    ' onchange="toggleEmail(\'' + key + '\', this.checked)" />' +
+                    ' 📧 Email podsetnik' +
+                '</label>' +
+            '</div>';
+        }
+
+        // ===== TOGGLE NOTIFIKACIJA =====
+        window.toggleAlarm = function(key, checked) {
+            if (!currentUser) return;
+            
+            const db = getDbRef(currentUser.uid);
+            const nowISO = dateToISO(new Date());
+            const updates = { alarm: checked };
+            
+            // Ako je deljeni zadatak, ažuriraj i shared verziju
+            const task = allTasks[key];
+            if (task && task.sharedKey) {
+                database.ref('sharedTasks/' + task.sharedKey).update({
+                    alarm: checked,
+                    lastChangedAt: nowISO,
+                    lastChangedBy: currentUser.uid
+                });
+            }
+            
+            if (navigator.onLine) {
+                db.child(key).update(updates);
+            } else {
+                addToQueue({ type: 'update', key: key, payload: updates });
+            }
+            
+            showToast(checked ? '🔔 Alarm uključen' : '🔕 Alarm isključen', 'info', 1500);
+        };
+
+        window.toggleEmail = function(key, checked) {
+            if (!currentUser) return;
+            
+            const db = getDbRef(currentUser.uid);
+            const nowISO = dateToISO(new Date());
+            const updates = { email: checked };
+            
+            const task = allTasks[key];
+            if (task && task.sharedKey) {
+                database.ref('sharedTasks/' + task.sharedKey).update({
+                    email: checked,
+                    lastChangedAt: nowISO,
+                    lastChangedBy: currentUser.uid
+                });
+            }
+            
+            if (navigator.onLine) {
+                db.child(key).update(updates);
+            } else {
+                addToQueue({ type: 'update', key: key, payload: updates });
+            }
+            
+            showToast(checked ? '📧 Email podsetnik uključen' : '📧 Email podsetnik isključen', 'info', 1500);
+        };
 
         // ===== PODZADACI (HTML render) =====
         function renderSubtasksHTML(subtasks, taskKey, isShared) {
@@ -2726,9 +2820,7 @@
                     category: category,
                     repeat: repeat,
                     lastChangedAt: nowISO,
-                    lastChangedBy: currentUser.uid,
-                    alarm: document.getElementById('taskAlarm').checked,
-                    email: document.getElementById('taskEmail').checked
+                    lastChangedBy: currentUser.uid
                 });
                 editSharedKey = null;
                 document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
@@ -2737,6 +2829,7 @@
                 return;
             }
             
+            // Podrazumevane vrednosti: alarm uključen, email isključen
             const payload = {
                 text: text,
                 time: time,
@@ -2745,8 +2838,8 @@
                 completed: false,
                 deleted: false,
                 createdAt: nowISO,
-                alarm: document.getElementById('taskAlarm').checked,
-                email: document.getElementById('taskEmail').checked
+                alarm: true,
+                email: false
             };
             
             if (editKey) {
@@ -2754,9 +2847,7 @@
                     text: text,
                     time: time,
                     category: category,
-                    repeat: repeat,
-                    alarm: document.getElementById('taskAlarm').checked,
-                    email: document.getElementById('taskEmail').checked
+                    repeat: repeat
                 };
                 const currentTask = allTasks[editKey];
                 
@@ -2813,9 +2904,7 @@
                     category: category,
                     repeat: repeat,
                     lastChangedAt: nowISO,
-                    lastChangedBy: currentUser.uid,
-                    alarm: document.getElementById('taskAlarm').checked,
-                    email: document.getElementById('taskEmail').checked
+                    lastChangedBy: currentUser.uid
                 });
                 const sharedKey = editSharedKey;
                 editSharedKey = null;
@@ -2873,8 +2962,8 @@
                 completed: false,
                 deleted: false,
                 createdAt: nowISO,
-                alarm: document.getElementById('taskAlarm').checked,
-                email: document.getElementById('taskEmail').checked
+                alarm: true,
+                email: false
             };
             
             if (editKey) {
@@ -2882,9 +2971,7 @@
                     text: text,
                     time: time,
                     category: category,
-                    repeat: repeat,
-                    alarm: document.getElementById('taskAlarm').checked,
-                    email: document.getElementById('taskEmail').checked
+                    repeat: repeat
                 };
                 const currentTask = allTasks[editKey];
                 const oldEditKey = editKey;
@@ -3011,7 +3098,6 @@
             document.getElementById('taskText').value = '';
             document.getElementById('taskTime').value = '';
             document.getElementById('taskRepeat').value = 'none';
-            // Ne resetujemo checkbox-ove - ostaju kako su bili
         }
 
         window.prepareEdit = function(key) {
@@ -3024,8 +3110,6 @@
             document.getElementById('taskTime').value = task.time || '';
             document.getElementById('taskCat').value = task.category || 'Razno';
             document.getElementById('taskRepeat').value = task.repeat || 'none';
-            document.getElementById('taskAlarm').checked = task.alarm !== false;
-            document.getElementById('taskEmail').checked = task.email === true;
             document.getElementById('saveBtn').textContent = '✏️ Izmeni';
             document.getElementById('taskText').focus();
         };
@@ -3206,8 +3290,6 @@
             document.getElementById('taskTime').value = task.time || '';
             document.getElementById('taskCat').value = task.category || 'Razno';
             document.getElementById('taskRepeat').value = task.repeat || 'none';
-            document.getElementById('taskAlarm').checked = task.alarm !== false;
-            document.getElementById('taskEmail').checked = task.email === true;
             document.getElementById('saveBtn').textContent = '✏️ Izmeni deljeni';
             document.getElementById('taskText').focus();
         };
@@ -3299,7 +3381,6 @@
                         return;
                     }
                     
-                    // Dodaj default vrednosti za alarm i email
                     Object.keys(old).forEach(function(key) {
                         if (old[key].alarm === undefined) old[key].alarm = true;
                         if (old[key].email === undefined) old[key].email = false;
@@ -3460,14 +3541,13 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.9');
-        console.log('✅ Dodato: Checkbox za zvučni alarm');
-        console.log('✅ Dodato: Checkbox za email podsetnik');
+        console.log('☁️ Moj Planer - verzija 2.10');
+        console.log('✅ Checkbox za alarm i email unutar zadatka');
+        console.log('✅ Klikom na checkbox menja se u bazi');
         console.log('✅ Alarm se aktivira samo ako je uključen');
-        console.log('✅ Prikaz statusa u zadacima');
+        console.log('✅ Radi i za deljene zadatke');
         console.log('✅ Zvučni alarm');
         console.log('✅ Service Worker');
-        console.log('📌 Ikona: favicon.ico');
     </script>
 </body>
 </html>
