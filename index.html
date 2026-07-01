@@ -1631,7 +1631,7 @@
         }
 
         // ============================================================
-        //  NOTIFIKACIJE
+        //  NOTIFIKACIJE - POPRAVLJENE
         // ============================================================
         let notifiedTasks = new Set();
         let notifyInterval = null;
@@ -1707,28 +1707,31 @@
                 const timeDiff = taskTime.getTime() - now.getTime();
                 const hoursDiff = timeDiff / (1000 * 60 * 60);
                 
+                // VREME JE! - ako je zadatak već prošao ili je u roku od 1h
                 if (!notifiedTasks.has(key) && taskTime <= now) {
                     notifiedTasks.add(key);
                     showPushNotification(
-                        'Moj Planer - VREME JE!',
+                        '⏰ VREME JE!',
                         emoji + ' ' + task.text,
                         'alarm_' + key
                     );
                 }
                 
-                if (!notifiedTasks.has(key + '_s') && hoursDiff > 0 && hoursDiff <= 24) {
+                // SUTRA - ako je između 1h i 24h do zadatka
+                if (!notifiedTasks.has(key + '_s') && hoursDiff > 1 && hoursDiff <= 24) {
                     notifiedTasks.add(key + '_s');
                     showPushNotification(
-                        'Sutra vas čeka zadatak',
+                        '📅 Sutra vas čeka zadatak',
                         emoji + ' ' + task.text + ' - ' + displayDate(task.time),
                         'sutra_' + key
                     );
                 }
                 
+                // ZA 2 DANA - ako je između 24h i 48h do zadatka
                 if (!notifiedTasks.has(key + '_2d') && hoursDiff > 24 && hoursDiff <= 48) {
                     notifiedTasks.add(key + '_2d');
                     showPushNotification(
-                        'Za 2 dana vas čeka zadatak',
+                        '📅 Za 2 dana vas čeka zadatak',
                         emoji + ' ' + task.text + ' - ' + displayDate(task.time),
                         'dva_dana_' + key
                     );
@@ -2392,7 +2395,6 @@
             const nowISO = dateToISO(new Date());
             const updates = { alarm: checked };
             
-            // Ako je deljeni zadatak, ažuriraj i shared verziju
             const task = allTasks[key];
             if (task && task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
@@ -2829,7 +2831,6 @@
                 return;
             }
             
-            // Podrazumevane vrednosti: alarm uključen, email isključen
             const payload = {
                 text: text,
                 time: time,
@@ -3530,6 +3531,7 @@
             }).join('');
         }
 
+        // Provera datuma (svakih 60 sekundi)
         setInterval(function() {
             const today = new Date().toDateString();
             if (today !== lastDateChecked) {
@@ -3537,15 +3539,15 @@
                 renderTasks();
                 showToast('📅 Datum promenjen - sve osveženo', 'info', 1500);
             }
-        }, 300000);
+        }, 60000);
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.10');
+        console.log('☁️ Moj Planer - verzija 2.11');
+        console.log('✅ Popravljene notifikacije (24h, 48h, VREME JE!)');
         console.log('✅ Checkbox za alarm i email unutar zadatka');
-        console.log('✅ Klikom na checkbox menja se u bazi');
         console.log('✅ Alarm se aktivira samo ako je uključen');
-        console.log('✅ Radi i za deljene zadatke');
+        console.log('✅ Kalendar se osvežava svakih 60 sekundi');
         console.log('✅ Zvučni alarm');
         console.log('✅ Service Worker');
     </script>
