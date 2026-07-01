@@ -708,18 +708,18 @@
         .shared-header-text { font-size: 15px; font-weight: 800; color: #1abc9c; }
         .shared-header-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-        /* ===== NOTIFIKACIJE U ZADATKU ===== */
-        .task-notifications {
+        /* ===== ALARM U ZADATKU ===== */
+        .task-alarm-check {
             display: flex;
-            gap: 16px;
+            align-items: center;
+            gap: 6px;
             margin: 8px 0 10px 0;
             padding: 8px 12px;
             background: var(--bg-secondary);
             border-radius: 10px;
             border: 1px solid var(--border);
-            flex-wrap: wrap;
         }
-        .task-notifications label {
+        .task-alarm-check label {
             display: flex;
             align-items: center;
             gap: 6px;
@@ -728,18 +728,15 @@
             cursor: pointer;
             transition: var(--transition);
         }
-        .task-notifications label:hover {
+        .task-alarm-check label:hover {
             color: var(--text);
         }
-        .task-notifications input[type="checkbox"] {
+        .task-alarm-check input[type="checkbox"] {
             width: 16px;
             height: 16px;
             cursor: pointer;
-            accent-color: var(--blue);
-            flex-shrink: 0;
-        }
-        .task-notifications input[type="checkbox"].alarm-check {
             accent-color: var(--orange);
+            flex-shrink: 0;
         }
 
         .actions {
@@ -957,10 +954,6 @@
             }
             .alarm-box .alarm-text {
                 font-size: 16px;
-            }
-            .task-notifications {
-                flex-direction: column;
-                gap: 6px;
             }
         }
 
@@ -1631,7 +1624,7 @@
         }
 
         // ============================================================
-        //  NOTIFIKACIJE - POPRAVLJENE
+        //  NOTIFIKACIJE
         // ============================================================
         let notifiedTasks = new Set();
         let notifyInterval = null;
@@ -1707,7 +1700,6 @@
                 const timeDiff = taskTime.getTime() - now.getTime();
                 const hoursDiff = timeDiff / (1000 * 60 * 60);
                 
-                // VREME JE! - ako je zadatak već prošao ili je u roku od 1h
                 if (!notifiedTasks.has(key) && taskTime <= now) {
                     notifiedTasks.add(key);
                     showPushNotification(
@@ -1717,7 +1709,6 @@
                     );
                 }
                 
-                // SUTRA - ako je između 1h i 24h do zadatka
                 if (!notifiedTasks.has(key + '_s') && hoursDiff > 1 && hoursDiff <= 24) {
                     notifiedTasks.add(key + '_s');
                     showPushNotification(
@@ -1727,7 +1718,6 @@
                     );
                 }
                 
-                // ZA 2 DANA - ako je između 24h i 48h do zadatka
                 if (!notifiedTasks.has(key + '_2d') && hoursDiff > 24 && hoursDiff <= 48) {
                     notifiedTasks.add(key + '_2d');
                     showPushNotification(
@@ -2083,7 +2073,6 @@
                         allTasks[key].deletedAt = sharedData.deletedAt || '';
                         allTasks[key].subtasks = sharedData.subtasks || allTasks[key].subtasks;
                         allTasks[key].alarm = sharedData.alarm !== undefined ? sharedData.alarm : allTasks[key].alarm;
-                        allTasks[key].email = sharedData.email !== undefined ? sharedData.email : allTasks[key].email;
                     } else {
                         delete allTasks[key];
                     }
@@ -2105,8 +2094,7 @@
                     sharedKey: sharedKey,
                     sharedWith: Object.values(sharedData.participants || {}).join(', ') || '',
                     subtasks: sharedData.subtasks || {},
-                    alarm: sharedData.alarm !== undefined ? sharedData.alarm : true,
-                    email: sharedData.email !== undefined ? sharedData.email : false
+                    alarm: sharedData.alarm !== undefined ? sharedData.alarm : true
                 };
                 
                 const dbRef = getDbRef(currentUser.uid);
@@ -2235,7 +2223,7 @@
                     (task.completedAt ? '<div class="task-meta">Završeno: ' + displayDate(task.completedAt) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
                     renderSubtasksHTML(task.subtasks, key, false) +
-                    renderNotificationCheckboxes(key, task) +
+                    renderAlarmCheckbox(key, task) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromDone(\'' + key + '\')" title="Vrati kao nezavršen">↩</button>' +
                     '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>' +
@@ -2271,7 +2259,7 @@
                     (task.deletedAt ? '<div class="task-meta">🗑️ U smeću: ' + displayDate(task.deletedAt) + ' (još ' + daysLeft + ' dana)</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
                     renderSubtasksHTML(task.subtasks, key, false) +
-                    renderNotificationCheckboxes(key, task) +
+                    renderAlarmCheckbox(key, task) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromTrash(\'' + key + '\')" title="Vrati kao aktivan">↩</button>' +
                     '<button class="iconbtn" style="background:#e74c3c" onclick="deleteTaskPermanently(\'' + key + '\')" title="Obriši trajno">🗑️</button>' +
@@ -2315,7 +2303,7 @@
                     (task.createdByEmail ? '<div class="task-meta">Kreirao/la: ' + escapeHtml(creatorDisplay) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
                     renderSubtasksHTML(task.subtasks, key, true) +
-                    renderNotificationCheckboxes(key, task) +
+                    renderAlarmCheckbox(key, task) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\'' + key + '\')" title="' + (task.completed ? 'Vrati' : 'Završi') + '">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\'' + key + '\')" title="Izmeni">✏️</button>' +
@@ -2356,7 +2344,7 @@
                     (task.sharedWith ? '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
                     renderSubtasksHTML(task.subtasks, key, false) +
-                    renderNotificationCheckboxes(key, task) +
+                    renderAlarmCheckbox(key, task) +
                     '<div class="actions">' +
                     '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>' +
                     '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>' +
@@ -2368,26 +2356,20 @@
             list.innerHTML = html;
         }
 
-        // ===== NOTIFIKACIJE U ZADATKU =====
-        function renderNotificationCheckboxes(key, task) {
+        // ===== ALARM U ZADATKU =====
+        function renderAlarmCheckbox(key, task) {
             const isAlarmOn = task.alarm !== false;
-            const isEmailOn = task.email === true;
             
-            return '<div class="task-notifications">' +
+            return '<div class="task-alarm-check">' +
                 '<label>' +
                     '<input type="checkbox" class="alarm-check" ' + (isAlarmOn ? 'checked' : '') + 
                     ' onchange="toggleAlarm(\'' + key + '\', this.checked)" />' +
                     ' 🔔 Zvučni alarm' +
                 '</label>' +
-                '<label>' +
-                    '<input type="checkbox" ' + (isEmailOn ? 'checked' : '') + 
-                    ' onchange="toggleEmail(\'' + key + '\', this.checked)" />' +
-                    ' 📧 Email podsetnik' +
-                '</label>' +
             '</div>';
         }
 
-        // ===== TOGGLE NOTIFIKACIJA =====
+        // ===== TOGGLE ALARMA =====
         window.toggleAlarm = function(key, checked) {
             if (!currentUser) return;
             
@@ -2411,31 +2393,6 @@
             }
             
             showToast(checked ? '🔔 Alarm uključen' : '🔕 Alarm isključen', 'info', 1500);
-        };
-
-        window.toggleEmail = function(key, checked) {
-            if (!currentUser) return;
-            
-            const db = getDbRef(currentUser.uid);
-            const nowISO = dateToISO(new Date());
-            const updates = { email: checked };
-            
-            const task = allTasks[key];
-            if (task && task.sharedKey) {
-                database.ref('sharedTasks/' + task.sharedKey).update({
-                    email: checked,
-                    lastChangedAt: nowISO,
-                    lastChangedBy: currentUser.uid
-                });
-            }
-            
-            if (navigator.onLine) {
-                db.child(key).update(updates);
-            } else {
-                addToQueue({ type: 'update', key: key, payload: updates });
-            }
-            
-            showToast(checked ? '📧 Email podsetnik uključen' : '📧 Email podsetnik isključen', 'info', 1500);
         };
 
         // ===== PODZADACI (HTML render) =====
@@ -2657,8 +2614,7 @@
                         completed: false,
                         deleted: false,
                         createdAt: task.createdAt || nowISO,
-                        alarm: task.alarm !== false,
-                        email: task.email === true
+                        alarm: task.alarm !== false
                     };
                     
                     if (navigator.onLine) {
@@ -2839,8 +2795,7 @@
                 completed: false,
                 deleted: false,
                 createdAt: nowISO,
-                alarm: true,
-                email: false
+                alarm: true
             };
             
             if (editKey) {
@@ -2848,7 +2803,8 @@
                     text: text,
                     time: time,
                     category: category,
-                    repeat: repeat
+                    repeat: repeat,
+                    alarm: document.getElementById('taskAlarm') ? document.getElementById('taskAlarm').checked : true
                 };
                 const currentTask = allTasks[editKey];
                 
@@ -2963,8 +2919,7 @@
                 completed: false,
                 deleted: false,
                 createdAt: nowISO,
-                alarm: true,
-                email: false
+                alarm: true
             };
             
             if (editKey) {
@@ -2972,7 +2927,8 @@
                     text: text,
                     time: time,
                     category: category,
-                    repeat: repeat
+                    repeat: repeat,
+                    alarm: document.getElementById('taskAlarm') ? document.getElementById('taskAlarm').checked : true
                 };
                 const currentTask = allTasks[editKey];
                 const oldEditKey = editKey;
@@ -3236,8 +3192,7 @@
                 createdByEmail: currentUser.email,
                 createdByNickname: currentNickname || '',
                 subtasks: taskObj.subtasks || {},
-                alarm: taskObj.alarm !== false,
-                email: taskObj.email === true
+                alarm: taskObj.alarm !== false
             };
             
             newRef.set(taskData)
@@ -3384,7 +3339,6 @@
                     
                     Object.keys(old).forEach(function(key) {
                         if (old[key].alarm === undefined) old[key].alarm = true;
-                        if (old[key].email === undefined) old[key].email = false;
                     });
                     
                     newRef.update(old).then(function() {
@@ -3531,7 +3485,6 @@
             }).join('');
         }
 
-        // Provera datuma (svakih 60 sekundi)
         setInterval(function() {
             const today = new Date().toDateString();
             if (today !== lastDateChecked) {
@@ -3543,12 +3496,11 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.11');
-        console.log('✅ Popravljene notifikacije (24h, 48h, VREME JE!)');
-        console.log('✅ Checkbox za alarm i email unutar zadatka');
+        console.log('☁️ Moj Planer - verzija 2.12');
+        console.log('✅ Uklonjen email podsetnik');
+        console.log('✅ Ostavljen samo zvučni alarm');
         console.log('✅ Alarm se aktivira samo ako je uključen');
-        console.log('✅ Kalendar se osvežava svakih 60 sekundi');
-        console.log('✅ Zvučni alarm');
+        console.log('✅ Radi i za deljene zadatke');
         console.log('✅ Service Worker');
     </script>
 </body>
