@@ -110,7 +110,7 @@
 
         .section { padding: 14px 16px; }
 
-        /* ===== STATISTIKA - SMANJENA ===== */
+        /* ===== STATISTIKA ===== */
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -1056,7 +1056,7 @@
                 </div>
                 <div class="offline" id="offlineBar">Rad bez interneta — sinhronizacija kasnije.</div>
                 
-                <!-- ===== STATISTIKA - SMANJENA ===== -->
+                <!-- ===== STATISTIKA ===== -->
                 <div class="stats" id="statsContainer">
                     <div class="stat-card total">
                         <span class="stat-number" id="statTotal">0</span>
@@ -1081,7 +1081,6 @@
                 
                 <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="renderTasks()" style="margin-bottom:8px;width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);" />
                 
-                <!-- ===== POLJE ZA ZADATAK - VEĆE ===== -->
                 <textarea id="taskText" placeholder="Šta treba uraditi?" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;min-height:120px;resize:vertical;transition:var(--transition);"></textarea>
                 
                 <div class="input-row">
@@ -1287,7 +1286,7 @@
 
         setInterval(function() {
             checkAlarms();
-        }, 30000);
+        }, 10000);
 
         // ============================================================
         //  POMOĆNE FUNKCIJE (UTILS)
@@ -1990,7 +1989,6 @@
 
         // ===== STATISTIKA =====
         function updateStats() {
-            // Brojimo SAMO lokalne zadatke (ne deljene)
             const tasks = Object.values(allTasks).filter(t => !t.deleted);
             const total = tasks.length;
             const active = tasks.filter(t => !t.completed).length;
@@ -2060,16 +2058,14 @@
             }
         }
 
-        // ===== SINHRONIZACIJA DELJENIH (POPRAVLJENA - BEZ DUPLIRANJA) =====
+        // ===== SINHRONIZACIJA DELJENIH (POPRAVLJENA) =====
         function syncSharedTaskToLocal(sharedKey, sharedData) {
             let found = false;
             
-            // Prvo proveri da li već postoji lokalni zadatak sa ovim sharedKey
             Object.keys(allTasks).forEach(function(key) {
                 if (allTasks[key] && allTasks[key].sharedKey === sharedKey) {
                     found = true;
                     if (sharedData) {
-                        // Ažuriraj postojeći (ne dupliraj!)
                         allTasks[key].text = sharedData.text || allTasks[key].text;
                         allTasks[key].time = sharedData.time || allTasks[key].time;
                         allTasks[key].category = sharedData.category || allTasks[key].category;
@@ -2078,17 +2074,14 @@
                         allTasks[key].completedAt = sharedData.completedAt || '';
                         allTasks[key].deleted = sharedData.deleted !== undefined ? sharedData.deleted : allTasks[key].deleted;
                         allTasks[key].deletedAt = sharedData.deletedAt || '';
-                        allTasks[key].subtasks = sharedData.subtasks || allTasks[key].subtasks;
+                        allTasks[key].subtasks = sharedData.subtasks || allTasks[key].subtasks || {};
                         allTasks[key].alarm = sharedData.alarm !== undefined ? sharedData.alarm : allTasks[key].alarm;
-                        allTasks[key]._alarmed = false; // Resetuj alarm
                     } else {
-                        // Ako je deljeni zadatak obrisan, obriši i lokalni
                         delete allTasks[key];
                     }
                 }
             });
             
-            // Ako nije pronađen i sharedData postoji, KREIRAJ GA SAMO JEDNOM
             if (!found && sharedData && currentUser) {
                 const newKey = generateId();
                 allTasks[newKey] = {
@@ -2464,6 +2457,7 @@
             const nowISO = dateToISO(new Date());
             
             if (isShared) {
+                // Ažuriraj sharedTasks direktno (NE kreiraj novi zadatak)
                 const updates = {};
                 updates['subtasks/' + subtaskId] = { text: text, completed: false };
                 updates['lastChangedAt'] = nowISO;
@@ -2618,12 +2612,10 @@
             if (task.sharedKey && task.repeat && task.repeat !== 'none' && task.time) {
                 const nextDate = calculateNextDate(task.time, task.repeat);
                 if (nextDate) {
-                    // Kreiraj NOVI deljeni zadatak
                     const sharedRef = database.ref('sharedTasks/' + task.sharedKey);
                     sharedRef.once('value').then(function(snap) {
                         const sharedData = snap.val();
                         if (sharedData) {
-                            // Kreiraj novi deljeni zadatak
                             const newSharedRef = database.ref('sharedTasks').push();
                             const newSharedKey = newSharedRef.key;
                             
@@ -2645,19 +2637,14 @@
                                 alarm: task.alarm !== false
                             };
                             
-                            // Sačuvaj novi deljeni zadatak
                             newSharedRef.set(newTask).then(function() {
-                                // Ažuriraj sve učesnike
                                 const updates = {};
                                 if (sharedData.participants) {
                                     Object.keys(sharedData.participants).forEach(function(uid) {
                                         updates['users/' + uid + '/sharedTaskRefs/' + newSharedKey] = true;
                                     });
                                 }
-                                // Dodaj i trenutnom korisniku
                                 updates['users/' + currentUser.uid + '/sharedTaskRefs/' + newSharedKey] = true;
-                                
-                                // Obriši stari deljeni zadatak
                                 updates['sharedTasks/' + task.sharedKey] = null;
                                 
                                 database.ref().update(updates).then(function() {
@@ -2697,7 +2684,6 @@
                 }
             }
             
-            // Završavanje zadatka (obično)
             const isCompleted = !task.completed;
             const updates = {
                 completed: isCompleted,
@@ -2805,7 +2791,6 @@
             
             if (task && task.sharedKey) {
                 database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + task.sharedKey).remove();
-                // Obriši i shared task ako si vlasnik
                 database.ref('sharedTasks/' + task.sharedKey).remove();
             }
             
@@ -2939,7 +2924,6 @@
                 clearForm();
                 showToast('Deljeni zadatak ažuriran!', 'success');
                 
-                // Posle ažuriranja, ponudi deljenje
                 setTimeout(function() {
                     const task = sharedTasksData[sharedKey];
                     if (task) {
@@ -2982,7 +2966,6 @@
                 return;
             }
             
-            // Prvo sačuvaj zadatak
             const payload = {
                 text: text,
                 time: time,
@@ -3009,7 +2992,6 @@
             
             clearForm();
             
-            // Sačekaj da se zadatak pojavi pa ponudi deljenje
             const checkInterval = setInterval(function() {
                 if (newKey && allTasks[newKey]) {
                     clearInterval(checkInterval);
@@ -3090,7 +3072,7 @@
         };
 
         // ============================================================
-        //  DELJENJE ZADATAKA
+        //  DELJENJE ZADATAKA (POPRAVLJENO)
         // ============================================================
         window.shareTask = function(key) {
             const task = allTasks[key];
@@ -3177,7 +3159,7 @@
                 return;
             }
             
-            // KREIRANJE NOVOG DELJENOG ZADATKA
+            // KREIRANJE NOVOG DELJENOG ZADATKA - KOPIRAJ SVE!
             const newRef = db.ref('sharedTasks').push();
             const newKey = newRef.key;
             const participants = {};
@@ -3198,8 +3180,8 @@
                 createdBy: currentUser.uid,
                 createdByEmail: currentUser.email,
                 createdByNickname: currentNickname || '',
-                subtasks: taskObj.subtasks || {},
-                alarm: taskObj.alarm !== false
+                subtasks: taskObj.subtasks || {},  // KOPIRAJ PODZADATKE!
+                alarm: taskObj.alarm !== false      // KOPIRAJ ALARM!
             };
             
             newRef.set(taskData)
@@ -3290,7 +3272,6 @@
                         sharedTaskListeners[k].off();
                         delete sharedTaskListeners[k];
                         delete sharedTasksData[k];
-                        // Ukloni i lokalni zadatak ako postoji
                         Object.keys(allTasks).forEach(function(key) {
                             if (allTasks[key] && allTasks[key].sharedKey === k) {
                                 delete allTasks[key];
@@ -3509,10 +3490,10 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.13');
-        console.log('✅ Popravljena logika deljenja (bez dupliranja)');
-        console.log('✅ Ponavljanje deljenih zadataka');
-        console.log('✅ Sinhronizacija svih promena');
+        console.log('☁️ Moj Planer - verzija 2.15');
+        console.log('✅ POPRAVLJENO deljenje: subtasks i alarm se kopiraju');
+        console.log('✅ POPRAVLJENO: nema dupliranja pri deljenju');
+        console.log('✅ Alarm provera svakih 10 sekundi');
         console.log('✅ Smanjena statistika');
         console.log('✅ Veće polje za zadatak');
     </script>
