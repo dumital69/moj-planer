@@ -17,14 +17,54 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     
     <style>
-        /* ===== OSNOVNI STILOVI - BEZ VARIJABLI ZA BOJE ===== */
+        /* ===== ROOT VARIJABLE ===== */
+        :root, html {
+            --bg: #060a12;
+            --bg-secondary: #0a1420;
+            --panel: #132033;
+            --panel-hover: #1a2d4a;
+            --text: #f4f7fb;
+            --text-secondary: #dbe9ff;
+            --muted: #9fb0c7;
+            --border: rgba(52, 152, 219, 0.18);
+            --border-hover: rgba(52, 152, 219, 0.35);
+            --input-bg: #0f1a2b;
+            --shadow: 0 16px 38px rgba(0,0,0,0.45);
+            --shadow-light: 0 4px 20px rgba(0,0,0,0.2);
+            --blue: #3498db;
+            --green: #2ecc71;
+            --red: #e74c3c;
+            --yellow: #f1c40f;
+            --teal: #1abc9c;
+            --orange: #e67e22;
+            --radius: 18px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg: #f0f4f8;
+            --bg-secondary: #e8edf2;
+            --panel: #ffffff;
+            --panel-hover: #f5f7fa;
+            --text: #1a1a2e;
+            --text-secondary: #2d3748;
+            --muted: #4a5568;
+            --border: rgba(0, 0, 0, 0.1);
+            --border-hover: rgba(52, 152, 219, 0.3);
+            --input-bg: #f7fafc;
+            --shadow: 0 16px 38px rgba(0,0,0,0.1);
+            --shadow-light: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
         * { box-sizing: border-box; }
 
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: var(--transition);
         }
 
         /* ===== LAYOUT ===== */
@@ -57,13 +97,14 @@
 
         /* ===== PANELI ===== */
         .panel {
-            border: 1px solid;
-            border-radius: 18px;
-            box-shadow: 0 16px 38px rgba(0,0,0,0.45);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
         }
         .panel:hover {
-            border-color: rgba(52, 152, 219, 0.35);
+            border-color: var(--border-hover);
         }
 
         .section { padding: 14px 16px; }
@@ -76,14 +117,20 @@
             margin-bottom: 8px;
         }
         .stat-card {
+            background: rgba(255,255,255,0.04);
             border-radius: 10px;
             padding: 4px 6px;
             text-align: center;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-            border: 1px solid;
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        [data-theme="light"] .stat-card {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.06);
         }
         .stat-card:hover {
             transform: translateY(-1px);
+            border-color: var(--border-hover);
         }
         .stat-number {
             font-size: 16px;
@@ -93,15 +140,16 @@
         }
         .stat-label {
             font-size: 9px;
+            color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 0.3px;
             margin-top: 1px;
             display: block;
         }
-        .stat-card.total .stat-number { color: #3498db; }
-        .stat-card.active .stat-number { color: #2ecc71; }
-        .stat-card.done .stat-number { color: #9fb0c7; }
-        .stat-card.shared .stat-number { color: #1abc9c; }
+        .stat-card.total .stat-number { color: var(--blue); }
+        .stat-card.active .stat-number { color: var(--green); }
+        .stat-card.done .stat-number { color: var(--muted); }
+        .stat-card.shared .stat-number { color: var(--teal); }
 
         /* ===== DUGMICI ===== */
         .btn {
@@ -111,11 +159,11 @@
             color: #fff;
             cursor: pointer;
             font-weight: 700;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: var(--transition);
             user-select: none;
             text-align: center;
         }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-light); }
         .btn:active { transform: scale(0.97); }
 
         .btn.green { background: linear-gradient(180deg, #2ecc71, #22b15a); }
@@ -137,7 +185,7 @@
         /* ===== DUGME ZA TEMU ===== */
         .theme-toggle {
             background: none;
-            border: 1px solid;
+            border: 1px solid var(--border);
             border-radius: 50%;
             width: 34px;
             height: 34px;
@@ -146,11 +194,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: border-color 0.3s ease, color 0.3s ease;
-            background: transparent;
+            transition: var(--transition);
+            color: var(--text);
+            background: var(--panel);
         }
         .theme-toggle:hover {
             transform: rotate(30deg);
+            border-color: var(--border-hover);
         }
 
         /* ===== CHIPS (kategorije) ===== */
@@ -166,17 +216,26 @@
             cursor: pointer;
             border-radius: 999px;
             padding: 7px 11px;
+            background: #223444;
+            color: #fff;
             font-size: 12px;
             font-weight: 700;
-            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            transition: var(--transition);
         }
-        .chip:hover { transform: translateY(-1px); }
-        .chip.active { background: #3498db; color: #fff; }
-        .chip.active-teal { background: #1abc9c; box-shadow: 0 0 10px rgba(26, 188, 156, 0.5); color: #fff; }
-        .chip.teal-chip { border: 1px solid rgba(26, 188, 156, 0.35); }
-        .chip.teal-chip.active-teal { background: #1abc9c; color: #fff; }
-        .chip.orange-chip { border: 1px solid rgba(230, 126, 34, 0.35); }
-        .chip.orange-chip.active-orange { background: #e67e22; color: #fff; }
+        [data-theme="light"] .chip {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .chip:hover { transform: translateY(-1px); background: #2b4566; }
+        [data-theme="light"] .chip:hover { background: #d0d8e0; }
+        .chip.active { background: var(--blue); color: #fff; }
+        .chip.active-teal { background: var(--teal); box-shadow: 0 0 10px rgba(26, 188, 156, 0.5); color: #fff; }
+        .chip.teal-chip { background: #163d31; color: #1abc9c; border: 1px solid rgba(26, 188, 156, 0.35); }
+        [data-theme="light"] .chip.teal-chip { background: #e0f2f1; }
+        .chip.teal-chip.active-teal { background: var(--teal); color: #fff; }
+        .chip.orange-chip { background: #3d2616; color: #e67e22; border: 1px solid rgba(230, 126, 34, 0.35); }
+        [data-theme="light"] .chip.orange-chip { background: #fdebd0; }
+        .chip.orange-chip.active-orange { background: var(--orange); color: #fff; }
 
         /* ===== KALENDAR ===== */
         .calendar { padding: 14px; }
@@ -186,36 +245,42 @@
             align-items: center;
             font-weight: 800;
             margin-bottom: 10px;
+            color: var(--text-secondary);
             font-size: 16px;
         }
         .cal-nav {
             background: none;
             border: none;
+            color: var(--text);
             cursor: pointer;
             font-size: 18px;
             padding: 4px 10px;
             border-radius: 8px;
-            transition: background-color 0.3s ease;
+            transition: var(--transition);
         }
-        .cal-nav:hover { background: rgba(52, 152, 219, 0.18); }
+        .cal-nav:hover { background: var(--border); }
         .cal-view-toggle {
             display: flex;
             gap: 4px;
         }
         .cal-view-toggle button {
             background: none;
-            border: 1px solid;
+            border: 1px solid var(--border);
+            color: var(--text);
             padding: 4px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 11px;
             font-weight: 700;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            transition: var(--transition);
         }
         .cal-view-toggle button.active {
-            background: #3498db;
+            background: var(--blue);
             color: #fff;
-            border-color: #3498db;
+            border-color: var(--blue);
+        }
+        .cal-view-toggle button:hover:not(.active) {
+            background: var(--border);
         }
 
         .cal-grid {
@@ -226,6 +291,7 @@
         }
         .dayname {
             font-size: 11px;
+            color: var(--muted);
             font-weight: 800;
             padding-bottom: 3px;
         }
@@ -235,22 +301,24 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            background: var(--bg-secondary);
             border-radius: 10px;
             cursor: pointer;
             font-size: 12px;
             position: relative;
             min-height: 40px;
-            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            transition: var(--transition);
+            color: var(--text);
         }
-        .day:hover { transform: scale(1.05); }
+        .day:hover { background: var(--panel-hover); transform: scale(1.05); }
         .day.today { background: #1f8f4b; font-weight: 800; box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); color: #fff; }
-        .day.sel { outline: 2px solid #3498db; }
+        .day.sel { outline: 2px solid var(--blue); background: var(--panel-hover); }
         .day .dot {
             width: 7px;
             height: 7px;
             border-radius: 50%;
-            background: #f1c40f;
-            box-shadow: 0 0 4px #f1c40f;
+            background: var(--yellow);
+            box-shadow: 0 0 4px var(--yellow);
             margin-top: 2px;
             animation: pulse-dot 2s infinite;
         }
@@ -266,24 +334,25 @@
             gap: 4px;
         }
         .week-day {
+            background: var(--bg-secondary);
             border-radius: 10px;
             padding: 8px 4px;
             min-height: 80px;
             text-align: center;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            transition: var(--transition);
             cursor: pointer;
         }
-        .week-day:hover { transform: scale(1.02); }
+        .week-day:hover { background: var(--panel-hover); }
         .week-day .day-number {
             font-weight: 700;
             font-size: 14px;
             display: block;
             margin-bottom: 4px;
         }
-        .week-day.today .day-number { color: #2ecc71; }
+        .week-day.today .day-number { color: var(--green); }
         .week-day .week-task {
             font-size: 10px;
-            background: #3498db;
+            background: var(--blue);
             color: #fff;
             border-radius: 4px;
             padding: 2px 4px;
@@ -293,12 +362,12 @@
             white-space: nowrap;
         }
         .week-day .week-task.done-task {
-            background: #7f8c8d;
+            background: var(--muted);
             opacity: 0.5;
             text-decoration: line-through;
         }
         .week-day .week-task.alarm-task {
-            background: #f1c40f;
+            background: var(--yellow);
             color: #000;
             animation: pulse 1.6s infinite;
         }
@@ -317,6 +386,7 @@
             font-size: 15px;
             font-weight: 800;
             margin: 0;
+            color: var(--text);
         }
 
         .input-row {
@@ -361,8 +431,8 @@
             display: flex;
         }
         .alarm-box {
-            background: #132033;
-            border: 3px solid #e74c3c;
+            background: var(--panel);
+            border: 3px solid var(--red);
             border-radius: 24px;
             padding: 30px 40px;
             max-width: 450px;
@@ -383,12 +453,12 @@
         .alarm-box .alarm-title {
             font-size: 24px;
             font-weight: 800;
-            color: #e74c3c;
+            color: var(--red);
             margin-bottom: 8px;
         }
         .alarm-box .alarm-text {
             font-size: 18px;
-            color: #f4f7fb;
+            color: var(--text);
             margin-bottom: 20px;
             word-break: break-word;
         }
@@ -408,18 +478,21 @@
         .tasks { flex: 1; overflow: auto; padding-right: 2px; }
 
         .task {
-            border: 1px solid;
-            border-left: 6px solid #3498db;
-            border-right: 6px solid #3498db;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-left: 6px solid var(--blue);
+            border-right: 6px solid var(--blue);
             border-radius: 16px;
             padding: 12px 12px 11px;
             margin-bottom: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+            box-shadow: var(--shadow-light);
+            transition: var(--transition);
             animation: taskIn 0.4s ease;
+            color: var(--text);
         }
         .task:hover {
             transform: translateX(4px);
+            border-color: var(--border-hover);
         }
 
         @keyframes taskIn {
@@ -428,8 +501,8 @@
         }
 
         .task.alarm {
-            border-left-color: #f1c40f;
-            border-right-color: #f1c40f;
+            border-left-color: var(--yellow);
+            border-right-color: var(--yellow);
             box-shadow: 0 0 0 1px rgba(241,196,15,0.25), 0 0 22px rgba(241,196,15,0.25);
             animation: pulse 1.6s infinite;
         }
@@ -445,8 +518,8 @@
         }
 
         .task.shared-task {
-            border-left-color: #1abc9c !important;
-            border-right-color: #1abc9c !important;
+            border-left-color: var(--teal) !important;
+            border-right-color: var(--teal) !important;
         }
 
         .task.blink-shared {
@@ -457,8 +530,8 @@
 
         .task.deleted {
             opacity: 0.4;
-            border-left-color: #e67e22 !important;
-            border-right-color: #e67e22 !important;
+            border-left-color: var(--orange) !important;
+            border-right-color: var(--orange) !important;
         }
         .task.deleted .task-text {
             opacity: 0.6;
@@ -468,7 +541,7 @@
         .subtasks {
             margin: 8px 0 10px 16px;
             padding-left: 8px;
-            border-left: 2px solid;
+            border-left: 2px solid var(--border);
         }
         .subtask-item {
             display: flex;
@@ -476,9 +549,10 @@
             gap: 8px;
             padding: 3px 0;
             font-size: 13px;
+            color: var(--text-secondary);
         }
         .subtask-item input[type="checkbox"] {
-            accent-color: #3498db;
+            accent-color: var(--blue);
             width: 16px;
             height: 16px;
             cursor: pointer;
@@ -495,11 +569,11 @@
         .subtask-item .subtask-delete {
             background: none;
             border: none;
-            color: #e74c3c;
+            color: var(--red);
             cursor: pointer;
             font-size: 14px;
             opacity: 0.5;
-            transition: opacity 0.3s ease;
+            transition: var(--transition);
         }
         .subtask-item .subtask-delete:hover { opacity: 1; }
         .subtask-add {
@@ -509,16 +583,18 @@
         }
         .subtask-add input {
             flex: 1;
-            border: 1px solid;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
             border-radius: 8px;
             padding: 4px 8px;
             font-size: 12px;
+            color: var(--text);
             outline: none;
-            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+            transition: var(--transition);
         }
-        .subtask-add input:focus { border-color: #3498db; }
+        .subtask-add input:focus { border-color: var(--blue); }
         .subtask-add button {
-            background: #3498db;
+            background: var(--blue);
             border: none;
             border-radius: 8px;
             color: #fff;
@@ -526,23 +602,25 @@
             font-size: 12px;
             cursor: pointer;
             font-weight: 700;
-            transition: transform 0.2s ease;
+            transition: var(--transition);
         }
         .subtask-add button:hover { transform: scale(1.05); }
         .subtask-progress {
             font-size: 11px;
+            color: var(--muted);
             margin-bottom: 4px;
         }
         .subtask-progress-bar {
             height: 4px;
+            background: var(--border);
             border-radius: 4px;
             overflow: hidden;
             margin-bottom: 4px;
         }
         .subtask-progress-bar .fill {
             height: 100%;
-            background: #2ecc71;
-            transition: width 0.3s ease;
+            background: var(--green);
+            transition: var(--transition);
             border-radius: 4px;
         }
 
@@ -553,8 +631,8 @@
         }
 
         @keyframes blink-glow {
-            0%, 100% { box-shadow: 0 10px 20px rgba(0,0,0,0.26); }
-            50% { box-shadow: 0 0 20px rgba(26,188,156,0.6); }
+            0%, 100% { box-shadow: 0 10px 20px rgba(0,0,0,0.26); background: var(--panel); }
+            50% { box-shadow: 0 0 20px rgba(26,188,156,0.6); background: var(--bg-secondary); }
         }
 
         @keyframes slideIn {
@@ -579,6 +657,7 @@
             gap: 8px;
             flex-wrap: wrap;
             font-size: 12px;
+            color: var(--muted);
             margin-bottom: 8px;
         }
         .task-text {
@@ -586,14 +665,16 @@
             line-height: 1.45;
             font-size: 15px;
             margin-bottom: 10px;
-            transition: color 0.3s ease;
+            transition: var(--transition);
+            color: var(--text);
         }
         .task-meta {
             font-size: 12px;
+            color: var(--muted);
             margin-bottom: 8px;
         }
         .alarm-banner {
-            background: #f1c40f;
+            background: var(--yellow);
             color: #000;
             font-weight: 900;
             border-radius: 10px;
@@ -624,7 +705,7 @@
         }
         .shared-header-icon { font-size: 22px; }
         .shared-header-text { font-size: 15px; font-weight: 800; color: #1abc9c; }
-        .shared-header-sub { font-size: 12px; opacity: 0.8; }
+        .shared-header-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
         /* ===== ALARM U ZADATKU ===== */
         .task-alarm-check {
@@ -633,26 +714,27 @@
             gap: 6px;
             margin: 8px 0 10px 0;
             padding: 8px 12px;
+            background: var(--bg-secondary);
             border-radius: 10px;
-            border: 1px solid;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            border: 1px solid var(--border);
         }
         .task-alarm-check label {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 13px;
+            color: var(--text-secondary);
             cursor: pointer;
-            transition: color 0.3s ease;
+            transition: var(--transition);
         }
         .task-alarm-check label:hover {
-            opacity: 0.8;
+            color: var(--text);
         }
         .task-alarm-check input[type="checkbox"] {
             width: 16px;
             height: 16px;
             cursor: pointer;
-            accent-color: #e67e22;
+            accent-color: var(--orange);
             flex-shrink: 0;
         }
 
@@ -660,7 +742,7 @@
             display: flex;
             justify-content: flex-end;
             gap: 8px;
-            border-top: 1px solid;
+            border-top: 1px solid var(--border);
             padding-top: 9px;
             flex-wrap: wrap;
         }
@@ -673,7 +755,7 @@
             color: #fff;
             font-weight: 800;
             font-size: 14px;
-            transition: transform 0.2s ease;
+            transition: var(--transition);
         }
         .iconbtn:hover { transform: scale(1.1); }
         .iconbtn:active { transform: scale(0.9); }
@@ -683,47 +765,50 @@
             position: fixed;
             inset: 0;
             z-index: 9999;
+            background: var(--bg);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            transition: background-color 0.3s ease;
         }
         .login-box {
-            border: 1px solid;
+            background: var(--panel);
+            border: 1px solid var(--border);
             border-radius: 22px;
             padding: 32px 28px;
             width: 100%;
             max-width: 380px;
-            box-shadow: 0 16px 38px rgba(0,0,0,0.45);
+            box-shadow: var(--shadow);
             animation: fadeIn 0.5s ease;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
         .login-title {
             text-align: center;
             font-size: 22px;
             font-weight: 800;
             margin: 0 0 6px;
+            color: var(--text);
         }
         .login-sub {
             text-align: center;
             font-size: 13px;
-            opacity: 0.8;
+            color: var(--muted);
             margin: 0 0 24px;
         }
         .login-box input {
             width: 100%;
             margin-bottom: 12px;
             padding: 13px 14px;
-            border: 1px solid;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
             border-radius: 12px;
+            color: var(--text);
             font-size: 15px;
             outline: none;
-            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+            transition: var(--transition);
         }
-        .login-box input:focus { border-color: #3498db; box-shadow: 0 0 20px rgba(52, 152, 219, 0.15); }
+        .login-box input:focus { border-color: var(--blue); box-shadow: 0 0 20px rgba(52, 152, 219, 0.15); }
         .login-err {
-            color: #e74c3c;
+            color: var(--red);
             font-size: 13px;
             text-align: center;
             margin-bottom: 10px;
@@ -731,7 +816,7 @@
             font-weight: 600;
         }
         .login-ok {
-            color: #2ecc71;
+            color: var(--green);
             font-size: 13px;
             text-align: center;
             margin-bottom: 10px;
@@ -741,25 +826,25 @@
         .login-switch {
             text-align: center;
             font-size: 13px;
-            opacity: 0.8;
+            color: var(--muted);
             margin-top: 10px;
         }
         .login-switch span {
-            color: #3498db;
+            color: var(--blue);
             font-weight: 700;
             text-decoration: underline;
             cursor: pointer;
-            transition: opacity 0.3s ease;
+            transition: var(--transition);
         }
         .login-switch span:hover { opacity: 0.8; }
         .forgot-link {
             text-align: center;
             font-size: 12px;
-            opacity: 0.8;
+            color: var(--muted);
             margin-top: 8px;
             cursor: pointer;
             text-decoration: underline;
-            transition: opacity 0.3s ease;
+            transition: var(--transition);
         }
         .forgot-link:hover { opacity: 0.8; }
 
@@ -778,6 +863,7 @@
         }
         .vis-toggle {
             font-size: 12px;
+            color: var(--text-secondary);
             margin-top: -4px;
             margin-bottom: 10px;
             text-align: center;
@@ -805,14 +891,14 @@
             color: #fff;
             font-weight: 600;
             animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            box-shadow: var(--shadow-light);
             font-size: 14px;
         }
-        .toast-success { background: #2ecc71; }
-        .toast-error { background: #e74c3c; }
+        .toast-success { background: var(--green); }
+        .toast-error { background: var(--red); }
         .toast-warning { background: #f39c12; }
-        .toast-info { background: #3498db; }
-        .toast-orange { background: #e67e22; }
+        .toast-info { background: var(--blue); }
+        .toast-orange { background: var(--orange); }
 
         /* ===== PAGINACIJA ===== */
         .pagination {
@@ -826,12 +912,14 @@
             border: none;
             border-radius: 8px;
             padding: 6px 12px;
+            background: var(--bg-secondary);
+            color: var(--text);
             cursor: pointer;
             font-size: 13px;
-            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            transition: var(--transition);
         }
-        .pagination button:hover { transform: scale(1.05); }
-        .pagination button.active { background: #3498db; color: #fff; }
+        .pagination button:hover { background: var(--panel-hover); transform: scale(1.05); }
+        .pagination button.active { background: var(--blue); color: #fff; }
         .pagination button:disabled {
             opacity: 0.4;
             cursor: not-allowed;
@@ -953,10 +1041,10 @@
             <div class="panel form">
                 <div class="form-top">
                     <button class="btn red small" onclick="resetAll()">⚠️ RESET</button>
-                    <h3 class="title">☁️ Moj Planer <span style="font-size:11px;color:#3498db;" id="userEmailLabel"></span></h3>
+                    <h3 class="title">☁️ Moj Planer <span style="font-size:11px;color:var(--blue);" id="userEmailLabel"></span></h3>
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Promeni temu">🌙</button>
-                        <input type="text" id="userNickname" placeholder="Vaš nadimak..." style="max-width:130px;padding:5px 8px;font-size:12px;height:30px;border-radius:8px;border:1px solid;background:transparent;" />
+                        <input type="text" id="userNickname" placeholder="Vaš nadimak..." style="max-width:130px;padding:5px 8px;font-size:12px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);" />
                         <button class="btn teal small" onclick="saveNickname()" title="Sačuvaj nadimak" style="padding:6px 9px;height:30px;">💾</button>
                         <button class="btn gray small" onclick="doSignOut()" title="Odjavi se" style="padding:6px 10px;">🚪</button>
                         <button class="btn blue small" onclick="manualRefresh()" title="Osveži podatke" style="padding:6px 10px;font-size:12px;">🔄</button>
@@ -987,14 +1075,14 @@
                 <div id="cats" class="chips" style="margin-bottom:10px;"></div>
                 <div class="vis-toggle" id="doneInfo"></div>
                 
-                <input id="quickSearch" type="text" placeholder="Pretraga zadataka..." oninput="renderTasks()" style="margin-bottom:8px;width:100%;border:none;outline:none;border-radius:12px;padding:11px 12px;border:1px solid;font-size:14px;transition:border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;" />
+                <input id="quickSearch" type="text" placeholder="🔍 Pretraga svih zadataka..." oninput="renderTasks()" style="margin-bottom:8px;width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);" />
                 
-                <textarea id="taskText" placeholder="Šta treba uraditi?" style="width:100%;border:none;outline:none;border-radius:12px;padding:11px 12px;border:1px solid;font-size:14px;min-height:120px;resize:vertical;transition:border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;"></textarea>
+                <textarea id="taskText" placeholder="Šta treba uraditi?" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;min-height:120px;resize:vertical;transition:var(--transition);"></textarea>
                 
                 <div class="input-row">
-                    <select id="taskCat" style="width:100%;border:none;outline:none;border-radius:12px;padding:11px 12px;border:1px solid;font-size:14px;transition:border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;"></select>
-                    <input type="datetime-local" id="taskTime" style="width:100%;border:none;outline:none;border-radius:12px;padding:11px 12px;border:1px solid;font-size:14px;transition:border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;" />
-                    <select id="taskRepeat" style="width:100%;border:none;outline:none;border-radius:12px;padding:11px 12px;border:1px solid;font-size:14px;transition:border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;">
+                    <select id="taskCat" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);"></select>
+                    <input type="datetime-local" id="taskTime" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);" />
+                    <select id="taskRepeat" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);">
                         <option value="none">Bez ponavljanja</option>
                         <option value="daily">Svaki dan</option>
                         <option value="weekly">Svake nedelje</option>
@@ -1052,162 +1140,27 @@
         const database = firebase.database();
 
         // ============================================================
-        //  TEMA - NOVI PRISTUP (DIREKTNO MENJANJE STILOVA)
+        //  TEMA
         // ============================================================
-        function applyTheme(theme) {
-            const isDark = theme === 'dark';
-            const body = document.body;
-            const panels = document.querySelectorAll('.panel');
-            const tasks = document.querySelectorAll('.task');
-            const days = document.querySelectorAll('.day');
-            const weekDays = document.querySelectorAll('.week-day');
-            const inputs = document.querySelectorAll('input, select, textarea');
-            const chips = document.querySelectorAll('.chip');
-            const statCards = document.querySelectorAll('.stat-card');
-            const loginBox = document.querySelector('.login-box');
-            const loginOverlay = document.getElementById('loginOverlay');
-            
-            // Postavljanje atributa
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('mp_theme', theme);
-            
-            // ===== BODY =====
-            if (isDark) {
-                body.style.backgroundColor = '#060a12';
-                body.style.color = '#f4f7fb';
-            } else {
-                body.style.backgroundColor = '#f0f4f8';
-                body.style.color = '#1a1a2e';
-            }
-            
-            // ===== LOGIN OVERLAY =====
-            if (loginOverlay) {
-                loginOverlay.style.backgroundColor = isDark ? '#060a12' : '#f0f4f8';
-            }
-            
-            // ===== LOGIN BOX =====
-            if (loginBox) {
-                loginBox.style.backgroundColor = isDark ? '#132033' : '#ffffff';
-                loginBox.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-                loginBox.style.borderColor = isDark ? 'rgba(52, 152, 219, 0.18)' : 'rgba(0, 0, 0, 0.1)';
-            }
-            
-            // ===== PANELI =====
-            panels.forEach(function(el) {
-                el.style.backgroundColor = isDark ? '#132033' : '#ffffff';
-                el.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-                el.style.borderColor = isDark ? 'rgba(52, 152, 219, 0.18)' : 'rgba(0, 0, 0, 0.1)';
-            });
-            
-            // ===== ZADACI =====
-            tasks.forEach(function(el) {
-                el.style.backgroundColor = isDark ? '#132033' : '#ffffff';
-                el.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-                el.style.borderColor = isDark ? 'rgba(52, 152, 219, 0.18)' : 'rgba(0, 0, 0, 0.1)';
-            });
-            
-            // ===== DANI U KALENDARU =====
-            days.forEach(function(el) {
-                el.style.backgroundColor = isDark ? '#0a1420' : '#e8edf2';
-                el.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-            });
-            
-            // ===== NEDELJNI DANI =====
-            weekDays.forEach(function(el) {
-                el.style.backgroundColor = isDark ? '#0a1420' : '#e8edf2';
-                el.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-            });
-            
-            // ===== INPUT POLJA =====
-            inputs.forEach(function(el) {
-                el.style.backgroundColor = isDark ? '#0f1a2b' : '#f7fafc';
-                el.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-                el.style.borderColor = isDark ? 'rgba(52, 152, 219, 0.18)' : 'rgba(0, 0, 0, 0.1)';
-            });
-            
-            // ===== CHIPOVI =====
-            chips.forEach(function(el) {
-                if (el.classList.contains('active') || el.classList.contains('active-teal')) {
-                    // Aktivni chipovi ostaju sa svojom bojom
-                    return;
-                }
-                el.style.backgroundColor = isDark ? '#223444' : '#e2e8f0';
-                el.style.color = isDark ? '#ffffff' : '#2d3748';
-            });
-            
-            // ===== STAT KARTICE =====
-            statCards.forEach(function(el) {
-                el.style.backgroundColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
-                el.style.borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-                el.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-            });
-            
-            // ===== DUGME ZA TEMU =====
-            const toggle = document.getElementById('themeToggle');
-            if (toggle) {
-                toggle.textContent = isDark ? '🌙' : '☀️';
-                toggle.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-                toggle.style.borderColor = isDark ? 'rgba(52, 152, 219, 0.18)' : 'rgba(0, 0, 0, 0.1)';
-            }
-            
-            // ===== PAGINACIJA DUGMICI =====
-            const pagBtns = document.querySelectorAll('.pagination button');
-            pagBtns.forEach(function(el) {
-                if (!el.classList.contains('active')) {
-                    el.style.backgroundColor = isDark ? '#0a1420' : '#e8edf2';
-                    el.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-                }
-            });
-            
-            // ===== ALARM BOX =====
-            const alarmBox = document.querySelector('.alarm-box');
-            if (alarmBox) {
-                alarmBox.style.backgroundColor = isDark ? '#132033' : '#ffffff';
-                alarmBox.style.color = isDark ? '#f4f7fb' : '#1a1a2e';
-            }
-            
-            // ===== SUBTASKS BORDER =====
-            const subtaskBorders = document.querySelectorAll('.subtasks');
-            subtaskBorders.forEach(function(el) {
-                el.style.borderColor = isDark ? 'rgba(52, 152, 219, 0.18)' : 'rgba(0, 0, 0, 0.1)';
-            });
-            
-            // ===== TASK ALARM CHECK =====
-            const alarmChecks = document.querySelectorAll('.task-alarm-check');
-            alarmChecks.forEach(function(el) {
-                el.style.backgroundColor = isDark ? '#0a1420' : '#e8edf2';
-                el.style.borderColor = isDark ? 'rgba(52, 152, 219, 0.18)' : 'rgba(0, 0, 0, 0.1)';
-                const label = el.querySelector('label');
-                if (label) {
-                    label.style.color = isDark ? '#dbe9ff' : '#2d3748';
-                }
-            });
-            
-            // ===== TASK META =====
-            const metas = document.querySelectorAll('.task-meta');
-            metas.forEach(function(el) {
-                el.style.color = isDark ? '#9fb0c7' : '#4a5568';
-            });
-            
-            // ===== TASK HEAD =====
-            const heads = document.querySelectorAll('.task-head');
-            heads.forEach(function(el) {
-                el.style.color = isDark ? '#9fb0c7' : '#4a5568';
-            });
-        }
-
         function getStoredTheme() {
             return localStorage.getItem('mp_theme') || 'dark';
         }
 
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('mp_theme', theme);
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) {
+                toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+            }
+        }
+
         window.toggleTheme = function() {
             const current = getStoredTheme();
-            const newTheme = current === 'dark' ? 'light' : 'dark';
-            applyTheme(newTheme);
+            setTheme(current === 'dark' ? 'light' : 'dark');
         };
 
-        // Prva primena teme
-        applyTheme(getStoredTheme());
+        setTheme(getStoredTheme());
 
         // ============================================================
         //  ZVUČNI ALARM
@@ -1816,7 +1769,7 @@
         }
 
         // ============================================================
-        //  KALENDAR - POPRAVLJENO: datum se menja u ponoć
+        //  KALENDAR
         // ============================================================
         const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", 
                         "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
@@ -1824,7 +1777,6 @@
         let calendarView = 'month';
         let weekOffset = 0;
 
-        // Koristimo UTC za proveru promene datuma - POPRAVLJENO
         let lastDateChecked = new Date().toUTCString().split(' ').slice(0, 4).join(' ');
         let renderTimeout = null;
 
@@ -1908,11 +1860,6 @@
             
             html += '</div>';
             el.innerHTML = html;
-            
-            // Ponovo primeni temu na nove elemente
-            setTimeout(function() {
-                applyTheme(getStoredTheme());
-            }, 10);
         }
 
         function renderWeekView(el, offset) {
@@ -1958,7 +1905,7 @@
                 
                 html += '<div class="week-day' + (isToday ? ' today' : '') + '" onclick="filterByDate(\'' + dateStr + '\')">';
                 html += '<span class="day-number">' + dayNum + '</span>';
-                html += '<span style="font-size:9px;opacity:0.8;display:block;">' + monthName + '</span>';
+                html += '<span style="font-size:9px;color:var(--muted);display:block;">' + monthName + '</span>';
                 
                 const displayTasks = dayTasks.slice(0, 3);
                 displayTasks.forEach(function(task) {
@@ -1969,7 +1916,7 @@
                 });
                 
                 if (dayTasks.length > 3) {
-                    html += '<div style="font-size:8px;opacity:0.8;">+' + (dayTasks.length - 3) + ' još</div>';
+                    html += '<div style="font-size:8px;color:var(--muted);">+' + (dayTasks.length - 3) + ' još</div>';
                 }
                 
                 html += '</div>';
@@ -1977,11 +1924,6 @@
             
             html += '</div>';
             el.innerHTML = html;
-            
-            // Ponovo primeni temu na nove elemente
-            setTimeout(function() {
-                applyTheme(getStoredTheme());
-            }, 10);
         }
 
         function getWeekNumber(date) {
@@ -2030,6 +1972,10 @@
         let sharedTasksData = {};
         let sharedTaskListeners = {};
         let sharedRefsRef = null;
+
+        // PAGINACIJA
+        const ITEMS_PER_PAGE = 20;
+        let currentPage = 1;
 
         const categoryDefs = [
             { name: 'Sve', emoji: '📋', color: '' },
@@ -2177,10 +2123,6 @@
                 updateStats();
                 checkTrashExpiry();
                 checkAlarms();
-                // Ponovo primeni temu nakon renderovanja
-                setTimeout(function() {
-                    applyTheme(getStoredTheme());
-                }, 50);
                 renderTimeout = null;
             });
         };
@@ -2203,16 +2145,11 @@
                 return new Date(t.lastChangedAt).getTime() > lastViewedShared;
             });
             
-            const extraStyle = hasUnreadShared ? 'style="animation: blink-glow 1.5s infinite ease-in-out; border: 1px solid #1abc9c;"' : '';
+            const extraStyle = hasUnreadShared ? 'style="animation: blink-glow 1.5s infinite ease-in-out; border: 1px solid var(--teal);"' : '';
             
             html += '<button class="chip teal-chip' + (isShared ? ' active-teal' : '') + '" ' + extraStyle + ' onclick="setCat(\'Deljeni\')">🤝 Deljeni' + (sharedCount > 0 ? ' (' + sharedCount + ')' : '') + '</button>';
             
             container.innerHTML = html;
-            
-            // Ponovo primeni temu na chipove
-            setTimeout(function() {
-                applyTheme(getStoredTheme());
-            }, 10);
             
             const catSelect = document.getElementById('taskCat');
             if (catSelect) {
@@ -2220,6 +2157,108 @@
                     return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + c + '</option>';
                 }).join('');
             }
+        }
+
+        // ===== PAGINACIJA - NOVA FUNKCIJA =====
+        function renderPagination(totalItems) {
+            const container = document.getElementById('pagination');
+            if (!container) return;
+            
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Prva strana
+            html += '<button onclick="goToPage(1)" ' + (currentPage === 1 ? 'disabled' : '') + '>«</button>';
+            
+            // Prethodna
+            html += '<button onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>‹</button>';
+            
+            // Brojevi strana
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (startPage > 1) {
+                html += '<button onclick="goToPage(1)">1</button>';
+                if (startPage > 2) html += '<span style="opacity:0.5;padding:0 4px;">…</span>';
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += '<button onclick="goToPage(' + i + ')" class="' + (i === currentPage ? 'active' : '') + '">' + i + '</button>';
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += '<span style="opacity:0.5;padding:0 4px;">…</span>';
+                html += '<button onclick="goToPage(' + totalPages + ')">' + totalPages + '</button>';
+            }
+            
+            // Sledeća
+            html += '<button onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>›</button>';
+            
+            // Poslednja
+            html += '<button onclick="goToPage(' + totalPages + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>»</button>';
+            
+            container.innerHTML = html;
+        }
+
+        window.goToPage = function(page) {
+            currentPage = page;
+            renderTasks();
+        };
+
+        // ===== PRETRAGA - POPRAVLJENA =====
+        function getFilteredTasks() {
+            const search = (document.getElementById('quickSearch').value || '').trim().toLowerCase();
+            
+            // Dohvati sve zadatke prema trenutnom filteru
+            let taskKeys = Object.keys(allTasks).filter(function(key) {
+                const task = allTasks[key];
+                if (!task) return false;
+                
+                // Ako smo u trash view-u, prikazujemo samo obrisane
+                if (showTrash && !task.deleted) return false;
+                if (!showTrash && task.deleted) return false;
+                
+                // Ako smo u done view-u, prikazujemo samo završene (koji nisu obrisani)
+                if (showDone && !task.completed) return false;
+                if (showDone && task.deleted) return false;
+                
+                // Ako nismo ni u trash ni u done, prikazujemo aktivne (ne završene, ne obrisane)
+                if (!showTrash && !showDone && (task.completed || task.deleted)) return false;
+                
+                // Filter po kategoriji
+                if (filterCategory !== 'Sve' && task.category !== filterCategory) return false;
+                
+                // Filter po datumu
+                if (filterDate && !(task.time && task.time.startsWith(filterDate))) return false;
+                
+                // PRETRAGA - sada pretražuje SVE zadatke (tekst i kategoriju)
+                if (search && !(String(task.text).toLowerCase().includes(search) || 
+                               String(task.category).toLowerCase().includes(search))) return false;
+                
+                return true;
+            });
+            
+            // Sortiranje
+            taskKeys.sort(function(a, b) {
+                if (sortMode === 'created') {
+                    return (allTasks[b].createdAt || '').localeCompare(allTasks[a].createdAt || '');
+                }
+                // Po vremenu
+                const ta = allTasks[a]?.time || '';
+                const tb = allTasks[b]?.time || '';
+                if (!ta && !tb) return 0;
+                if (!ta) return 1;
+                if (!tb) return -1;
+                return ta.localeCompare(tb);
+            });
+            
+            return taskKeys;
         }
 
         function renderTaskList() {
@@ -2230,177 +2269,45 @@
             
             list.innerHTML = '';
             
+            // Deljeni zadaci - poseban prikaz
             if (filterCategory === 'Deljeni') {
                 renderSharedTasks(list, now);
                 return;
             }
             
-            if (showTrash) {
-                renderTrashTasks(list);
+            // Dohvati sve filtrirane zadatke
+            const allFilteredKeys = getFilteredTasks();
+            const totalItems = allFilteredKeys.length;
+            
+            // Paginacija
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+            
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+            const pageKeys = allFilteredKeys.slice(startIndex, endIndex);
+            
+            // Renderuj paginaciju
+            renderPagination(totalItems);
+            
+            if (pageKeys.length === 0) {
+                let message = 'Nema zadataka.';
+                if (showTrash) message = '🗑️ Smeće je prazno.';
+                else if (showDone) message = '📁 Nema završenih zadataka.';
+                else message = 'Nema aktivnih zadataka.';
+                list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px;">' + message + '</div>';
                 return;
             }
             
-            if (showDone) {
-                renderDoneTasks(list);
-                return;
-            }
+            // Prikaz informacije o broju zadataka
+            let infoText = '';
+            if (showTrash) infoText = '🗑️ Smeće (' + totalItems + ') - zadaci se brišu nakon 30 dana';
+            else if (showDone) infoText = '📁 Završeni zadaci (' + totalItems + ')';
+            else infoText = '📋 Aktivni zadaci (' + totalItems + ')';
             
-            const keys = getFilteredTasks();
-            renderActiveTasks(list, keys, now);
+            let html = '<div style="margin-bottom:12px;text-align:center;color:var(--muted);font-size:13px;">' + infoText + '</div>';
             
-            checkAndNotify();
-        }
-
-        function getFilteredTasks() {
-            const search = (document.getElementById('quickSearch').value || '').trim().toLowerCase();
-            return Object.keys(allTasks).filter(function(key) {
-                const task = allTasks[key];
-                if (!task) return false;
-                if (task.deleted) return false;
-                if (task.completed) return false;
-                if (filterCategory !== 'Sve' && task.category !== filterCategory) return false;
-                if (filterDate && !(task.time && task.time.startsWith(filterDate))) return false;
-                if (search && !(String(task.text).toLowerCase().includes(search) || 
-                               String(task.category).toLowerCase().includes(search))) return false;
-                return true;
-            });
-        }
-
-        function renderDoneTasks(list) {
-            const done = Object.keys(allTasks).filter(function(key) {
-                const task = allTasks[key];
-                return task && task.completed && !task.deleted;
-            }).sort(function(a, b) {
-                return (allTasks[b].completedAt || '').localeCompare(allTasks[a].completedAt || '');
-            });
-            
-            if (!done.length) {
-                list.innerHTML = '<div style="text-align:center;opacity:0.6;padding:30px;">📁 Nema završenih zadataka.</div>';
-                return;
-            }
-            
-            let html = '<div style="margin-bottom:12px;text-align:center;opacity:0.6;font-size:13px;">📁 Završeni zadaci (' + done.length + ')</div>';
-            
-            done.forEach(function(key) {
-                const task = allTasks[key];
-                const emoji = catEmoji[task.category] || '📌';
-                const isShared = task.sharedKey ? true : false;
-                
-                html += '<div class="task done ' + (isShared ? 'shared-task' : '') + ' cat-' + task.category + '">' +
-                    '<div class="task-head"><div>' + emoji + ' ' + (task.category || 'Razno') + (isShared ? ' 🤝' : '') + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
-                    (task.completedAt ? '<div class="task-meta">Završeno: ' + displayDate(task.completedAt) + '</div>' : '') +
-                    (task.sharedWith ? '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>' : '') +
-                    '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
-                    renderSubtasksHTML(task.subtasks, key, false) +
-                    renderAlarmCheckbox(key, task) +
-                    '<div class="actions">' +
-                    '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromDone(\'' + key + '\')" title="Vrati kao nezavršen">↩</button>' +
-                    '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>' +
-                    '</div></div>';
-            });
-            
-            list.innerHTML = html;
-        }
-
-        function renderTrashTasks(list) {
-            const trashed = Object.keys(allTasks).filter(function(key) {
-                return allTasks[key]?.deleted;
-            }).sort(function(a, b) {
-                return (allTasks[b].deletedAt || '').localeCompare(allTasks[a].deletedAt || '');
-            });
-            
-            if (!trashed.length) {
-                list.innerHTML = '<div style="text-align:center;opacity:0.6;padding:30px;">🗑️ Smeće je prazno.</div>';
-                return;
-            }
-            
-            const now = Date.now();
-            
-            let html = '<div style="margin-bottom:12px;text-align:center;opacity:0.6;font-size:13px;">🗑️ Smeće (' + trashed.length + ') - zadaci se automatski brišu nakon 30 dana</div>';
-            
-            trashed.forEach(function(key) {
-                const task = allTasks[key];
-                const emoji = catEmoji[task.category] || '📌';
-                const daysLeft = Math.max(0, 30 - Math.floor((now - new Date(task.deletedAt).getTime()) / (24 * 60 * 60 * 1000)));
-                const isShared = task.sharedKey ? true : false;
-                
-                html += '<div class="task deleted ' + (isShared ? 'shared-task' : '') + ' cat-' + task.category + '">' +
-                    '<div class="task-head"><div>' + emoji + ' ' + (task.category || 'Razno') + (isShared ? ' 🤝' : '') + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
-                    (task.deletedAt ? '<div class="task-meta">🗑️ U smeću: ' + displayDate(task.deletedAt) + ' (još ' + daysLeft + ' dana)</div>' : '') +
-                    (task.sharedWith ? '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>' : '') +
-                    '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
-                    renderSubtasksHTML(task.subtasks, key, false) +
-                    renderAlarmCheckbox(key, task) +
-                    '<div class="actions">' +
-                    '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromTrash(\'' + key + '\')" title="Vrati kao aktivan">↩</button>' +
-                    '<button class="iconbtn" style="background:#e74c3c" onclick="deleteTaskPermanently(\'' + key + '\')" title="Obriši trajno">🗑️</button>' +
-                    '</div></div>';
-            });
-            
-            list.innerHTML = html;
-        }
-
-        function renderSharedTasks(list, now) {
-            const keys = Object.keys(sharedTasksData);
-            
-            if (!keys.length) {
-                list.innerHTML = '<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim učesnicima odmah</div></div></div><div style="text-align:center;opacity:0.6;padding:30px;">Nemate deljenih zadataka.<br><br>Koristite dugme 📤 na zadatku da ga podelite.</div>';
-                return;
-            }
-            
-            const lastViewedShared = parseInt(localStorage.getItem('mp_last_viewed_shared') || '0');
-            
-            let html = '<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim učesnicima odmah</div></div></div>';
-            
-            keys.forEach(function(key) {
-                const task = sharedTasksData[key];
-                if (!task) return;
-                
-                const emoji = catEmoji[task.category] || '📌';
-                const isAlarm = task.time && !task.completed && new Date(task.time) <= now;
-                const parts = task.participants ? Object.values(task.participants).join(', ') : '';
-                const creatorDisplay = task.createdByNickname ? 
-                    task.createdByNickname + ' (' + task.createdByEmail + ')' : 
-                    task.createdByEmail;
-                
-                const shouldBlink = task.lastChangedAt && 
-                                   task.lastChangedBy !== currentUser?.uid && 
-                                   new Date(task.lastChangedAt).getTime() > lastViewedShared;
-                
-                html += '<div class="task shared-task cat-' + task.category + (task.completed ? ' done' : '') + (isAlarm ? ' alarm' : '') + (shouldBlink ? ' blink-shared' : '') + '">' +
-                    (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
-                    '<div class="task-head"><div>' + emoji + ' ' + task.category + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
-                    '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">🤝 Učesnici: ' + escapeHtml(parts) + '</div>' +
-                    (task.createdByEmail ? '<div class="task-meta">Kreirao/la: ' + escapeHtml(creatorDisplay) + '</div>' : '') +
-                    '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
-                    renderSubtasksHTML(task.subtasks, key, true) +
-                    renderAlarmCheckbox(key, task) +
-                    '<div class="actions">' +
-                    '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\'' + key + '\')" title="' + (task.completed ? 'Vrati' : 'Završi') + '">✓</button>' +
-                    '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\'' + key + '\')" title="Izmeni">✏️</button>' +
-                    '<button class="iconbtn" style="background:#e74c3c" onclick="removeSharedRef(\'' + key + '\')" title="Ukloni">✕</button>' +
-                    '</div></div>';
-            });
-            
-            list.innerHTML = html;
-        }
-
-        function renderActiveTasks(list, keys, now) {
-            const active = keys.filter(function(k) { return !allTasks[k]?.completed; })
-                .sort(function(a, b) {
-                    const aAlarm = allTasks[a]?.time && new Date(allTasks[a].time) <= now;
-                    const bAlarm = allTasks[b]?.time && new Date(allTasks[b].time) <= now;
-                    if (aAlarm !== bAlarm) return aAlarm ? -1 : 1;
-                    return sortByTime(a, b);
-                });
-            
-            if (!active.length) {
-                list.innerHTML = '<div style="text-align:center;opacity:0.6;padding:30px;">Nema aktivnih zadataka.</div>';
-                return;
-            }
-            
-            let html = '';
-            active.forEach(function(key) {
+            pageKeys.forEach(function(key) {
                 const task = allTasks[key];
                 if (!task) return;
                 
@@ -2408,21 +2315,62 @@
                 const emoji = catEmoji[task.category] || '📌';
                 const repeatInfo = task.repeat && task.repeat !== 'none' ? ' ♻️' : '';
                 const isShared = task.sharedKey ? true : false;
+                const isDone = task.completed;
+                const isDeleted = task.deleted;
                 
-                html += '<div class="task ' + (isShared ? 'shared-task' : '') + ' cat-' + task.category + (isAlarm ? ' alarm' : '') + '">' +
-                    (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
-                    '<div class="task-head"><div>' + emoji + ' ' + (task.category || 'Razno') + repeatInfo + (isShared ? ' 🤝' : '') + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
-                    (task.createdAt ? '<div class="task-meta">Postavljeno: ' + displayDate(task.createdAt) + '</div>' : '') +
-                    (task.sharedWith ? '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>' : '') +
-                    '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
-                    renderSubtasksHTML(task.subtasks, key, false) +
-                    renderAlarmCheckbox(key, task) +
-                    '<div class="actions">' +
-                    '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>' +
-                    '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>' +
-                    (isShared ? '' : '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\'' + key + '\')" title="Podeli">📤</button>') +
-                    '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>' +
-                    '</div></div>';
+                let taskClass = 'task';
+                if (isDeleted) taskClass += ' deleted';
+                else if (isDone) taskClass += ' done';
+                if (isShared) taskClass += ' shared-task';
+                if (isAlarm && !isDone && !isDeleted) taskClass += ' alarm';
+                
+                html += '<div class="' + taskClass + ' cat-' + task.category + '">';
+                
+                if (isAlarm && !isDone && !isDeleted) {
+                    html += '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>';
+                }
+                
+                html += '<div class="task-head"><div>' + emoji + ' ' + (task.category || 'Razno') + repeatInfo + (isShared ? ' 🤝' : '') + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>';
+                
+                if (task.createdAt && !isDeleted) {
+                    html += '<div class="task-meta">Postavljeno: ' + displayDate(task.createdAt) + '</div>';
+                }
+                if (task.completedAt && isDone) {
+                    html += '<div class="task-meta">Završeno: ' + displayDate(task.completedAt) + '</div>';
+                }
+                if (task.deletedAt && isDeleted) {
+                    const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - new Date(task.deletedAt).getTime()) / (24 * 60 * 60 * 1000)));
+                    html += '<div class="task-meta">🗑️ U smeću: ' + displayDate(task.deletedAt) + ' (još ' + daysLeft + ' dana)</div>';
+                }
+                if (task.sharedWith) {
+                    html += '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>';
+                }
+                
+                html += '<div class="task-text">' + escapeHtml(task.text) + '</div>';
+                html += renderSubtasksHTML(task.subtasks, key, false);
+                html += renderAlarmCheckbox(key, task);
+                
+                html += '<div class="actions">';
+                
+                if (isDeleted) {
+                    // U smeću
+                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromTrash(\'' + key + '\')" title="Vrati">↩</button>';
+                    html += '<button class="iconbtn" style="background:#e74c3c" onclick="deleteTaskPermanently(\'' + key + '\')" title="Obriši trajno">🗑️</button>';
+                } else if (isDone) {
+                    // Završeni
+                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromDone(\'' + key + '\')" title="Vrati">↩</button>';
+                    html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>';
+                } else {
+                    // Aktivni
+                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>';
+                    html += '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>';
+                    if (!isShared) {
+                        html += '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\'' + key + '\')" title="Podeli">📤</button>';
+                    }
+                    html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>';
+                }
+                
+                html += '</div></div>';
             });
             
             list.innerHTML = html;
@@ -2586,15 +2534,6 @@
             showToast('🗑️ Podzadatak obrisan!', 'success');
         };
 
-        function sortByTime(a, b) {
-            const ta = allTasks[a]?.time || '';
-            const tb = allTasks[b]?.time || '';
-            if (!ta && !tb) return 0;
-            if (!ta) return 1;
-            if (!tb) return -1;
-            return ta.localeCompare(tb);
-        }
-
         function updateButtons() {
             const doneBtn = document.getElementById('doneBtn');
             const trashBtn = document.getElementById('trashBtn');
@@ -2622,6 +2561,7 @@
             filterDate = null;
             showDone = false;
             showTrash = false;
+            currentPage = 1;
             
             if (category === 'Deljeni') {
                 localStorage.setItem('mp_last_viewed_shared', Date.now().toString());
@@ -2637,17 +2577,20 @@
             filterDate = null;
             showDone = false;
             showTrash = false;
+            currentPage = 1;
             renderTasks();
         };
 
         window.filterByDate = function(dateStr) {
             filterDate = dateStr;
             filterCategory = 'Sve';
+            currentPage = 1;
             renderTasks();
         };
 
         window.setSortMode = function(mode) {
             sortMode = mode;
+            currentPage = 1;
             renderTasks();
         };
 
@@ -2655,6 +2598,7 @@
             showDone = !showDone;
             showTrash = false;
             filterCategory = 'Sve';
+            currentPage = 1;
             renderTasks();
         };
 
@@ -2662,6 +2606,7 @@
             showTrash = !showTrash;
             showDone = false;
             filterCategory = 'Sve';
+            currentPage = 1;
             renderTasks();
         };
 
@@ -2849,6 +2794,7 @@
             showToast('↩ Zadatak vraćen iz smeća!', 'success');
         };
 
+        // ===== BRISANJE DELJENIH - POPRAVLJENO =====
         window.deleteTaskPermanently = function(key) {
             if (!confirm('⚠️ Trajno obrisati zadatak? Ova radnja se NE MOŽE opozvati!')) return;
             
@@ -2856,11 +2802,22 @@
             
             const task = allTasks[key];
             
+            // Ako je deljeni zadatak - SAMO UKLANJAMO REFERENCU, ne brišemo ceo zadatak
             if (task && task.sharedKey) {
-                database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + task.sharedKey).remove();
-                database.ref('sharedTasks/' + task.sharedKey).remove();
+                // Samo uklanjamo referencu za trenutnog korisnika
+                database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + task.sharedKey).remove()
+                    .then(function() {
+                        showToast('Deljeni zadatak uklonjen iz vašeg prikaza.', 'info');
+                        // Ne brišemo sharedTasks - drugi korisnici i dalje imaju pristup
+                    })
+                    .catch(function(err) {
+                        console.error('Greška pri uklanjanju deljenog zadatka:', err);
+                        showToast('Greška: ' + err.message, 'error');
+                    });
+                return;
             }
             
+            // Ako je običan zadatak - brišemo ga
             const db = getDbRef(currentUser.uid);
             if (navigator.onLine) {
                 db.child(key).remove();
@@ -3127,16 +3084,46 @@
             document.getElementById('taskText').focus();
         };
 
+        // ===== RESET DUGME - POPRAVLJENO =====
         window.resetAll = function() {
-            if (!confirm('Obrisati sve sopstvene zadatke?')) return;
+            // Prvi nivo potvrde
+            if (!confirm('⚠️ UPOZORENJE: Ovo će trajno obrisati SVE vaše zadatke!\n\nDa li ste sigurni?')) {
+                return;
+            }
             
-            if (!currentUser) return;
+            // Drugi nivo potvrde - upisivanje reči "DA"
+            const confirmation = prompt('📝 Da biste potvrdili, upišite reč "DA" (velikim slovima):');
+            
+            if (confirmation !== 'DA') {
+                showToast('❌ Operacija otkazana - pogrešna potvrda.', 'warning', 3000);
+                return;
+            }
+            
+            // Treći nivo potvrde
+            if (!confirm('🔴 POSLEDNJA POTVRDA: Obrisati sve zadatke trajno?\n\nOva radnja se NE MOŽE opozvati!')) {
+                showToast('❌ Operacija otkazana.', 'warning', 2000);
+                return;
+            }
+            
+            if (!currentUser) {
+                showToast('Niste prijavljeni.', 'error');
+                return;
+            }
             
             const db = getDbRef(currentUser.uid);
             if (navigator.onLine) {
-                db.remove();
+                db.remove()
+                    .then(function() {
+                        showToast('✅ Svi zadaci su trajno obrisani!', 'success', 4000);
+                        allTasks = {};
+                        renderTasks();
+                    })
+                    .catch(function(err) {
+                        showToast('Greška pri brisanju: ' + err.message, 'error');
+                    });
             } else {
                 addToQueue({ type: 'removeall' });
+                showToast('📦 Zadaci će biti obrisani kada se vrati internet.', 'info', 3000);
             }
         };
 
@@ -3547,15 +3534,13 @@
             }).join('');
         }
 
-        // POPRAVLJENO: provera datuma na 30 sekundi umesto 60, koristi se UTC
         setInterval(function() {
             const today = new Date().toUTCString().split(' ').slice(0, 4).join(' ');
             if (today !== lastDateChecked) {
                 lastDateChecked = today;
                 renderTasks();
-                // Toast prikazujemo samo jednom dnevno
                 const lastToast = parseInt(localStorage.getItem('mp_last_date_toast') || '0');
-                if (Date.now() - lastToast > 86400000) { // 24h
+                if (Date.now() - lastToast > 86400000) {
                     showToast('📅 Datum promenjen - sve osveženo', 'info', 1500);
                     localStorage.setItem('mp_last_date_toast', Date.now().toString());
                 }
@@ -3564,12 +3549,12 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 3.0 (NOVI PRISTUP ZA TEMU)');
-        console.log('✅ Tema se menja DIREKTNO preko JavaScript-a');
-        console.log('✅ Nema više zavisnosti od CSS varijabli za boje');
-        console.log('✅ Radi na svim Android uređajima');
+        console.log('☁️ Moj Planer - verzija 2.19 (POPRAVLJEN)');
+        console.log('✅ Paginacija - 20 zadataka po strani');
+        console.log('✅ Pretraga - pretražuje sve zadatke');
+        console.log('✅ RESET - trostruka potvrda (uključujući upisivanje "DA")');
+        console.log('✅ Brisanje deljenih - samo uklanja referencu');
         console.log('✅ Datum se menja u ponoć (UTC)');
-        console.log('✅ UKLONJENO dugme "Sve stavke"');
     </script>
 </body>
 </html>
