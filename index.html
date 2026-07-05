@@ -2098,7 +2098,8 @@
                     sharedWith: Object.values(sharedData.participants || {}).join(', ') || '',
                     subtasks: sharedData.subtasks || {},
                     alarm: sharedData.alarm !== undefined ? sharedData.alarm : true,
-                    _alarmed: false
+                    _alarmed: false,
+                    ownerUid: sharedData.createdBy || currentUser.uid
                 };
             }
         }
@@ -2634,7 +2635,8 @@
                                 createdByEmail: sharedData.createdByEmail || currentUser.email,
                                 createdByNickname: sharedData.createdByNickname || currentNickname || '',
                                 subtasks: task.subtasks || {},
-                                alarm: task.alarm !== false
+                                alarm: task.alarm !== false,
+                                ownerUid: currentUser.uid
                             };
                             
                             newSharedRef.set(newTask).then(function() {
@@ -2669,7 +2671,8 @@
                         completed: false,
                         deleted: false,
                         createdAt: task.createdAt || nowISO,
-                        alarm: task.alarm !== false
+                        alarm: task.alarm !== false,
+                        ownerUid: currentUser.uid
                     };
                     
                     if (navigator.onLine) {
@@ -2851,7 +2854,8 @@
                 completed: false,
                 deleted: false,
                 createdAt: nowISO,
-                alarm: true
+                alarm: true,
+                ownerUid: currentUser.uid  // DODATO ZA SIGURNOSNA PRAVILA
             };
             
             if (editKey) {
@@ -2974,7 +2978,8 @@
                 completed: false,
                 deleted: false,
                 createdAt: nowISO,
-                alarm: true
+                alarm: true,
+                ownerUid: currentUser.uid  // DODATO ZA SIGURNOSNA PRAVILA
             };
             
             let newKey = null;
@@ -3181,7 +3186,8 @@
                 createdByEmail: currentUser.email,
                 createdByNickname: currentNickname || '',
                 subtasks: taskObj.subtasks || {},  // KOPIRAJ PODZADATKE!
-                alarm: taskObj.alarm !== false      // KOPIRAJ ALARM!
+                alarm: taskObj.alarm !== false,      // KOPIRAJ ALARM!
+                ownerUid: currentUser.uid           // DODATO ZA SIGURNOSNA PRAVILA
             };
             
             newRef.set(taskData)
@@ -3333,6 +3339,7 @@
                     
                     Object.keys(old).forEach(function(key) {
                         if (old[key].alarm === undefined) old[key].alarm = true;
+                        if (!old[key].ownerUid) old[key].ownerUid = currentUser.uid;
                     });
                     
                     newRef.update(old).then(function() {
@@ -3490,9 +3497,9 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.15');
-        console.log('✅ POPRAVLJENO deljenje: subtasks i alarm se kopiraju');
-        console.log('✅ POPRAVLJENO: nema dupliranja pri deljenju');
+        console.log('☁️ Moj Planer - verzija 2.16 (SIGURNOSNA PRAVILA)');
+        console.log('✅ Dodat ownerUid u sve zadatke');
+        console.log('✅ Popravljeno deljenje: subtasks i alarm se kopiraju');
         console.log('✅ Alarm provera svakih 10 sekundi');
         console.log('✅ Smanjena statistika');
         console.log('✅ Veće polje za zadatak');
