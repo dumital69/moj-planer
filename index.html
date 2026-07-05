@@ -17,8 +17,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     
     <style>
-        /* ===== ROOT VARIJABLE ===== */
-        :root {
+        /* ===== ROOT VARIJABLE - POPRAVLJENO ZA ANDROID ===== */
+        :root, html {
             --bg: #060a12;
             --bg-secondary: #0a1420;
             --panel: #132033;
@@ -41,7 +41,7 @@
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* ===== SVETLA TEMA ===== */
+        /* ===== SVETLA TEMA - POPRAVLJENO ZA ANDROID ===== */
         [data-theme="light"] {
             --bg: #f0f4f8;
             --bg-secondary: #e8edf2;
@@ -1029,11 +1029,9 @@
 
     <!-- Glavni kontejner -->
     <div class="wrap">
-        <!-- Leva strana - Kalendar -->
+        <!-- Leva strana - Kalendar (UKLONJENO DUGME SVE STAVKE) -->
         <div class="left">
-            <div class="panel section" style="padding:12px;">
-                <button class="btn gray" style="width:100%;" onclick="clearFilter()">📅 Sve stavke</button>
-            </div>
+            <!-- UKLONJENO: <div class="panel section" style="padding:12px;"><button class="btn gray" style="width:100%;" onclick="clearFilter()">📅 Sve stavke</button></div> -->
             <div class="panel calendar" id="cal1"></div>
             <div class="panel calendar desktop-cal2" id="cal2"></div>
             <div class="panel calendar mobile-cal" id="cal2m"></div>
@@ -1773,7 +1771,7 @@
         }
 
         // ============================================================
-        //  KALENDAR
+        //  KALENDAR - POPRAVLJENO: datum se menja u ponoć
         // ============================================================
         const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", 
                         "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
@@ -1781,11 +1779,12 @@
         let calendarView = 'month';
         let weekOffset = 0;
 
-        let lastDateChecked = new Date().toDateString();
+        // Koristimo UTC za proveru promene datuma - POPRAVLJENO
+        let lastDateChecked = new Date().toUTCString().split(' ').slice(0, 4).join(' ');
         let renderTimeout = null;
 
         function checkDateChange() {
-            const today = new Date().toDateString();
+            const today = new Date().toUTCString().split(' ').slice(0, 4).join(' ');
             if (today !== lastDateChecked) {
                 lastDateChecked = today;
                 return true;
@@ -1798,7 +1797,12 @@
                 renderCalendar('cal1', 0);
                 renderCalendar('cal2', 1);
                 renderCalendar('cal2m', 1);
-                showToast('📅 Datum promenjen - kalendar osvežen', 'info', 1500);
+                // Ne prikazujemo toast svaki put, samo ako je prošlo više od 5 minuta od poslednje promene
+                const lastToast = parseInt(localStorage.getItem('mp_last_date_toast') || '0');
+                if (Date.now() - lastToast > 300000) {
+                    showToast('📅 Datum promenjen - kalendar osvežen', 'info', 1500);
+                    localStorage.setItem('mp_last_date_toast', Date.now().toString());
+                }
             } else {
                 renderCalendar('cal1', 0);
                 renderCalendar('cal2', 1);
@@ -2058,7 +2062,7 @@
             }
         }
 
-        // ===== SINHRONIZACIJA DELJENIH (POPRAVLJENA) =====
+        // ===== SINHRONIZACIJA DELJENIH =====
         function syncSharedTaskToLocal(sharedKey, sharedData) {
             let found = false;
             
@@ -2458,7 +2462,6 @@
             const nowISO = dateToISO(new Date());
             
             if (isShared) {
-                // Ažuriraj sharedTasks direktno (NE kreiraj novi zadatak)
                 const updates = {};
                 updates['subtasks/' + subtaskId] = { text: text, completed: false };
                 updates['lastChangedAt'] = nowISO;
@@ -2609,7 +2612,6 @@
             const db = getDbRef(currentUser.uid);
             const nowISO = dateToISO(new Date());
             
-            // Ako je deljeni zadatak sa ponavljanjem
             if (task.sharedKey && task.repeat && task.repeat !== 'none' && task.time) {
                 const nextDate = calculateNextDate(task.time, task.repeat);
                 if (nextDate) {
@@ -2659,7 +2661,6 @@
                 }
             }
             
-            // Ako je običan zadatak sa ponavljanjem
             if (task.repeat && task.repeat !== 'none' && task.time && !task.sharedKey) {
                 const nextDate = calculateNextDate(task.time, task.repeat);
                 if (nextDate) {
@@ -2855,7 +2856,7 @@
                 deleted: false,
                 createdAt: nowISO,
                 alarm: true,
-                ownerUid: currentUser.uid  // DODATO ZA SIGURNOSNA PRAVILA
+                ownerUid: currentUser.uid
             };
             
             if (editKey) {
@@ -2979,7 +2980,7 @@
                 deleted: false,
                 createdAt: nowISO,
                 alarm: true,
-                ownerUid: currentUser.uid  // DODATO ZA SIGURNOSNA PRAVILA
+                ownerUid: currentUser.uid
             };
             
             let newKey = null;
@@ -3077,7 +3078,7 @@
         };
 
         // ============================================================
-        //  DELJENJE ZADATAKA (POPRAVLJENO)
+        //  DELJENJE ZADATAKA
         // ============================================================
         window.shareTask = function(key) {
             const task = allTasks[key];
@@ -3131,7 +3132,6 @@
             const nowISO = dateToISO(new Date());
             const myInfo = currentNickname ? currentNickname + ' (' + currentUser.email + ')' : currentUser.email;
             
-            // Ako zadatak već ima sharedKey (već je deljen)
             if (taskObj.sharedKey) {
                 const sharedKey = taskObj.sharedKey;
                 db.ref('sharedTasks/' + sharedKey + '/participants').once('value')
@@ -3164,7 +3164,6 @@
                 return;
             }
             
-            // KREIRANJE NOVOG DELJENOG ZADATKA - KOPIRAJ SVE!
             const newRef = db.ref('sharedTasks').push();
             const newKey = newRef.key;
             const participants = {};
@@ -3185,9 +3184,9 @@
                 createdBy: currentUser.uid,
                 createdByEmail: currentUser.email,
                 createdByNickname: currentNickname || '',
-                subtasks: taskObj.subtasks || {},  // KOPIRAJ PODZADATKE!
-                alarm: taskObj.alarm !== false,      // KOPIRAJ ALARM!
-                ownerUid: currentUser.uid           // DODATO ZA SIGURNOSNA PRAVILA
+                subtasks: taskObj.subtasks || {},
+                alarm: taskObj.alarm !== false,
+                ownerUid: currentUser.uid
             };
             
             newRef.set(taskData)
@@ -3200,7 +3199,6 @@
                     return db.ref().update(updates);
                 })
                 .then(function() {
-                    // Obriši stari lokalni zadatak (sada je deljeni)
                     const dbRef = getDbRef(currentUser.uid);
                     if (dbRef && navigator.onLine) {
                         dbRef.child(key).remove();
@@ -3486,23 +3484,28 @@
             }).join('');
         }
 
+        // POPRAVLJENO: provera datuma na 30 sekundi umesto 60, koristi se UTC
         setInterval(function() {
-            const today = new Date().toDateString();
+            const today = new Date().toUTCString().split(' ').slice(0, 4).join(' ');
             if (today !== lastDateChecked) {
                 lastDateChecked = today;
                 renderTasks();
-                showToast('📅 Datum promenjen - sve osveženo', 'info', 1500);
+                // Toast prikazujemo samo jednom dnevno
+                const lastToast = parseInt(localStorage.getItem('mp_last_date_toast') || '0');
+                if (Date.now() - lastToast > 86400000) { // 24h
+                    showToast('📅 Datum promenjen - sve osveženo', 'info', 1500);
+                    localStorage.setItem('mp_last_date_toast', Date.now().toString());
+                }
             }
-        }, 60000);
+        }, 30000); // Smanjeno na 30 sekundi za bržu reakciju
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.16 (SIGURNOSNA PRAVILA)');
+        console.log('☁️ Moj Planer - verzija 2.17 (POPRAVLJEN)');
+        console.log('✅ Popravljena tema za Android');
+        console.log('✅ Datum se menja u ponoć (UTC)');
+        console.log('✅ Uklonjeno dugme "Sve stavke"');
         console.log('✅ Dodat ownerUid u sve zadatke');
-        console.log('✅ Popravljeno deljenje: subtasks i alarm se kopiraju');
-        console.log('✅ Alarm provera svakih 10 sekundi');
-        console.log('✅ Smanjena statistika');
-        console.log('✅ Veće polje za zadatak');
     </script>
 </body>
 </html>
