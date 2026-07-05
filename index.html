@@ -7,9 +7,9 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Moj Planer</title>
-    <link rel="icon" type="image/x-icon" href="/moj-planer/favicon.ico">
-    <link rel="apple-touch-icon" href="/moj-planer/favicon.ico">
-    <link rel="shortcut icon" href="/moj-planer/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.ico">
+    <link rel="shortcut icon" href="favicon.ico">
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -43,18 +43,39 @@
 
         /* ===== SVETLA TEMA - POPRAVLJENO ZA ANDROID ===== */
         [data-theme="light"] {
-            --bg: #f0f4f8;
-            --bg-secondary: #e8edf2;
-            --panel: #ffffff;
-            --panel-hover: #f5f7fa;
-            --text: #1a1a2e;
-            --text-secondary: #2d3748;
-            --muted: #4a5568;
-            --border: rgba(0, 0, 0, 0.1);
-            --border-hover: rgba(52, 152, 219, 0.3);
-            --input-bg: #f7fafc;
-            --shadow: 0 16px 38px rgba(0,0,0,0.1);
-            --shadow-light: 0 4px 20px rgba(0,0,0,0.05);
+            --bg: #f0f4f8 !important;
+            --bg-secondary: #e8edf2 !important;
+            --panel: #ffffff !important;
+            --panel-hover: #f5f7fa !important;
+            --text: #1a1a2e !important;
+            --text-secondary: #2d3748 !important;
+            --muted: #4a5568 !important;
+            --border: rgba(0, 0, 0, 0.1) !important;
+            --border-hover: rgba(52, 152, 219, 0.3) !important;
+            --input-bg: #f7fafc !important;
+            --shadow: 0 16px 38px rgba(0,0,0,0.1) !important;
+            --shadow-light: 0 4px 20px rgba(0,0,0,0.05) !important;
+        }
+
+        /* ===== ANDROID SPECIFIČNI POPRAVCI ===== */
+        @media only screen and (max-width: 480px) {
+            [data-theme="light"] body {
+                background-color: #f0f4f8 !important;
+            }
+            [data-theme="light"] .panel {
+                background-color: #ffffff !important;
+            }
+            [data-theme="light"] .task {
+                background-color: #ffffff !important;
+            }
+            [data-theme="light"] .day {
+                background-color: #e8edf2 !important;
+            }
+            [data-theme="light"] input,
+            [data-theme="light"] select,
+            [data-theme="light"] textarea {
+                background-color: #f7fafc !important;
+            }
         }
 
         * { box-sizing: border-box; }
@@ -62,7 +83,7 @@
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
+            background-color: var(--bg);
             color: var(--text);
             min-height: 100vh;
             transition: var(--transition);
@@ -98,7 +119,7 @@
 
         /* ===== PANELI ===== */
         .panel {
-            background: var(--panel);
+            background-color: var(--panel);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
@@ -983,6 +1004,32 @@
                 padding: 12px 16px;
                 font-size: 14px;
             }
+            
+            /* ANDROID SPECIFIČNI POPRAVCI - SVETLA TEMA */
+            [data-theme="light"] body {
+                background-color: #f0f4f8 !important;
+            }
+            [data-theme="light"] .panel {
+                background-color: #ffffff !important;
+            }
+            [data-theme="light"] .task {
+                background-color: #ffffff !important;
+            }
+            [data-theme="light"] .day {
+                background-color: #e8edf2 !important;
+            }
+            [data-theme="light"] input,
+            [data-theme="light"] select,
+            [data-theme="light"] textarea {
+                background-color: #f7fafc !important;
+            }
+            [data-theme="light"] .stat-card {
+                background: rgba(0,0,0,0.03) !important;
+            }
+            [data-theme="light"] .chip {
+                background: #e2e8f0 !important;
+                color: #2d3748 !important;
+            }
         }
     </style>
 </head>
@@ -1155,6 +1202,11 @@
             if (toggle) {
                 toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
             }
+            // Forsiranje ponovnog renderovanja za Android
+            document.body.style.display = 'none';
+            setTimeout(function() {
+                document.body.style.display = '';
+            }, 10);
         }
 
         window.toggleTheme = function() {
@@ -1733,7 +1785,7 @@
         async function showPushNotification(title, body, tag) {
             const opts = {
                 body: body,
-                icon: '/moj-planer/favicon.ico',
+                icon: 'favicon.ico',
                 tag: tag || title,
                 renotify: true,
                 requireInteraction: true
@@ -3397,7 +3449,7 @@
                 return;
             }
             
-            navigator.serviceWorker.register('/moj-planer/sw.js')
+            navigator.serviceWorker.register('sw.js')
                 .then(function(reg) {
                     console.log('✅ Service Worker registrovan!', reg);
                 })
@@ -3501,11 +3553,11 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.17 (POPRAVLJEN)');
-        console.log('✅ Popravljena tema za Android');
+        console.log('☁️ Moj Planer - verzija 2.18 (KONAČNO POPRAVLJEN)');
+        console.log('✅ Popravljena tema za Android (sa !important)');
         console.log('✅ Datum se menja u ponoć (UTC)');
-        console.log('✅ Uklonjeno dugme "Sve stavke"');
-        console.log('✅ Dodat ownerUid u sve zadatke');
+        console.log('✅ UKLONJENO dugme "Sve stavke" (definitivno)');
+        console.log('✅ Popravljene putanje za GitHub Pages');
     </script>
 </body>
 </html>
