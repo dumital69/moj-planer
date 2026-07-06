@@ -37,6 +37,7 @@
             --yellow: #f1c40f;
             --teal: #1abc9c;
             --orange: #e67e22;
+            --purple: #9b59b6;
             --radius: 18px;
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -108,48 +109,6 @@
         }
 
         .section { padding: 14px 16px; }
-
-        /* ===== STATISTIKA ===== */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            margin-bottom: 8px;
-        }
-        .stat-card {
-            background: rgba(255,255,255,0.04);
-            border-radius: 10px;
-            padding: 4px 6px;
-            text-align: center;
-            transition: var(--transition);
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-        [data-theme="light"] .stat-card {
-            background: rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.06);
-        }
-        .stat-card:hover {
-            transform: translateY(-1px);
-            border-color: var(--border-hover);
-        }
-        .stat-number {
-            font-size: 16px;
-            font-weight: 800;
-            display: block;
-            line-height: 1.2;
-        }
-        .stat-label {
-            font-size: 9px;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-top: 1px;
-            display: block;
-        }
-        .stat-card.total .stat-number { color: var(--blue); }
-        .stat-card.active .stat-number { color: var(--green); }
-        .stat-card.done .stat-number { color: var(--muted); }
-        .stat-card.shared .stat-number { color: var(--teal); }
 
         /* ===== DUGMICI ===== */
         .btn {
@@ -411,10 +370,33 @@
 
         .toolbar {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
             gap: 8px;
             margin-bottom: 10px;
         }
+
+        /* ===== STATISTIKA DROPDOWN ===== */
+        #statsDropdown {
+            display: none;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+        #statsDropdown .stat-card {
+            padding: 12px;
+            text-align: center;
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+        #statsDropdown .stat-card.total { background: rgba(52, 152, 219, 0.1); }
+        #statsDropdown .stat-card.active { background: rgba(46, 204, 113, 0.1); }
+        #statsDropdown .stat-card.done { background: rgba(149, 165, 166, 0.1); }
+        #statsDropdown .stat-card.shared { background: rgba(26, 188, 156, 0.1); }
+        #statsDropdown .stat-number { font-size: 20px; font-weight: 800; display: block; }
+        #statsDropdown .stat-label { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
 
         /* ===== ALARM POPUP ===== */
         #alarmOverlay {
@@ -937,14 +919,11 @@
             .mobile-cal { display: block; }
             .desktop-cal2 { display: none; }
             .tasks { overflow: visible; }
-            .toolbar { grid-template-columns: 1fr 1fr; }
+            .toolbar { grid-template-columns: 1fr 1fr 1fr; }
             .input-row { grid-template-columns: 1fr; }
             .save-row { grid-template-columns: 1fr; }
             #notif-bar { width: 100%; }
             .form-top { flex-direction: column; align-items: stretch; }
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
             .alarm-box {
                 padding: 20px;
             }
@@ -957,15 +936,6 @@
         }
 
         @media (max-width: 480px) {
-            .stats {
-                grid-template-columns: 1fr 1fr;
-            }
-            .stat-number {
-                font-size: 14px;
-            }
-            .stat-label {
-                font-size: 8px;
-            }
             .toolbar {
                 grid-template-columns: 1fr 1fr;
             }
@@ -982,6 +952,7 @@
                 padding: 12px 16px;
                 font-size: 14px;
             }
+            #statsDropdown .stat-number { font-size: 16px; }
         }
     </style>
 </head>
@@ -1052,26 +1023,6 @@
                 </div>
                 <div class="offline" id="offlineBar">Rad bez interneta — sinhronizacija kasnije.</div>
                 
-                <!-- ===== STATISTIKA ===== -->
-                <div class="stats" id="statsContainer">
-                    <div class="stat-card total">
-                        <span class="stat-number" id="statTotal">0</span>
-                        <span class="stat-label">📋 Ukupno</span>
-                    </div>
-                    <div class="stat-card active">
-                        <span class="stat-number" id="statActive">0</span>
-                        <span class="stat-label">✅ Aktivni</span>
-                    </div>
-                    <div class="stat-card done">
-                        <span class="stat-number" id="statDone">0</span>
-                        <span class="stat-label">📁 Završeni</span>
-                    </div>
-                    <div class="stat-card shared">
-                        <span class="stat-number" id="statShared">0</span>
-                        <span class="stat-label">🤝 Deljeni</span>
-                    </div>
-                </div>
-                
                 <div id="cats" class="chips" style="margin-bottom:10px;"></div>
                 <div class="vis-toggle" id="doneInfo"></div>
                 
@@ -1107,6 +1058,33 @@
                     <button class="btn blue" onclick="setSortMode('created')">🆕 Novo prvo</button>
                     <button class="btn gray" id="doneBtn" onclick="toggleDoneView()">📁 Završeni</button>
                     <button class="btn orange" id="trashBtn" onclick="toggleTrashView()">🗑️ Smeće</button>
+                    <button class="btn purple" id="statsBtn" onclick="toggleStatsDropdown()">📊 Statistika</button>
+                </div>
+                
+                <!-- Padajući meni za statistiku -->
+                <div id="statsDropdown">
+                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+                        <div class="stat-card total">
+                            <span class="stat-number" id="statTotal2">0</span>
+                            <span class="stat-label">📋 Ukupno</span>
+                        </div>
+                        <div class="stat-card active">
+                            <span class="stat-number" id="statActive2">0</span>
+                            <span class="stat-label">✅ Aktivni</span>
+                        </div>
+                        <div class="stat-card done">
+                            <span class="stat-number" id="statDone2">0</span>
+                            <span class="stat-label">📁 Završeni</span>
+                        </div>
+                        <div class="stat-card shared">
+                            <span class="stat-number" id="statShared2">0</span>
+                            <span class="stat-label">🤝 Deljeni</span>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;text-align:center;font-size:12px;color:var(--muted);">
+                        Kategorije: 
+                        <span id="statsCategories"></span>
+                    </div>
                 </div>
             </div>
 
@@ -1161,6 +1139,26 @@
         };
 
         setTheme(getStoredTheme());
+
+        // ============================================================
+        //  DATUM - POPRAVLJEN (menja se u ponoć)
+        // ============================================================
+        function getTodayKey() {
+            const now = new Date();
+            return now.getFullYear() + '-' + 
+                   String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(now.getDate()).padStart(2, '0');
+        }
+        let lastDateChecked = getTodayKey();
+
+        function checkDateChange() {
+            const today = getTodayKey();
+            if (today !== lastDateChecked) {
+                lastDateChecked = today;
+                return true;
+            }
+            return false;
+        }
 
         // ============================================================
         //  ZVUČNI ALARM
@@ -1282,7 +1280,7 @@
 
         setInterval(function() {
             checkAlarms();
-        }, 10000);
+        }, 30000);
 
         // ============================================================
         //  POMOĆNE FUNKCIJE (UTILS)
@@ -1777,17 +1775,7 @@
         let calendarView = 'month';
         let weekOffset = 0;
 
-        let lastDateChecked = new Date().toUTCString().split(' ').slice(0, 4).join(' ');
         let renderTimeout = null;
-
-        function checkDateChange() {
-            const today = new Date().toUTCString().split(' ').slice(0, 4).join(' ');
-            if (today !== lastDateChecked) {
-                lastDateChecked = today;
-                return true;
-            }
-            return false;
-        }
 
         function initCalendars() {
             if (checkDateChange()) {
@@ -1823,7 +1811,7 @@
             const first = new Date(year, month, 1).getDay();
             const start = first === 0 ? 6 : first - 1;
             
-            const today = new Date().toISOString().split('T')[0];
+            const today = getTodayKey();
             
             let html = '<div class="cal-head">';
             html += '<button class="cal-nav" onclick="changeMonth(-1, \'' + id + '\')">◀</button>';
@@ -1885,7 +1873,7 @@
             
             html += '<div class="week-grid">';
             
-            const todayStr = today.toISOString().split('T')[0];
+            const todayStr = getTodayKey();
             
             for (let i = 0; i < 7; i++) {
                 const date = new Date(startOfWeek);
@@ -1972,6 +1960,7 @@
         let sharedTasksData = {};
         let sharedTaskListeners = {};
         let sharedRefsRef = null;
+        let statsDropdownOpen = false;
 
         // PAGINACIJA
         const ITEMS_PER_PAGE = 20;
@@ -1999,11 +1988,46 @@
             const done = tasks.filter(t => t.completed).length;
             const shared = Object.keys(sharedTasksData).length;
             
-            document.getElementById('statTotal').textContent = total;
-            document.getElementById('statActive').textContent = active;
-            document.getElementById('statDone').textContent = done;
-            document.getElementById('statShared').textContent = shared;
+            // Ako je dropdown otvoren, ažuriraj prikaz
+            if (statsDropdownOpen) {
+                updateStatsDisplay();
+            }
         }
+
+        function updateStatsDisplay() {
+            const tasks = Object.values(allTasks).filter(t => !t.deleted);
+            const total = tasks.length;
+            const active = tasks.filter(t => !t.completed).length;
+            const done = tasks.filter(t => t.completed).length;
+            const shared = Object.keys(sharedTasksData).length;
+            
+            document.getElementById('statTotal2').textContent = total;
+            document.getElementById('statActive2').textContent = active;
+            document.getElementById('statDone2').textContent = done;
+            document.getElementById('statShared2').textContent = shared;
+            
+            // Statistika po kategorijama
+            const catStats = {};
+            tasks.forEach(t => {
+                if (!catStats[t.category]) catStats[t.category] = 0;
+                catStats[t.category]++;
+            });
+            
+            const catHtml = Object.keys(catStats).map(c => 
+                (catEmoji[c] || '📌') + ' ' + c + ': ' + catStats[c]
+            ).join(' | ');
+            document.getElementById('statsCategories').textContent = catHtml || 'Nema zadataka';
+        }
+
+        window.toggleStatsDropdown = function() {
+            const dropdown = document.getElementById('statsDropdown');
+            statsDropdownOpen = !statsDropdownOpen;
+            dropdown.style.display = statsDropdownOpen ? 'block' : 'none';
+            
+            if (statsDropdownOpen) {
+                updateStatsDisplay();
+            }
+        };
 
         // ===== AUTO-OSVEŽAVANJE =====
         let autoRefreshInterval = null;
@@ -2204,7 +2228,7 @@
             renderTasks();
         };
 
-        // ===== PRETRAGA - POPRAVLJENA =====
+        // ===== PRETRAGA =====
         function getFilteredTasks() {
             const search = (document.getElementById('quickSearch').value || '').trim().toLowerCase();
             
@@ -2391,7 +2415,7 @@
             showToast(checked ? '🔔 Alarm uključen' : '🔕 Alarm isključen', 'info', 1500);
         };
 
-        // ===== PODZADACI - POPRAVLJENE FUNKCIJE =====
+        // ===== PODZADACI =====
         function renderSubtasksHTML(subtasks, taskKey, isShared) {
             if (!subtasks || Object.keys(subtasks).length === 0) {
                 return '<div class="subtasks"><div class="subtask-add">' +
@@ -2835,7 +2859,7 @@
             showToast('↩ Zadatak vraćen iz smeća!', 'success');
         };
 
-        // ===== BRISANJE DELJENIH - POPRAVLJENO =====
+        // ===== BRISANJE DELJENIH =====
         window.deleteTaskPermanently = function(key) {
             if (!confirm('⚠️ Trajno obrisati zadatak? Ova radnja se NE MOŽE opozvati!')) return;
             
@@ -3121,7 +3145,7 @@
             document.getElementById('taskText').focus();
         };
 
-        // ===== RESET DUGME - POPRAVLJENO =====
+        // ===== RESET DUGME =====
         window.resetAll = function() {
             if (!confirm('⚠️ UPOZORENJE: Ovo će trajno obrisati SVE vaše zadatke!\n\nDa li ste sigurni?')) {
                 return;
@@ -3576,7 +3600,23 @@
                     
                     const dbRef = getDbRef(user.uid);
                     dbRef.on('value', function(s) {
-                        allTasks = s.val() || {};
+                        const rawData = s.val() || {};
+                        const updates = {};
+                        let needUpdate = false;
+                        
+                        Object.keys(rawData).forEach(function(key) {
+                            const task = rawData[key];
+                            if (!task.ownerUid && !task.sharedKey) {
+                                updates[key + '/ownerUid'] = user.uid;
+                                needUpdate = true;
+                            }
+                        });
+                        
+                        if (needUpdate && navigator.onLine) {
+                            dbRef.update(updates);
+                        }
+                        
+                        allTasks = rawData;
                         renderTasks();
                     });
                     
@@ -3613,8 +3653,9 @@
             }).join('');
         }
 
+        // Provera datuma svakih 30 sekundi
         setInterval(function() {
-            const today = new Date().toUTCString().split(' ').slice(0, 4).join(' ');
+            const today = getTodayKey();
             if (today !== lastDateChecked) {
                 lastDateChecked = today;
                 renderTasks();
@@ -3628,12 +3669,16 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.20 (POTPUNO POPRAVLJEN)');
+        console.log('☁️ Moj Planer - verzija 2.21 (POTPUNO POPRAVLJEN)');
+        console.log('✅ Datum se menja u PONOĆ (ne u 2h)');
+        console.log('✅ Statistika u padajućem meniju');
         console.log('✅ Paginacija - 20 zadataka po strani');
         console.log('✅ Pretraga - pretražuje sve zadatke');
         console.log('✅ RESET - trostruka potvrda');
         console.log('✅ Brisanje deljenih - samo uklanja referencu');
         console.log('✅ Podzadaci - dodavanje, toggle, brisanje rade odmah');
+        console.log('✅ Firebase pravila - ispravljena');
+        console.log('✅ Auto-dodavanje ownerUid za stare zadatke');
     </script>
 </body>
-</html>
+</html> 
