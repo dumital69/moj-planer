@@ -519,7 +519,7 @@
             opacity: 0.6;
         }
 
-        /* ===== PODZADACI ===== */
+        /* ===== PODZADACI - NOVO ===== */
         .subtasks {
             margin: 8px 0 10px 16px;
             padding-left: 8px;
@@ -528,10 +528,11 @@
         .subtask-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 3px 0;
+            gap: 6px;
+            padding: 4px 0;
             font-size: 13px;
             color: var(--text-secondary);
+            flex-wrap: wrap;
         }
         .subtask-item input[type="checkbox"] {
             accent-color: var(--blue);
@@ -542,11 +543,45 @@
         }
         .subtask-item.done {
             opacity: 0.5;
+        }
+        .subtask-item.done .subtask-text {
             text-decoration: line-through;
         }
         .subtask-item .subtask-text {
             flex: 1;
             word-break: break-word;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: var(--transition);
+            min-width: 60px;
+        }
+        .subtask-item .subtask-text:hover {
+            background: var(--panel-hover);
+        }
+        .subtask-item .subtask-category {
+            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            cursor: pointer;
+            max-width: 80px;
+        }
+        .subtask-item .subtask-edit {
+            background: none;
+            border: none;
+            color: var(--blue);
+            cursor: pointer;
+            font-size: 13px;
+            opacity: 0.5;
+            transition: var(--transition);
+            padding: 0 4px;
+        }
+        .subtask-item .subtask-edit:hover {
+            opacity: 1;
+            transform: scale(1.1);
         }
         .subtask-item .subtask-delete {
             background: none;
@@ -556,12 +591,23 @@
             font-size: 14px;
             opacity: 0.5;
             transition: var(--transition);
+            padding: 0 4px;
         }
-        .subtask-item .subtask-delete:hover { opacity: 1; }
+        .subtask-item .subtask-delete:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        .subtask-item .subtask-emoji {
+            font-size: 13px;
+            margin: 0 2px;
+            min-width: 18px;
+            text-align: center;
+        }
         .subtask-add {
             display: flex;
             gap: 6px;
-            margin-top: 4px;
+            margin-top: 6px;
+            flex-wrap: wrap;
         }
         .subtask-add input {
             flex: 1;
@@ -573,8 +619,18 @@
             color: var(--text);
             outline: none;
             transition: var(--transition);
+            min-width: 80px;
         }
         .subtask-add input:focus { border-color: var(--blue); }
+        .subtask-add select {
+            font-size: 11px;
+            padding: 4px 6px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            cursor: pointer;
+        }
         .subtask-add button {
             background: var(--blue);
             border: none;
@@ -933,6 +989,13 @@
             .alarm-box .alarm-text {
                 font-size: 16px;
             }
+            .subtask-item {
+                flex-wrap: wrap;
+            }
+            .subtask-item .subtask-category {
+                max-width: 60px;
+                font-size: 9px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -953,6 +1016,15 @@
                 font-size: 14px;
             }
             #statsDropdown .stat-number { font-size: 16px; }
+            .subtask-add {
+                flex-direction: column;
+            }
+            .subtask-add input {
+                min-width: 100%;
+            }
+            .subtask-add select {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -1988,7 +2060,6 @@
             const done = tasks.filter(t => t.completed).length;
             const shared = Object.keys(sharedTasksData).length;
             
-            // Ako je dropdown otvoren, ažuriraj prikaz
             if (statsDropdownOpen) {
                 updateStatsDisplay();
             }
@@ -2006,7 +2077,6 @@
             document.getElementById('statDone2').textContent = done;
             document.getElementById('statShared2').textContent = shared;
             
-            // Statistika po kategorijama
             const catStats = {};
             tasks.forEach(t => {
                 if (!catStats[t.category]) catStats[t.category] = 0;
@@ -2415,12 +2485,20 @@
             showToast(checked ? '🔔 Alarm uključen' : '🔕 Alarm isključen', 'info', 1500);
         };
 
-        // ===== PODZADACI =====
+        // ============================================================
+        //  PODZADACI - NOVE FUNKCIJE
+        // ============================================================
+        
         function renderSubtasksHTML(subtasks, taskKey, isShared) {
             if (!subtasks || Object.keys(subtasks).length === 0) {
                 return '<div class="subtasks"><div class="subtask-add">' +
                     '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
-                    '<button onclick="addSubtask(document.getElementById(\'subtaskInput_' + taskKey + '\'), \'' + taskKey + '\', ' + isShared + ')">+</button>' +
+                    '<select id="subtaskCategory_' + taskKey + '">' +
+                    categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
+                        return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + c + '</option>';
+                    }).join('') +
+                    '</select>' +
+                    '<button onclick="addSubtaskWithCategory(document.getElementById(\'subtaskInput_' + taskKey + '\'), document.getElementById(\'subtaskCategory_' + taskKey + '\'), \'' + taskKey + '\', ' + isShared + ')">+</button>' +
                     '</div></div>';
             }
             
@@ -2435,23 +2513,38 @@
             
             Object.keys(subtasks).forEach(function(subId) {
                 const sub = subtasks[subId];
+                const subEmoji = catEmoji[sub.category] || '📌';
+                
                 html += '<div class="subtask-item' + (sub.completed ? ' done' : '') + '">' +
                     '<input type="checkbox" ' + (sub.completed ? 'checked' : '') + ' onchange="toggleSubtask(\'' + taskKey + '\', \'' + subId + '\', ' + isShared + ')" />' +
-                    '<span class="subtask-text">' + escapeHtml(sub.text) + '</span>' +
+                    '<span class="subtask-text" onclick="editSubtaskTextInline(\'' + taskKey + '\', \'' + subId + '\', ' + isShared + ', this)">' + escapeHtml(sub.text) + '</span>' +
+                    '<span class="subtask-emoji">' + subEmoji + '</span>' +
+                    '<select class="subtask-category" onchange="changeSubtaskCategory(\'' + taskKey + '\', \'' + subId + '\', ' + isShared + ', this.value)">' +
+                    categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
+                        return '<option value="' + c + '" ' + (sub.category === c ? 'selected' : '') + '>' + (catEmoji[c] || '📌') + '</option>';
+                    }).join('') +
+                    '</select>' +
+                    '<button class="subtask-edit" onclick="editSubtaskText(\'' + taskKey + '\', \'' + subId + '\', ' + isShared + ')" title="Izmeni tekst">✏️</button>' +
                     '<button class="subtask-delete" onclick="deleteSubtask(\'' + taskKey + '\', \'' + subId + '\', ' + isShared + ')">✕</button>' +
                     '</div>';
             });
             
             html += '<div class="subtask-add">' +
                 '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
-                '<button onclick="addSubtask(document.getElementById(\'subtaskInput_' + taskKey + '\'), \'' + taskKey + '\', ' + isShared + ')">+</button>' +
+                '<select id="subtaskCategory_' + taskKey + '">' +
+                categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
+                    return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + c + '</option>';
+                }).join('') +
+                '</select>' +
+                '<button onclick="addSubtaskWithCategory(document.getElementById(\'subtaskInput_' + taskKey + '\'), document.getElementById(\'subtaskCategory_' + taskKey + '\'), \'' + taskKey + '\', ' + isShared + ')">+</button>' +
                 '</div>';
             html += '</div>';
             
             return html;
         }
 
-        window.addSubtask = function(input, taskKey, isShared) {
+        // Dodavanje podzadatka sa kategorijom
+        window.addSubtaskWithCategory = function(input, catSelect, taskKey, isShared) {
             if (!currentUser) {
                 showToast('Niste prijavljeni.', 'error');
                 return;
@@ -2463,6 +2556,8 @@
                 return;
             }
             
+            const category = catSelect.value || 'Razno';
+            
             if (!taskKey) {
                 showToast('Prvo sačuvajte zadatak pa dodajte podzadatke.', 'warning');
                 return;
@@ -2470,7 +2565,12 @@
             
             const subtaskId = generateId();
             const nowISO = dateToISO(new Date());
-            const newSubtask = { text: text, completed: false };
+            const newSubtask = { 
+                text: text, 
+                completed: false,
+                category: category,
+                createdAt: nowISO
+            };
             
             if (isShared) {
                 if (!sharedTasksData[taskKey]) {
@@ -2516,6 +2616,182 @@
             renderTasks();
         };
 
+        // Stara funkcija za kompatibilnost
+        window.addSubtask = function(input, taskKey, isShared) {
+            const catSelect = document.getElementById('subtaskCategory_' + taskKey);
+            if (catSelect) {
+                addSubtaskWithCategory(input, catSelect, taskKey, isShared);
+            } else {
+                const fakeSelect = { value: 'Razno' };
+                addSubtaskWithCategory(input, fakeSelect, taskKey, isShared);
+            }
+        };
+
+        // Izmena teksta podzadatka (preko dugmeta)
+        window.editSubtaskText = function(taskKey, subId, isShared) {
+            const task = isShared ? sharedTasksData[taskKey] : allTasks[taskKey];
+            if (!task || !task.subtasks || !task.subtasks[subId]) return;
+            
+            const sub = task.subtasks[subId];
+            const newText = prompt('Izmeni tekst podzadatka:', sub.text);
+            
+            if (newText === null || !newText.trim()) {
+                if (newText !== null) showToast('Tekst ne može biti prazan.', 'warning');
+                return;
+            }
+            
+            const nowISO = dateToISO(new Date());
+            
+            if (isShared) {
+                if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks) {
+                    sharedTasksData[taskKey].subtasks[subId].text = newText.trim();
+                }
+                Object.keys(allTasks).forEach(function(key) {
+                    if (allTasks[key] && allTasks[key].sharedKey === taskKey) {
+                        if (allTasks[key].subtasks && allTasks[key].subtasks[subId]) {
+                            allTasks[key].subtasks[subId].text = newText.trim();
+                        }
+                    }
+                });
+                
+                const updates = {};
+                updates['subtasks/' + subId + '/text'] = newText.trim();
+                updates['lastChangedAt'] = nowISO;
+                updates['lastChangedBy'] = currentUser.uid;
+                database.ref('sharedTasks/' + taskKey).update(updates);
+                
+            } else {
+                if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
+                    allTasks[taskKey].subtasks[subId].text = newText.trim();
+                }
+                
+                const db = getDbRef(currentUser.uid);
+                if (db) {
+                    db.child(taskKey + '/subtasks/' + subId + '/text').set(newText.trim());
+                }
+            }
+            
+            showToast('✅ Tekst podzadatka ažuriran!', 'success');
+            renderTasks();
+        };
+
+        // Izmena teksta podzadatka (inline - klik na tekst)
+        window.editSubtaskTextInline = function(taskKey, subId, isShared, element) {
+            const task = isShared ? sharedTasksData[taskKey] : allTasks[taskKey];
+            if (!task || !task.subtasks || !task.subtasks[subId]) return;
+            
+            const currentText = task.subtasks[subId].text;
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentText;
+            input.style.width = '100%';
+            input.style.background = 'var(--input-bg)';
+            input.style.border = '1px solid var(--blue)';
+            input.style.borderRadius = '4px';
+            input.style.padding = '2px 6px';
+            input.style.color = 'var(--text)';
+            input.style.fontSize = '13px';
+            
+            element.parentNode.replaceChild(input, element);
+            input.focus();
+            input.select();
+            
+            const saveEdit = function() {
+                const newText = input.value.trim();
+                if (newText && newText !== currentText) {
+                    const nowISO = dateToISO(new Date());
+                    
+                    if (isShared) {
+                        if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks) {
+                            sharedTasksData[taskKey].subtasks[subId].text = newText;
+                        }
+                        Object.keys(allTasks).forEach(function(key) {
+                            if (allTasks[key] && allTasks[key].sharedKey === taskKey) {
+                                if (allTasks[key].subtasks && allTasks[key].subtasks[subId]) {
+                                    allTasks[key].subtasks[subId].text = newText;
+                                }
+                            }
+                        });
+                        
+                        const updates = {};
+                        updates['subtasks/' + subId + '/text'] = newText;
+                        updates['lastChangedAt'] = nowISO;
+                        updates['lastChangedBy'] = currentUser.uid;
+                        database.ref('sharedTasks/' + taskKey).update(updates);
+                        
+                    } else {
+                        if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
+                            allTasks[taskKey].subtasks[subId].text = newText;
+                        }
+                        
+                        const db = getDbRef(currentUser.uid);
+                        if (db) {
+                            db.child(taskKey + '/subtasks/' + subId + '/text').set(newText);
+                        }
+                    }
+                    
+                    showToast('✅ Podzadatak ažuriran!', 'success');
+                }
+                renderTasks();
+            };
+            
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                }
+                if (e.key === 'Escape') {
+                    input.value = currentText;
+                    input.blur();
+                }
+            });
+        };
+
+        // Promena kategorije podzadatka
+        window.changeSubtaskCategory = function(taskKey, subId, isShared, newCategory) {
+            if (!currentUser) return;
+            
+            const task = isShared ? sharedTasksData[taskKey] : allTasks[taskKey];
+            if (!task || !task.subtasks || !task.subtasks[subId]) return;
+            
+            const nowISO = dateToISO(new Date());
+            
+            if (isShared) {
+                if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks) {
+                    sharedTasksData[taskKey].subtasks[subId].category = newCategory;
+                }
+                Object.keys(allTasks).forEach(function(key) {
+                    if (allTasks[key] && allTasks[key].sharedKey === taskKey) {
+                        if (allTasks[key].subtasks && allTasks[key].subtasks[subId]) {
+                            allTasks[key].subtasks[subId].category = newCategory;
+                        }
+                    }
+                });
+                
+                const updates = {};
+                updates['subtasks/' + subId + '/category'] = newCategory;
+                updates['lastChangedAt'] = nowISO;
+                updates['lastChangedBy'] = currentUser.uid;
+                database.ref('sharedTasks/' + taskKey).update(updates);
+                
+            } else {
+                if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
+                    allTasks[taskKey].subtasks[subId].category = newCategory;
+                }
+                
+                const db = getDbRef(currentUser.uid);
+                if (db) {
+                    db.child(taskKey + '/subtasks/' + subId + '/category').set(newCategory);
+                }
+            }
+            
+            showToast('🔄 Kategorija promenjena!', 'success');
+            renderTasks();
+        };
+
+        // Toggle podzadatka (završi/nezavrši)
         window.toggleSubtask = function(taskKey, subId, isShared) {
             if (!currentUser) return;
             
@@ -2557,6 +2833,7 @@
             renderTasks();
         };
 
+        // Brisanje podzadatka
         window.deleteSubtask = function(taskKey, subId, isShared) {
             if (!currentUser) {
                 showToast('Niste prijavljeni.', 'error');
@@ -3653,7 +3930,6 @@
             }).join('');
         }
 
-        // Provera datuma svakih 30 sekundi
         setInterval(function() {
             const today = getTodayKey();
             if (today !== lastDateChecked) {
@@ -3669,16 +3945,16 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.21 (POTPUNO POPRAVLJEN)');
+        console.log('☁️ Moj Planer - verzija 2.22 (PODZADACI SA KATEGORIJOM)');
         console.log('✅ Datum se menja u PONOĆ (ne u 2h)');
         console.log('✅ Statistika u padajućem meniju');
+        console.log('✅ Podzadaci - izmena teksta (klik ili ✏️)');
+        console.log('✅ Podzadaci - svaki ima svoju kategoriju');
+        console.log('✅ Podzadaci - dodavanje sa kategorijom');
         console.log('✅ Paginacija - 20 zadataka po strani');
         console.log('✅ Pretraga - pretražuje sve zadatke');
         console.log('✅ RESET - trostruka potvrda');
-        console.log('✅ Brisanje deljenih - samo uklanja referencu');
-        console.log('✅ Podzadaci - dodavanje, toggle, brisanje rade odmah');
         console.log('✅ Firebase pravila - ispravljena');
-        console.log('✅ Auto-dodavanje ownerUid za stare zadatke');
     </script>
 </body>
-</html> 
+</html>
