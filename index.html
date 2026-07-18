@@ -141,7 +141,7 @@
             50% { transform: scale(1.05); }
         }
 
-        /* ===== DUGME ZA TEMU ===== */
+        /* ===== DUGME ZA TEMU I UPUTSTVO ===== */
         .theme-toggle {
             background: none;
             border: 1px solid var(--border);
@@ -519,7 +519,7 @@
             opacity: 0.6;
         }
 
-        /* ===== PODZADACI - NOVO ===== */
+        /* ===== PODZADACI ===== */
         .subtasks {
             margin: 8px 0 10px 16px;
             padding-left: 8px;
@@ -964,6 +964,74 @@
             transform: none !important;
         }
 
+        /* ===== GUIDE MODAL ===== */
+        #guideModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99998;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        #guideModal .guide-box {
+            background: var(--panel);
+            border-radius: 22px;
+            padding: 24px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow: auto;
+            border: 1px solid var(--border);
+        }
+        #guideModal .guide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        #guideModal .guide-header h3 {
+            margin: 0;
+            color: var(--text);
+            font-size: 20px;
+        }
+        #guideModal .guide-header .close-btn {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        #guideModal .guide-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        #guideModal .guide-step {
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--blue);
+        }
+        #guideModal .guide-step .step-title {
+            font-weight: 700;
+            color: var(--text);
+        }
+        #guideModal .guide-step .step-desc {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 2px;
+        }
+        #guideModal .guide-footer {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 920px) {
             .wrap {
@@ -1042,6 +1110,23 @@
         </div>
     </div>
 
+    <!-- Modal za korisničko uputstvo -->
+    <div id="guideModal">
+        <div class="guide-box">
+            <div class="guide-header">
+                <h3>📖 Korisničko uputstvo</h3>
+                <button class="close-btn" onclick="closeGuide()">✕</button>
+            </div>
+            <div class="guide-content" id="guideContent">
+                Učitavanje...
+            </div>
+            <div class="guide-footer">
+                <button class="btn blue small" onclick="editGuide()">✏️ Izmeni</button>
+                <button class="btn gray small" onclick="closeGuide()">Zatvori</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Login Overlay -->
     <div id="loginOverlay">
         <div class="login-box">
@@ -1087,6 +1172,7 @@
                     <h3 class="title">☁️ Moj Planer <span style="font-size:11px;color:var(--blue);" id="userEmailLabel"></span></h3>
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Promeni temu">🌙</button>
+                        <button class="theme-toggle" onclick="openGuide()" title="Korisničko uputstvo" style="font-size:16px;">❓</button>
                         <input type="text" id="userNickname" placeholder="Vaš nadimak..." style="max-width:130px;padding:5px 8px;font-size:12px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);" />
                         <button class="btn teal small" onclick="saveNickname()" title="Sačuvaj nadimak" style="padding:6px 9px;height:30px;">💾</button>
                         <button class="btn gray small" onclick="doSignOut()" title="Odjavi se" style="padding:6px 10px;">🚪</button>
@@ -2019,6 +2105,133 @@
         };
 
         // ============================================================
+        //  KORISNIČKO UPUTSTVO
+        // ============================================================
+        
+        const DEFAULT_GUIDE = `
+        <div class="guide-step">
+            <div class="step-title">📝 Dodavanje zadatka</div>
+            <div class="step-desc">Unesite tekst, izaberite kategoriju, datum/vreme i način ponavljanja, pa kliknite "Sačuvaj".</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-title">✅ Završavanje zadatka</div>
+            <div class="step-desc">Kliknite zeleni ✓ na zadatku. Zadatak će se pojaviti u "Završeni" prikazu.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-title">📤 Deljenje zadatka</div>
+            <div class="step-desc">Kliknite 📤 na zadatku i unesite email ili nadimak osobe sa kojom želite da podelite.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-title">📋 Podzadaci</div>
+            <div class="step-desc">Kliknite "+" ispod zadatka da dodate podzadatke. Svaki podzadatak ima svoju kategoriju. Kliknite na tekst podzadatka da ga izmenite.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-title">🔔 Alarm</div>
+            <div class="step-desc">Uključite zvučni alarm za zadatak. Alarm će se oglasiti kada dođe vreme.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-title">🗑️ Smeće i brisanje</div>
+            <div class="step-desc">Zadaci u smeću se automatski brišu nakon 30 dana. RESET dugme traži trostruku potvrdu.</div>
+        </div>
+        `;
+
+        let guideContent = '';
+
+        function loadGuide() {
+            if (!currentUser) return;
+            
+            const guideRef = database.ref('users/' + currentUser.uid + '/userGuide');
+            guideRef.once('value').then(function(snap) {
+                const data = snap.val();
+                if (data) {
+                    guideContent = data;
+                } else {
+                    guideContent = DEFAULT_GUIDE;
+                    guideRef.set(DEFAULT_GUIDE);
+                }
+            }).catch(function(err) {
+                console.log('Greška pri učitavanju uputstva:', err);
+                guideContent = DEFAULT_GUIDE;
+            });
+        }
+
+        window.openGuide = function() {
+            const modal = document.getElementById('guideModal');
+            const content = document.getElementById('guideContent');
+            
+            if (!guideContent) {
+                guideContent = DEFAULT_GUIDE;
+            }
+            content.innerHTML = guideContent;
+            modal.style.display = 'flex';
+        };
+
+        window.closeGuide = function() {
+            document.getElementById('guideModal').style.display = 'none';
+        };
+
+        window.editGuide = function() {
+            const content = document.getElementById('guideContent');
+            const currentContent = content.innerHTML;
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = currentContent;
+            textarea.style.width = '100%';
+            textarea.style.height = '300px';
+            textarea.style.background = 'var(--input-bg)';
+            textarea.style.border = '1px solid var(--border)';
+            textarea.style.borderRadius = '12px';
+            textarea.style.color = 'var(--text)';
+            textarea.style.padding = '12px';
+            textarea.style.fontSize = '14px';
+            textarea.style.fontFamily = 'inherit';
+            textarea.style.resize = 'vertical';
+            
+            content.innerHTML = '';
+            content.appendChild(textarea);
+            
+            const btnWrapper = document.createElement('div');
+            btnWrapper.style.marginTop = '10px';
+            btnWrapper.style.display = 'flex';
+            btnWrapper.style.gap = '8px';
+            btnWrapper.style.flexWrap = 'wrap';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn green small';
+            saveBtn.textContent = '💾 Sačuvaj';
+            saveBtn.onclick = function() {
+                const newContent = textarea.value;
+                if (!newContent.trim()) {
+                    showToast('Uputstvo ne može biti prazno.', 'warning');
+                    return;
+                }
+                
+                guideContent = newContent;
+                if (currentUser) {
+                    database.ref('users/' + currentUser.uid + '/userGuide').set(newContent)
+                        .then(function() {
+                            showToast('✅ Uputstvo sačuvano!', 'success');
+                            content.innerHTML = newContent;
+                        })
+                        .catch(function(err) {
+                            showToast('Greška: ' + err.message, 'error');
+                        });
+                }
+            };
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn gray small';
+            cancelBtn.textContent = '❌ Otkaži';
+            cancelBtn.onclick = function() {
+                content.innerHTML = guideContent;
+            };
+            
+            btnWrapper.appendChild(saveBtn);
+            btnWrapper.appendChild(cancelBtn);
+            content.appendChild(btnWrapper);
+        };
+
+        // ============================================================
         //  TASKS - GLAVNA LOGIKA
         // ============================================================
         let allTasks = {};
@@ -2486,7 +2699,7 @@
         };
 
         // ============================================================
-        //  PODZADACI - NOVE FUNKCIJE
+        //  PODZADACI
         // ============================================================
         
         function renderSubtasksHTML(subtasks, taskKey, isShared) {
@@ -3874,6 +4087,7 @@
                         database.ref('nicknameToUid/' + emailToKey(currentNickname.toLowerCase())).set(user.uid);
                     }
                     updateUserLabel();
+                    loadGuide();
                     
                     const dbRef = getDbRef(user.uid);
                     dbRef.on('value', function(s) {
@@ -3945,12 +4159,11 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.22 (PODZADACI SA KATEGORIJOM)');
-        console.log('✅ Datum se menja u PONOĆ (ne u 2h)');
-        console.log('✅ Statistika u padajućem meniju');
-        console.log('✅ Podzadaci - izmena teksta (klik ili ✏️)');
-        console.log('✅ Podzadaci - svaki ima svoju kategoriju');
-        console.log('✅ Podzadaci - dodavanje sa kategorijom');
+        console.log('☁️ Moj Planer - verzija 2.23 (KORISNIČKO UPUTSTVO)');
+        console.log('✅ Uputstvo se čuva u Firebase bazi (users/$uid/userGuide)');
+        console.log('✅ Dugme ❓ pored teme za otvaranje uputstva');
+        console.log('✅ Mogućnost izmene uputstva direktno iz aplikacije');
+        console.log('✅ Podzadaci sa kategorijom');
         console.log('✅ Paginacija - 20 zadataka po strani');
         console.log('✅ Pretraga - pretražuje sve zadatke');
         console.log('✅ RESET - trostruka potvrda');
