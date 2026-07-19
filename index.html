@@ -1439,7 +1439,7 @@
         const database = firebase.database();
 
         // ============================================================
-        //  DOMPurify KONFIGURACIJA - dozvoljavamo sigurne HTML tagove
+        //  DOMPurify KONFIGURACIJA
         // ============================================================
         const purifyConfig = {
             ALLOWED_TAGS: ['div', 'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'span', 'a', 'blockquote', 'code', 'pre'],
@@ -1447,7 +1447,7 @@
         };
 
         // ============================================================
-        //  TEMA - SA AUTO REŽIMOM
+        //  TEMA
         // ============================================================
         let autoTheme = true;
 
@@ -1494,7 +1494,6 @@
             }
         };
 
-        // Pratimo promene sistemske teme
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
             if (autoTheme) {
                 const theme = e.matches ? 'dark' : 'light';
@@ -1504,12 +1503,11 @@
             }
         });
 
-        // Inicijalno
         const initTheme = getStoredTheme();
         setTheme(initTheme);
 
         // ============================================================
-        //  DATUM - POPRAVLJEN (menja se u ponoć)
+        //  DATUM
         // ============================================================
         function getTodayKey() {
             const now = new Date();
@@ -1651,7 +1649,7 @@
         }, 30000);
 
         // ============================================================
-        //  POMOĆNE FUNKCIJE (UTILS)
+        //  POMOĆNE FUNKCIJE
         // ============================================================
         function escapeHtml(s) {
             if (!s) return '';
@@ -1669,7 +1667,6 @@
             });
         }
 
-        // Sanitizacija teksta - dodatna XSS zaštita
         function sanitizeText(text) {
             if (!text) return '';
             return text.replace(/<[^>]*>/g, '').trim();
@@ -1779,9 +1776,7 @@
         }
 
         // ============================================================
-        //  RATE LIMITING ZA DELJENJE (poboljšano sa Firebase pravilima)
-        //  Ovo je sada samo dodatna zaštita na klijentu, ali glavna 
-        //  zaštita je u Firebase Security Rules
+        //  RATE LIMITING
         // ============================================================
         const SHARE_LIMIT = 10;
         const SHARE_WINDOW = 60000;
@@ -1909,7 +1904,9 @@
                 'auth/email-already-in-use': 'Email je već u upotrebi.',
                 'auth/too-many-requests': 'Previše pokušaja. Pokušajte kasnije.',
                 'auth/invalid-credential': 'Pogrešan email ili šifra.',
-                'auth/weak-password': 'Šifra mora imati najmanje 6 karaktera.'
+                'auth/weak-password': 'Šifra mora imati najmanje 6 karaktera.',
+                'auth/network-request-failed': 'Greška u mreži. Proverite internet konekciju.',
+                'auth/operation-not-allowed': 'Prijava email-om nije omogućena u Firebase konzoli.'
             };
             return messages[code] || 'Greška: ' + code;
         }
@@ -1935,6 +1932,8 @@
             loginErr.textContent = '';
             loginOk.textContent = '';
             
+            console.log('🔐 Pokušaj autentifikacije:', { email, isRegisterMode });
+            
             if (!email || !pass) {
                 loginErr.textContent = 'Unesite email i šifru.';
                 return;
@@ -1949,11 +1948,32 @@
                     loginErr.textContent = 'Šifre se ne poklapaju.';
                     return;
                 }
+                
+                console.log('📝 Registracija novog korisnika...');
                 auth.createUserWithEmailAndPassword(email, pass)
-                    .catch(function(e) { loginErr.textContent = translateAuthError(e.code); });
+                    .then(function(userCredential) {
+                        console.log('✅ Registracija uspešna!', userCredential.user.email);
+                        loginOk.textContent = '✅ Nalog kreiran! Prijavljujemo...';
+                        showToast('✅ Nalog uspešno kreiran!', 'success');
+                    })
+                    .catch(function(e) {
+                        console.error('❌ Greška pri registraciji:', e.code, e.message);
+                        loginErr.textContent = translateAuthError(e.code);
+                        showToast('❌ ' + translateAuthError(e.code), 'error');
+                    });
             } else {
+                console.log('🔐 Prijava korisnika...');
                 auth.signInWithEmailAndPassword(email, pass)
-                    .catch(function(e) { loginErr.textContent = translateAuthError(e.code); });
+                    .then(function(userCredential) {
+                        console.log('✅ Prijava uspešna!', userCredential.user.email);
+                        loginOk.textContent = '✅ Prijavljeni ste!';
+                        showToast('✅ Uspešno prijavljeni!', 'success');
+                    })
+                    .catch(function(e) {
+                        console.error('❌ Greška pri prijavi:', e.code, e.message);
+                        loginErr.textContent = translateAuthError(e.code);
+                        showToast('❌ ' + translateAuthError(e.code), 'error');
+                    });
             }
         };
 
@@ -2017,11 +2037,10 @@
         }
 
         // ============================================================
-        //  NOTIFIKACIJE - SA GRUPISANJEM
+        //  NOTIFIKACIJE
         // ============================================================
         let notifiedTasks = new Set();
         let notifyInterval = null;
-        let notifiedToday = false;
 
         window.requestNotifPermission = function() {
             if (!('Notification' in window)) {
@@ -2073,7 +2092,6 @@
             const now = new Date();
             const today = getTodayKey();
             
-            // Dnevni sažetak - jednom dnevno
             const lastSummary = parseInt(localStorage.getItem('mp_last_summary') || '0');
             if (now.getTime() - lastSummary > 86400000) {
                 const todayTasks = Object.values(allTasks).filter(function(t) {
@@ -2359,7 +2377,7 @@
         };
 
         // ============================================================
-        //  KORISNIČKO UPUTSTVO SA FAQ - SIGURNA VERZIJA
+        //  KORISNIČKO UPUTSTVO
         // ============================================================
         
         const DEFAULT_GUIDE = `
@@ -2441,7 +2459,6 @@
             if (!guideContent) {
                 guideContent = DEFAULT_GUIDE;
             }
-            // SIGURNOSNO: Koristimo DOMPurify za sanitizaciju pre prikaza
             content.innerHTML = DOMPurify.sanitize(guideContent, purifyConfig);
             modal.style.display = 'flex';
         };
@@ -2451,7 +2468,7 @@
         };
 
         // ============================================================
-        //  PRODUKTIVNOST - IZVEŠTAJ
+        //  PRODUKTIVNOST
         // ============================================================
         window.showProductivity = function() {
             const modal = document.getElementById('productivityModal');
@@ -2557,7 +2574,6 @@
                     const db = getDbRef(currentUser.uid);
                     const updates = {};
                     Object.keys(data.tasks).forEach(function(key) {
-                        // Ako već postoji, ne prepisujemo
                         if (!allTasks[key]) {
                             updates[key] = data.tasks[key];
                         }
@@ -2599,7 +2615,6 @@
         let sharedRefsRef = null;
         let statsDropdownOpen = false;
 
-        // PAGINACIJA
         const ITEMS_PER_PAGE = 20;
         let currentPage = 1;
 
@@ -2690,7 +2705,7 @@
             }
         }
 
-        // ===== PROVERA SMEĆA (30 dana) =====
+        // ===== PROVERA SMEĆA =====
         function checkTrashExpiry() {
             const now = Date.now();
             const thirtyDays = 30 * 24 * 60 * 60 * 1000;
@@ -2811,7 +2826,6 @@
             
             html += '<button class="chip teal-chip' + (isShared ? ' active-teal' : '') + '" ' + extraStyle + ' onclick="setCat(\'Deljeni\')">🤝 Deljeni' + (sharedCount > 0 ? ' (' + sharedCount + ')' : '') + '</button>';
             
-            // Dugme za arhivirane
             const archivedCount = Object.values(allTasks).filter(function(t) { return t.archived && !t.deleted; }).length;
             html += '<button class="chip orange-chip' + (showArchived ? ' active-orange' : '') + '" onclick="toggleArchivedView()">📦 Arhiva' + (archivedCount > 0 ? ' (' + archivedCount + ')' : '') + '</button>';
             
@@ -3027,7 +3041,6 @@
                 html += '</div></div>';
             });
             
-            // SIGURNOSNO: Sanitizujemo ceo HTML blok pre prikaza
             list.innerHTML = DOMPurify.sanitize(html, {
                 ALLOWED_TAGS: ['div', 'span', 'button', 'input', 'select', 'option', 'label', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'p', 'h1', 'h2', 'h3', 'h4'],
                 ALLOWED_ATTR: ['class', 'id', 'style', 'onclick', 'onchange', 'oninput', 'onkeydown', 'type', 'value', 'placeholder', 'checked', 'title', 'disabled', 'min', 'max', 'step', 'role', 'aria-label', 'aria-hidden', 'data-*']
@@ -3088,7 +3101,6 @@
             '</div>';
         }
 
-        // ===== TOGGLE ALARMA =====
         window.toggleAlarm = function(key, checked) {
             if (!currentUser) return;
             
@@ -3172,7 +3184,6 @@
             return html;
         }
 
-        // Dodavanje podzadatka sa kategorijom
         window.addSubtaskWithCategory = function(input, catSelect, taskKey, isShared) {
             if (!currentUser) {
                 showToast('Niste prijavljeni.', 'error');
@@ -3245,7 +3256,6 @@
             renderTasks();
         };
 
-        // Stara funkcija za kompatibilnost
         window.addSubtask = function(input, taskKey, isShared) {
             const catSelect = document.getElementById('subtaskCategory_' + taskKey);
             if (catSelect) {
@@ -3256,7 +3266,6 @@
             }
         };
 
-        // Izmena teksta podzadatka (preko dugmeta)
         window.editSubtaskText = function(taskKey, subId, isShared) {
             const task = isShared ? sharedTasksData[taskKey] : allTasks[taskKey];
             if (!task || !task.subtasks || !task.subtasks[subId]) return;
@@ -3305,7 +3314,6 @@
             renderTasks();
         };
 
-        // Izmena teksta podzadatka (inline - klik na tekst)
         window.editSubtaskTextInline = function(taskKey, subId, isShared, element) {
             const task = isShared ? sharedTasksData[taskKey] : allTasks[taskKey];
             if (!task || !task.subtasks || !task.subtasks[subId]) return;
@@ -3379,7 +3387,6 @@
             });
         };
 
-        // Promena kategorije podzadatka
         window.changeSubtaskCategory = function(taskKey, subId, isShared, newCategory) {
             if (!currentUser) return;
             
@@ -3421,7 +3428,6 @@
             renderTasks();
         };
 
-        // Toggle podzadatka (završi/nezavrši)
         window.toggleSubtask = function(taskKey, subId, isShared) {
             if (!currentUser) return;
             
@@ -3463,7 +3469,6 @@
             renderTasks();
         };
 
-        // Brisanje podzadatka
         window.deleteSubtask = function(taskKey, subId, isShared) {
             if (!currentUser) {
                 showToast('Niste prijavljeni.', 'error');
@@ -3775,7 +3780,6 @@
             showToast('↩ Zadatak vraćen iz smeća!', 'success');
         };
 
-        // ===== BRISANJE DELJENIH =====
         window.deleteTaskPermanently = function(key) {
             if (!confirm('⚠️ Trajno obrisati zadatak? Ova radnja se NE MOŽE opozvati!')) return;
             
@@ -4069,7 +4073,7 @@
             document.getElementById('taskText').focus();
         };
 
-        // ===== RESET DUGME =====
+        // ===== RESET =====
         window.resetAll = function() {
             if (!confirm('⚠️ UPOZORENJE: Ovo će trajno obrisati SVE vaše zadatke!\n\nDa li ste sigurni?')) {
                 return;
@@ -4519,6 +4523,7 @@
             if (user) {
                 currentUser = user;
                 loginOverlay.style.display = 'none';
+                console.log('✅ Korisnik prijavljen:', user.email);
                 
                 database.ref('emailToUid/' + emailToKey(user.email.toLowerCase())).set(user.uid);
                 database.ref('users/' + user.uid + '/email').set(user.email);
