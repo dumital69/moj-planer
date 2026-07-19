@@ -4624,5 +4624,140 @@
         console.log('✅ RESET - trostruka potvrda');
         console.log('✅ Firebase pravila - validacija na nivou baze');
     </script>
+	<!-- ============================================================ -->
+<!-- POPRAVKA ZA PRIJAVU - DODAJ OVO NA KRAJ FAJLA              -->
+<!-- ============================================================ -->
+<script>
+// ============================================================
+//  HITNA POPRAVKA - POVEZIVANJE DUGMETA ZA PRIJAVU
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Popravka za prijavu - aktivan!');
+    
+    // Pronađi dugme za prijavu
+    const loginBtn = document.getElementById('loginBtn');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPass = document.getElementById('loginPass');
+    const loginPass2 = document.getElementById('loginPass2');
+    const loginErr = document.getElementById('loginErr');
+    const loginOk = document.getElementById('loginOk');
+    const loginSubtitle = document.getElementById('loginSubtitle');
+    const loginToggle = document.getElementById('loginToggle');
+    
+    if (!loginBtn) {
+        console.error('❌ Dugme za prijavu nije pronađeno!');
+        return;
+    }
+    
+    console.log('✅ Dugme za prijavu pronađeno!');
+    
+    let isRegisterMode = false;
+    
+    // Funkcija za prijavu/registraciju
+    function doAuth() {
+        const email = loginEmail.value.trim();
+        const pass = loginPass.value;
+        const pass2 = loginPass2.value;
+        
+        loginErr.textContent = '';
+        loginOk.textContent = '';
+        
+        console.log('🔐 Pokušaj:', { email, mode: isRegisterMode ? 'register' : 'login' });
+        
+        if (!email || !pass) {
+            loginErr.textContent = 'Unesite email i šifru.';
+            return;
+        }
+        
+        if (isRegisterMode) {
+            if (pass.length < 6) {
+                loginErr.textContent = 'Šifra mora imati najmanje 6 karaktera.';
+                return;
+            }
+            if (pass !== pass2) {
+                loginErr.textContent = 'Šifre se ne poklapaju.';
+                return;
+            }
+            
+            console.log('📝 Registracija...');
+            firebase.auth().createUserWithEmailAndPassword(email, pass)
+                .then(function(userCredential) {
+                    console.log('✅ Registracija uspešna!', userCredential.user.email);
+                    loginOk.textContent = '✅ Nalog kreiran! Prijavljujemo...';
+                    setTimeout(function() { location.reload(); }, 1500);
+                })
+                .catch(function(error) {
+                    console.error('❌ Greška:', error.code, error.message);
+                    loginErr.textContent = translateError(error.code);
+                });
+        } else {
+            console.log('🔐 Prijava...');
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(function(userCredential) {
+                    console.log('✅ Prijava uspešna!', userCredential.user.email);
+                    loginOk.textContent = '✅ Prijavljeni ste!';
+                    setTimeout(function() { location.reload(); }, 1500);
+                })
+                .catch(function(error) {
+                    console.error('❌ Greška:', error.code, error.message);
+                    loginErr.textContent = translateError(error.code);
+                });
+        }
+    }
+    
+    function translateError(code) {
+        const map = {
+            'auth/user-not-found': '❌ Korisnik nije pronađen. Registrujte se prvo.',
+            'auth/wrong-password': '❌ Pogrešna šifra.',
+            'auth/invalid-email': '❌ Neispravan email.',
+            'auth/email-already-in-use': '❌ Email već postoji. Prijavite se.',
+            'auth/too-many-requests': '⏳ Previše pokušaja. Sačekajte.',
+            'auth/operation-not-allowed': '❌ Prijava nije omogućena u Firebase konzoli.',
+            'auth/network-request-failed': '🌐 Proverite internet konekciju.',
+            'auth/weak-password': '🔑 Šifra mora imati 6+ karaktera.'
+        };
+        return map[code] || '❌ Greška: ' + code;
+    }
+    
+    function toggleMode() {
+        isRegisterMode = !isRegisterMode;
+        if (loginSubtitle) {
+            loginSubtitle.textContent = isRegisterMode ? 'Napravite novi nalog' : 'Prijavite se da nastavite';
+        }
+        loginBtn.textContent = isRegisterMode ? 'Registruj se' : 'Prijavi se';
+        if (loginPass2) {
+            loginPass2.style.display = isRegisterMode ? 'block' : 'none';
+        }
+        if (loginToggle) {
+            loginToggle.innerHTML = isRegisterMode 
+                ? 'Već imate nalog? <span onclick="window.toggleMode()">Prijavite se</span>'
+                : 'Nemate nalog? <span onclick="window.toggleMode()">Registrujte se</span>';
+        }
+        loginErr.textContent = '';
+        loginOk.textContent = '';
+    }
+    
+    // Poveži dugme
+    loginBtn.addEventListener('click', doAuth);
+    
+    // Enter za prijavu
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const loginOverlay = document.getElementById('loginOverlay');
+            if (loginOverlay && loginOverlay.style.display !== 'none') {
+                e.preventDefault();
+                doAuth();
+            }
+        }
+    });
+    
+    // Eksportuj funkcije
+    window.doAuth = doAuth;
+    window.toggleMode = toggleMode;
+    window.translateError = translateError;
+    
+    console.log('✅ Popravka za prijavu aktivirana!');
+});
+</script>
 </body>
 </html>
