@@ -11,6 +11,9 @@
     <link rel="apple-touch-icon" href="favicon.ico">
     <link rel="shortcut icon" href="favicon.ico">
     
+    <!-- DOMPurify za sigurnu sanitizaciju HTML-a -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.7/purify.min.js"></script>
+    
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -1083,6 +1086,20 @@
             white-space: nowrap;
         }
 
+        /* ===== LOADING SPINNER ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--blue);
+            animation: spin 0.8s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* ===== GUIDE MODAL ===== */
         #guideModal {
             display: none;
@@ -1237,7 +1254,7 @@
                 <button class="close-btn" onclick="closeGuide()">✕</button>
             </div>
             <div class="guide-content" id="guideContent">
-                Učitavanje...
+                <div class="loading-spinner"></div> Učitavanje...
             </div>
             <div class="guide-footer">
                 <button class="btn gray small" onclick="closeGuide()">Zatvori</button>
@@ -1253,7 +1270,7 @@
                 <button class="close-btn" onclick="closeProductivity()">✕</button>
             </div>
             <div id="productivityContent">
-                Učitavanje...
+                <div class="loading-spinner"></div> Učitavanje...
             </div>
         </div>
     </div>
@@ -1420,6 +1437,14 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const database = firebase.database();
+
+        // ============================================================
+        //  DOMPurify KONFIGURACIJA - dozvoljavamo sigurne HTML tagove
+        // ============================================================
+        const purifyConfig = {
+            ALLOWED_TAGS: ['div', 'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'span', 'a', 'blockquote', 'code', 'pre'],
+            ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style']
+        };
 
         // ============================================================
         //  TEMA - SA AUTO REŽIMOM
@@ -1754,7 +1779,9 @@
         }
 
         // ============================================================
-        //  RATE LIMITING ZA DELJENJE
+        //  RATE LIMITING ZA DELJENJE (poboljšano sa Firebase pravilima)
+        //  Ovo je sada samo dodatna zaštita na klijentu, ali glavna 
+        //  zaštita je u Firebase Security Rules
         // ============================================================
         const SHARE_LIMIT = 10;
         const SHARE_WINDOW = 60000;
@@ -2332,7 +2359,7 @@
         };
 
         // ============================================================
-        //  KORISNIČKO UPUTSTVO SA FAQ
+        //  KORISNIČKO UPUTSTVO SA FAQ - SIGURNA VERZIJA
         // ============================================================
         
         const DEFAULT_GUIDE = `
@@ -2395,7 +2422,7 @@
             const guideRef = database.ref('users/' + currentUser.uid + '/userGuide');
             guideRef.once('value').then(function(snap) {
                 const data = snap.val();
-                if (data) {
+                if (data && typeof data === 'string') {
                     guideContent = data;
                 } else {
                     guideContent = DEFAULT_GUIDE;
@@ -2414,7 +2441,8 @@
             if (!guideContent) {
                 guideContent = DEFAULT_GUIDE;
             }
-            content.innerHTML = guideContent;
+            // SIGURNOSNO: Koristimo DOMPurify za sanitizaciju pre prikaza
+            content.innerHTML = DOMPurify.sanitize(guideContent, purifyConfig);
             modal.style.display = 'flex';
         };
 
@@ -2492,7 +2520,7 @@
             const data = {
                 tasks: allTasks,
                 exportedAt: new Date().toISOString(),
-                version: '2.23',
+                version: '2.24',
                 user: currentUser ? currentUser.email : 'unknown'
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2999,7 +3027,11 @@
                 html += '</div></div>';
             });
             
-            list.innerHTML = html;
+            // SIGURNOSNO: Sanitizujemo ceo HTML blok pre prikaza
+            list.innerHTML = DOMPurify.sanitize(html, {
+                ALLOWED_TAGS: ['div', 'span', 'button', 'input', 'select', 'option', 'label', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'p', 'h1', 'h2', 'h3', 'h4'],
+                ALLOWED_ATTR: ['class', 'id', 'style', 'onclick', 'onchange', 'oninput', 'onkeydown', 'type', 'value', 'placeholder', 'checked', 'title', 'disabled', 'min', 'max', 'step', 'role', 'aria-label', 'aria-hidden', 'data-*']
+            });
         }
 
         // ===== ARHIVIRANJE =====
@@ -4310,7 +4342,10 @@
                     '</div></div>';
             });
             
-            list.innerHTML = html;
+            list.innerHTML = DOMPurify.sanitize(html, {
+                ALLOWED_TAGS: ['div', 'span', 'button', 'br', 'strong', 'em', 'p', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4'],
+                ALLOWED_ATTR: ['class', 'id', 'style', 'onclick', 'title', 'type']
+            });
         }
 
         // ============================================================
@@ -4571,18 +4606,18 @@
 
         renderTasks();
 
-        console.log('☁️ Moj Planer - verzija 2.24 (SVE PREPORUKE - bez keyboard shortcuts)');
-        console.log('✅ Sigurnost: Rate limiting za deljenje, sanitizacija teksta, validacije');
-        console.log('✅ Uputstvo sa FAQ - čuva se u Firebase bazi');
+        console.log('☁️ Moj Planer - verzija 2.24 (SIGURNA VERZIJA)');
+        console.log('✅ Sigurnost: DOMPurify sanitizacija, validacije, rate limiting');
+        console.log('✅ Uputstvo sa FAQ - sigurno renderovanje preko DOMPurify');
         console.log('✅ Produktivnost - izveštaj za 7 dana');
         console.log('✅ Arhiviranje - zadaci se arhiviraju umesto brisanja');
         console.log('✅ Automatska tema - prati sistemska podešavanja');
         console.log('✅ Eksport/Import - JSON backup');
         console.log('✅ Progres bar - prikaz napretka za danas');
         console.log('✅ Grupisane notifikacije - dnevni sažetak');
-        console.log('✅ Dugme ❓ za uputstvo - samo pregled (nema izmene)');
+        console.log('✅ Dugme ❓ za uputstvo - sigurno prikazivanje');
         console.log('✅ RESET - trostruka potvrda');
-        console.log('✅ Firebase pravila - poboljšana sa validacijama');
+        console.log('✅ Firebase pravila - validacija na nivou baze');
     </script>
 </body>
 </html>
