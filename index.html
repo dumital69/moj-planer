@@ -1443,7 +1443,12 @@
         // ============================================================
         const purifyConfig = {
             ALLOWED_TAGS: ['div', 'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'span', 'a', 'blockquote', 'code', 'pre'],
-            ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style']
+            // FIX BEZBEDNOST: 'style' uklonjen - dozvoljavao je CSS injection.
+            // FIX BEZBEDNOST: ALLOW_DATA_ATTR iskljucen, FORBID_ATTR dodat za event handlere.
+            ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+            ALLOW_DATA_ATTR: false,
+            FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick', 'onfocus', 'onmouseover'],
+            FORCE_BODY: true
         };
 
         // ============================================================
@@ -2006,24 +2011,47 @@
                 showToast('Unesite nadimak.', 'warning');
                 return;
             }
+
+            // FIX: Validacija nadimka na klijentskoj strani
+            if (nick.length > 49) {
+                showToast('Nadimak je predugačak (max 49 karaktera).', 'error');
+                return;
+            }
+            if (!/^[a-zA-Z0-9_.\-]+$/.test(nick)) {
+                showToast('Nadimak sme da sadrži samo slova, brojeve, _, - i .', 'warning');
+                return;
+            }
             
             const nickLower = nick.toLowerCase();
             const db = database;
-            
-            db.ref('nicknameToUid/' + emailToKey(nickLower)).once('value', function(snap) {
-                const existingUid = snap.val();
-                if (existingUid && existingUid !== currentUser.uid) {
-                    showToast('Ovaj nadimak je već zauzet! Izaberite drugi.', 'error');
-                    return;
+            const nickKey = emailToKey(nickLower);
+            const uid = currentUser.uid;
+
+            // FIX: Koristi transaction() umesto once()+update() da se eliminise
+            // race condition gde dva korisnika mogu istovremeno uzeti isti nadimak.
+            db.ref('nicknameToUid/' + nickKey).transaction(function(currentValue) {
+                // Ako neko drugi vec ima ovaj nadimak, abort (return undefined)
+                if (currentValue !== null && currentValue !== uid) {
+                    return; // abort transakcije
                 }
-                
-                const updates = {};
-                updates['users/' + currentUser.uid + '/nickname'] = nick;
-                updates['nicknameToUid/' + emailToKey(nickLower)] = currentUser.uid;
-                
-                db.ref().update(updates)
-                    .then(function() { showToast('Nadimak uspešno sačuvan!', 'success'); })
-                    .catch(function(err) { showToast('Greška pri čuvanju: ' + err.message, 'error'); });
+                return uid; // atomarno zauzmi nadimak
+            }, function(error, committed, snapshot) {
+                if (error) {
+                    showToast('Greška pri čuvanju: ' + error.message, 'error');
+                } else if (!committed) {
+                    showToast('Ovaj nadimak je već zauzet! Izaberite drugi.', 'error');
+                } else {
+                    // Nadimak atomarno zauzet, sada azuriraj profil
+                    db.ref('users/' + uid + '/nickname').set(nick)
+                        .then(function() {
+                            currentNickname = nick;
+                            updateUserLabel();
+                            showToast('Nadimak uspešno sačuvan!', 'success');
+                        })
+                        .catch(function(err) {
+                            showToast('Greška pri čuvanju profila: ' + err.message, 'error');
+                        });
+                }
             });
         };
 
