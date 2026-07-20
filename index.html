@@ -932,6 +932,33 @@
             transition: var(--transition);
         }
         .login-box input:focus { border-color: var(--blue); box-shadow: 0 0 20px rgba(52, 152, 219, 0.15); }
+        .pass-wrap {
+            position: relative;
+            margin-bottom: 12px;
+        }
+        .pass-wrap input {
+            width: 100%;
+            margin-bottom: 0;
+            padding-right: 46px;
+            box-sizing: border-box;
+        }
+        .pass-eye {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            color: var(--text);
+            line-height: 1;
+        }
+        .pass-eye:hover { opacity: 1; }
+        .pass-eye.visible { opacity: 1; }
         .login-err {
             color: var(--red);
             font-size: 13px;
@@ -1281,8 +1308,14 @@
             <h2 class="login-title">☁️ Moj Planer</h2>
             <p class="login-sub" id="loginSubtitle">Prijavite se da nastavite</p>
             <input type="email" id="loginEmail" placeholder="Email adresa" autocomplete="email" />
-            <input type="password" id="loginPass" placeholder="Šifra" autocomplete="current-password" />
-            <input type="password" id="loginPass2" placeholder="Ponovite šifru" autocomplete="new-password" style="display:none" />
+            <div class="pass-wrap">
+                <input type="password" id="loginPass" placeholder="Šifra" autocomplete="new-password" />
+                <button type="button" class="pass-eye" onclick="togglePassVis('loginPass',this)" tabindex="-1" title="Prikaži/sakrij šifru">👁</button>
+            </div>
+            <div class="pass-wrap" id="loginPass2Wrap" style="display:none">
+                <input type="password" id="loginPass2" placeholder="Ponovite šifru" autocomplete="new-password" />
+                <button type="button" class="pass-eye" onclick="togglePassVis('loginPass2',this)" tabindex="-1" title="Prikaži/sakrij šifru">👁</button>
+            </div>
             <div class="login-err" id="loginErr"></div>
             <div class="login-ok" id="loginOk"></div>
             <button class="btn green" id="loginBtn" style="width:100%;padding:13px;font-size:15px;">Prijavi se</button>
@@ -1933,7 +1966,7 @@
             isRegisterMode = !isRegisterMode;
             loginSubtitle.textContent = isRegisterMode ? 'Napravite novi nalog' : 'Prijavite se da nastavite';
             loginBtn.textContent = isRegisterMode ? 'Registruj se' : 'Prijavi se';
-            loginPass2.style.display = isRegisterMode ? 'block' : 'none';
+            document.getElementById('loginPass2Wrap').style.display = isRegisterMode ? 'block' : 'none';
             forgotLink.style.display = isRegisterMode ? 'none' : 'block';
             loginToggle.innerHTML = isRegisterMode 
                 ? 'Već imate nalog? <span onclick="toggleAuthMode()">Prijavite se</span>'
@@ -2008,6 +2041,17 @@
             auth.sendPasswordResetEmail(email)
                 .then(function() { loginOk.textContent = 'Email za reset šifre je poslat!'; })
                 .catch(function(e) { loginErr.textContent = translateAuthError(e.code); });
+        };
+
+        window.togglePassVis = function(inputId, btn) {
+            var input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.classList.add('visible');
+            } else {
+                input.type = 'password';
+                btn.classList.remove('visible');
+            }
         };
 
         window.doSignOut = function() {
@@ -4685,6 +4729,16 @@
             } else {
                 currentUser = null;
                 currentNickname = '';
+                // FIX: Brisanje polja i resetovanje eye dugmadi pri odjavi
+                loginEmail.value = '';
+                loginPass.value = '';
+                loginPass.type = 'password';
+                document.getElementById('loginPass2').value = '';
+                document.getElementById('loginPass2').type = 'password';
+                document.querySelectorAll('.pass-eye').forEach(function(btn) {
+                    btn.classList.remove('visible');
+                    btn.textContent = '👁';
+                });
                 loginOverlay.style.display = 'flex';
                 allTasks = {};
                 cleanupSharedListeners();
