@@ -1326,15 +1326,6 @@
         </div>
     </div>
 
-    <!-- Migration Bar -->
-    <div id="migrationBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:8888;background:linear-gradient(90deg,#8e44ad,#6c3483);color:#fff;padding:14px 20px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 -4px 20px rgba(0,0,0,0.4);">
-        <div style="font-size:14px;font-weight:700;">📦 Stari zadaci (<span id="migrationCount">?</span> kom.) — prebaciti na vaš nalog?</div>
-        <div style="display:flex;gap:8px;">
-            <button class="btn green small" onclick="doMigrate()">✅ Prebaci</button>
-            <button class="btn gray small" onclick="skipMigrate()">⏭ Preskoči</button>
-        </div>
-    </div>
-
     <!-- Glavni kontejner -->
     <div class="wrap">
         <!-- Leva strana - Kalendar -->
@@ -4560,60 +4551,6 @@
         }
 
         // ============================================================
-        //  MIGRACIJA
-        // ============================================================
-        window.doMigrate = function() {
-            if (!currentUser) return;
-            
-            database.ref('tasks').once('value', function(snap) {
-                const old = snap.val();
-                if (!old) return;
-                
-                const newRef = database.ref('users/' + currentUser.uid + '/tasks');
-                newRef.once('value', function(ns) {
-                    const existingCount = Object.keys(ns.val() || {}).length;
-                    const oldCount = Object.keys(old).length;
-                    
-                    if (!confirm('Prebaciti ' + oldCount + ' starih zadataka?\n\nVeć imate ' + existingCount + ' zadataka - biće DODATI.')) {
-                        return;
-                    }
-                    
-                    Object.keys(old).forEach(function(key) {
-                        if (old[key].alarm === undefined) old[key].alarm = true;
-                        if (!old[key].ownerUid) old[key].ownerUid = currentUser.uid;
-                        if (old[key].archived === undefined) old[key].archived = false;
-                    });
-                    
-                    newRef.update(old).then(function() {
-                        database.ref('tasks').remove();
-                        document.getElementById('migrationBar').style.display = 'none';
-                        showToast('Zadaci su uspešno prebačeni!', 'success');
-                        renderTasks();
-                    });
-                });
-            });
-        };
-
-        window.skipMigrate = function() {
-            if (confirm('Preskočiti migraciju?')) {
-                document.getElementById('migrationBar').style.display = 'none';
-            }
-        };
-
-        function checkOldTasks() {
-            database.ref('tasks').once('value', function(snap) {
-                const old = snap.val();
-                if (!old || !Object.keys(old).length) return;
-                
-                const bar = document.getElementById('migrationBar');
-                if (bar) {
-                    bar.style.display = 'flex';
-                    document.getElementById('migrationCount').textContent = Object.keys(old).length;
-                }
-            });
-        }
-
-        // ============================================================
         //  MANUALNO OSVEŽAVANJE
         // ============================================================
         window.manualRefresh = function() {
@@ -4722,7 +4659,6 @@
                     updateNotifBar();
                     startNotificationTimer();
                     startAutoRefresh();
-                    checkOldTasks();
                     registerServiceWorker();
                 });
                 
