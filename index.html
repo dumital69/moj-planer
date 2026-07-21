@@ -1562,41 +1562,69 @@
         let isAlarmPlaying = false;
         let currentAlarmTaskKey = null;
 
+        // FIX: Globalni AudioContext - kreira se jednom, resume() pre svakog zvuka
+        // Android zahteva korisničku interakciju pre reprodukcije zvuka.
+        // Čuvamo globalnu referencu i "otključavamo" ga na prvom kliku/tapovanju.
+        let globalAudioCtx = null;
+
+        function initAudioCtx() {
+            try {
+                if (!globalAudioCtx) {
+                    globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (globalAudioCtx.state === 'suspended') {
+                    globalAudioCtx.resume();
+                }
+            } catch (e) {
+                console.log('AudioContext init greška:', e);
+            }
+        }
+
+        // Otključavamo AudioContext na bilo kojoj korisničkoj interakciji
+        ['click', 'touchstart', 'keydown', 'pointerdown'].forEach(function(evt) {
+            document.addEventListener(evt, function() { initAudioCtx(); }, { passive: true });
+        });
+
         function playAlarmSound() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
+                initAudioCtx();
+                if (!globalAudioCtx) return;
+                const audioCtx = globalAudioCtx;
+
                 const osc1 = audioCtx.createOscillator();
                 const gain1 = audioCtx.createGain();
                 osc1.type = 'square';
-                osc1.frequency.value = 800;
-                gain1.gain.value = 0.3;
+                osc1.frequency.value = 880;
+                gain1.gain.value = 0.35;
                 osc1.connect(gain1);
                 gain1.connect(audioCtx.destination);
                 osc1.start();
-                
-                setTimeout(function() {
-                    const osc2 = audioCtx.createOscillator();
-                    const gain2 = audioCtx.createGain();
-                    osc2.type = 'square';
-                    osc2.frequency.value = 1000;
-                    gain2.gain.value = 0.3;
-                    osc2.connect(gain2);
-                    gain2.connect(audioCtx.destination);
-                    osc2.start();
-                    setTimeout(function() {
-                        osc2.stop();
-                    }, 200);
-                }, 200);
-                
-                setTimeout(function() {
-                    osc1.stop();
-                }, 400);
-                
+                osc1.stop(audioCtx.currentTime + 0.25);
+
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'square';
+                osc2.frequency.value = 1100;
+                gain2.gain.value = 0.35;
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start(audioCtx.currentTime + 0.3);
+                osc2.stop(audioCtx.currentTime + 0.55);
+
+                const osc3 = audioCtx.createOscillator();
+                const gain3 = audioCtx.createGain();
+                osc3.type = 'square';
+                osc3.frequency.value = 880;
+                gain3.gain.value = 0.35;
+                osc3.connect(gain3);
+                gain3.connect(audioCtx.destination);
+                osc3.start(audioCtx.currentTime + 0.6);
+                osc3.stop(audioCtx.currentTime + 0.85);
+
                 if (isAlarmPlaying) {
                     alarmTimeout = setTimeout(function() {
                         playAlarmSound();
-                    }, 800);
+                    }, 1200);
                 }
             } catch (e) {
                 console.log('Zvuk nije podržan:', e);
@@ -2236,33 +2264,40 @@
             const opts = {
                 body: body,
                 icon: 'favicon.ico',
+                badge: 'favicon.ico',
                 tag: tag || title,
                 renotify: true,
-                requireInteraction: true
+                requireInteraction: true,
+                vibrate: [200, 100, 200]  // Vibracija na Androidu uz notifikaciju
             };
-            
+
+            // FIX: Uvek pokušavamo SW prvi (jedini način koji pouzdano radi na Androidu)
             if ('serviceWorker' in navigator) {
                 try {
                     const reg = await navigator.serviceWorker.ready;
                     await reg.showNotification(title, opts);
                     return;
                 } catch (e) {
-                    console.log('SW notifikacija:', e);
+                    console.warn('SW notifikacija greška:', e.message);
                 }
             }
-            
-            try {
-                new Notification(title, opts);
-            } catch (e) {
-                console.log('Notifikacija:', e);
+
+            // Fallback: direktna Notification API (radi na desktopu, na Androidu samo u fokusu)
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification(title, opts);
+                } catch (e) {
+                    console.warn('Notification fallback greška:', e.message);
+                }
             }
         }
 
         function startNotificationTimer() {
             if (notifyInterval) clearInterval(notifyInterval);
+            // FIX: Interval smanjen na 30s - sinhronizovan sa checkAlarms() intervalem
             notifyInterval = setInterval(function() {
                 checkAndNotify();
-            }, 60000);
+            }, 30000);
         }
 
         function stopNotificationTimer() {
@@ -4577,14 +4612,38 @@
                 console.log('❌ Service Worker nije podržan');
                 return;
             }
-            
-            navigator.serviceWorker.register('sw.js')
-                .then(function(reg) {
-                    console.log('✅ Service Worker registrovan!', reg);
-                })
-                .catch(function(e) {
-                    console.warn('⚠️ SW greška:', e);
-                });
+            // FIX: SW kod se upisuje kao Blob jer nema posebnog sw.js fajla.
+            // Ovo dozvoljava notifikacije putem SW i na Androidu dok je tab otvoren.
+            const swCode = `
+self.addEventListener('install', function(e) { self.skipWaiting(); });
+self.addEventListener('activate', function(e) { e.waitUntil(self.clients.claim()); });
+self.addEventListener('notificationclick', function(e) {
+    e.notification.close();
+    e.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
+            for (var i = 0; i < list.length; i++) {
+                if ('focus' in list[i]) return list[i].focus();
+            }
+            if (clients.openWindow) return clients.openWindow('/');
+        })
+    );
+});
+self.addEventListener('fetch', function(e) {});
+`;
+            try {
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl, { scope: '/' })
+                    .then(function(reg) {
+                        console.log('✅ Service Worker registrovan!', reg.scope);
+                    })
+                    .catch(function(e) {
+                        // Blob SW može biti blokiran u nekim browserima - tiho ignorišemo
+                        console.warn('⚠️ SW (blob) greška:', e.message);
+                    });
+            } catch(e) {
+                console.warn('⚠️ SW greška:', e);
+            }
         }
 
         // ============================================================
