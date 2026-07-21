@@ -3232,9 +3232,25 @@
             if (!currentUser) return;
             if (!confirm('Arhivirati zadatak?')) return;
             
+            const task = allTasks[key];
+            const nowISO = dateToISO(new Date());
+
+            // FIX: Deljeni zadaci — samo u sharedTasks
+            if (task && task.sharedKey) {
+                database.ref('sharedTasks/' + task.sharedKey).update({
+                    archived: true,
+                    lastChangedAt: nowISO,
+                    lastChangedBy: currentUser.uid
+                }).then(function() {
+                    showToast('📦 Deljeni zadatak arhiviran!', 'success');
+                }).catch(function(e) {
+                    showToast('❌ Greška: ' + e.message, 'error');
+                });
+                return;
+            }
+
             const updates = { archived: true };
             const db = getDbRef(currentUser.uid);
-            
             if (navigator.onLine) {
                 db.child(key).update(updates);
             } else {
@@ -3284,25 +3300,27 @@
         window.toggleAlarm = function(key, checked) {
             if (!currentUser) return;
             
-            const db = getDbRef(currentUser.uid);
             const nowISO = dateToISO(new Date());
-            const updates = { alarm: checked };
-            
             const task = allTasks[key];
+
+            // FIX: Deljeni zadaci — samo u sharedTasks
             if (task && task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
                     alarm: checked,
                     lastChangedAt: nowISO,
                     lastChangedBy: currentUser.uid
                 });
+                showToast(checked ? '🔔 Alarm uključen' : '🔕 Alarm isključen', 'info', 1500);
+                return;
             }
-            
+
+            const db = getDbRef(currentUser.uid);
+            const updates = { alarm: checked };
             if (navigator.onLine) {
                 db.child(key).update(updates);
             } else {
                 addToQueue({ type: 'update', key: key, payload: updates });
             }
-            
             showToast(checked ? '🔔 Alarm uključen' : '🔕 Alarm isključen', 'info', 1500);
         };
 
@@ -3905,6 +3923,28 @@
             if (!confirm('Pošalji zadatak u smeće?')) return;
             
             const nowISO = dateToISO(new Date());
+            const task = allTasks[key];
+
+            // FIX: Deljeni zadaci se ažuriraju SAMO u sharedTasks čvoru.
+            // Ne smemo pisati u childovu task DB jer sintetički ključ tamo ne postoji
+            // — to bi kreiralo smeće bez teksta koje se stalno vraća.
+            if (task && task.sharedKey) {
+                database.ref('sharedTasks/' + task.sharedKey).update({
+                    deleted: true,
+                    deletedAt: nowISO,
+                    lastChangedAt: nowISO,
+                    lastChangedBy: currentUser.uid,
+                    completed: false,
+                    completedAt: '',
+                    archived: false
+                }).then(function() {
+                    showToast('🗑️ Deljeni zadatak poslat u smeće!', 'warning');
+                }).catch(function(e) {
+                    showToast('❌ Greška: ' + e.message, 'error');
+                });
+                return; // ← ne pisati u childovu DB
+            }
+
             const updates = {
                 deleted: true,
                 deletedAt: nowISO,
@@ -3912,18 +3952,6 @@
                 completedAt: '',
                 archived: false
             };
-            
-            const task = allTasks[key];
-            if (task && task.sharedKey) {
-                database.ref('sharedTasks/' + task.sharedKey).update({
-                    deleted: true,
-                    deletedAt: nowISO,
-                    lastChangedAt: nowISO,
-                    lastChangedBy: currentUser.uid,
-                    archived: false
-                });
-            }
-            
             const db = getDbRef(currentUser.uid);
             if (navigator.onLine) {
                 db.child(key).update(updates);
@@ -3936,21 +3964,23 @@
         window.restoreFromTrash = function(key) {
             if (!currentUser) return;
             
-            const updates = {
-                deleted: false,
-                deletedAt: ''
-            };
-            
             const task = allTasks[key];
+            // FIX: Isto kao moveToTrash — deljeni zadaci samo u sharedTasks
             if (task && task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
                     deleted: false,
                     deletedAt: '',
                     lastChangedAt: dateToISO(new Date()),
                     lastChangedBy: currentUser.uid
+                }).then(function() {
+                    showToast('↩ Deljeni zadatak vraćen iz smeća!', 'success');
+                }).catch(function(e) {
+                    showToast('❌ Greška: ' + e.message, 'error');
                 });
+                return;
             }
-            
+
+            const updates = { deleted: false, deletedAt: '' };
             const db = getDbRef(currentUser.uid);
             if (navigator.onLine) {
                 db.child(key).update(updates);
@@ -3968,9 +3998,20 @@
             const task = allTasks[key];
             
             if (task && task.sharedKey) {
-                database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + task.sharedKey).remove()
+                const db = getDbRef(currentUser.uid);
+                // FIX: Ukloni sharedTaskRef (odjavljivanje od deljenog zadatka)
+                // i očisti eventualni smeće koji je mogao nastati u childovoj DB
+                const ops = [
+                    database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + task.sharedKey).remove()
+                ];
+                // Ako je moveToTrash ranije greškom upisao entry u childovu DB, briše ga
+                if (db) ops.push(db.child(key).remove().catch(function() {}));
+
+                Promise.all(ops)
                     .then(function() {
-                        showToast('Deljeni zadatak uklonjen iz vašeg prikaza.', 'info');
+                        delete allTasks[key];
+                        renderTasks();
+                        showToast('Deljeni zadatak trajno uklonjen.', 'info');
                     })
                     .catch(function(err) {
                         console.error('Greška pri uklanjanju deljenog zadatka:', err);
