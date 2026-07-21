@@ -1467,8 +1467,6 @@
         // ============================================================
         const purifyConfig = {
             ALLOWED_TAGS: ['div', 'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'span', 'a', 'blockquote', 'code', 'pre'],
-            // FIX BEZBEDNOST: 'style' uklonjen - dozvoljavao je CSS injection.
-            // FIX BEZBEDNOST: ALLOW_DATA_ATTR iskljucen, FORBID_ATTR dodat za event handlere.
             ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
             ALLOW_DATA_ATTR: false,
             FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick', 'onfocus', 'onmouseover'],
@@ -1562,9 +1560,6 @@
         let isAlarmPlaying = false;
         let currentAlarmTaskKey = null;
 
-        // FIX: Globalni AudioContext - kreira se jednom, resume() pre svakog zvuka
-        // Android zahteva korisničku interakciju pre reprodukcije zvuka.
-        // Čuvamo globalnu referencu i "otključavamo" ga na prvom kliku/tapovanju.
         let globalAudioCtx = null;
 
         function initAudioCtx() {
@@ -1580,7 +1575,6 @@
             }
         }
 
-        // Otključavamo AudioContext na bilo kojoj korisničkoj interakciji
         ['click', 'touchstart', 'keydown', 'pointerdown'].forEach(function(evt) {
             document.addEventListener(evt, function() { initAudioCtx(); }, { passive: true });
         });
@@ -1835,8 +1829,6 @@
         // ============================================================
         //  RATE LIMITING
         // ============================================================
-        // FIX: Smanjen limit deljenja na 5 u 60 sekundi (umesto 10)
-        // i dodat dnevni limit od 30 deljenja ukupno.
         const SHARE_LIMIT = 5;
         const SHARE_WINDOW = 60000;
         const SHARE_DAILY_LIMIT = 30;
@@ -1844,7 +1836,6 @@
 
         function canShare() {
             const now = Date.now();
-            // Ukloni stare pokusaje van prozora od 60s
             shareAttempts = shareAttempts.filter(function(t) {
                 return now - t < SHARE_WINDOW;
             });
@@ -1852,7 +1843,6 @@
                 showToast('⏳ Previše pokušaja deljenja. Sačekajte minut.', 'warning', 4000);
                 return false;
             }
-            // Dnevni limit - cuvamo u localStorage
             const today = new Date().toISOString().split('T')[0];
             const dailyKey = 'mp_share_daily_' + today;
             const dailyCount = parseInt(localStorage.getItem(dailyKey) || '0');
@@ -2088,7 +2078,6 @@
                 return;
             }
 
-            // FIX: Validacija nadimka na klijentskoj strani
             if (nick.length > 49) {
                 showToast('Nadimak je predugačak (max 49 karaktera).', 'error');
                 return;
@@ -2103,21 +2092,17 @@
             const nickKey = emailToKey(nickLower);
             const uid = currentUser.uid;
 
-            // FIX: Koristi transaction() umesto once()+update() da se eliminise
-            // race condition gde dva korisnika mogu istovremeno uzeti isti nadimak.
             db.ref('nicknameToUid/' + nickKey).transaction(function(currentValue) {
-                // Ako neko drugi vec ima ovaj nadimak, abort (return undefined)
                 if (currentValue !== null && currentValue !== uid) {
-                    return; // abort transakcije
+                    return;
                 }
-                return uid; // atomarno zauzmi nadimak
+                return uid;
             }, function(error, committed, snapshot) {
                 if (error) {
                     showToast('Greška pri čuvanju: ' + error.message, 'error');
                 } else if (!committed) {
                     showToast('Ovaj nadimak je već zauzet! Izaberite drugi.', 'error');
                 } else {
-                    // Nadimak atomarno zauzet, sada azuriraj profil
                     db.ref('users/' + uid + '/nickname').set(nick)
                         .then(function() {
                             currentNickname = nick;
@@ -2268,10 +2253,9 @@
                 tag: tag || title,
                 renotify: true,
                 requireInteraction: true,
-                vibrate: [200, 100, 200]  // Vibracija na Androidu uz notifikaciju
+                vibrate: [200, 100, 200]
             };
 
-            // FIX: Uvek pokušavamo SW prvi (jedini način koji pouzdano radi na Androidu)
             if ('serviceWorker' in navigator) {
                 try {
                     const reg = await navigator.serviceWorker.ready;
@@ -2282,7 +2266,6 @@
                 }
             }
 
-            // Fallback: direktna Notification API (radi na desktopu, na Androidu samo u fokusu)
             if ('Notification' in window && Notification.permission === 'granted') {
                 try {
                     new Notification(title, opts);
@@ -2294,7 +2277,6 @@
 
         function startNotificationTimer() {
             if (notifyInterval) clearInterval(notifyInterval);
-            // FIX: Interval smanjen na 30s - sinhronizovan sa checkAlarms() intervalem
             notifyInterval = setInterval(function() {
                 checkAndNotify();
             }, 30000);
@@ -2661,13 +2643,10 @@
             showToast('📦 Zadataci izvezeni!', 'success', 2000);
         };
 
-        // FIX: Validacija jednog zadatka iz uvoza - odbija neispravne/zlonamerne unose
         function validateImportedTask(task) {
             if (!task || typeof task !== 'object') return false;
-            // Obavezna polja
             if (typeof task.text !== 'string') return false;
             if (task.text.trim().length === 0 || task.text.length > 500) return false;
-            // Tip i dužina opcionalnih polja
             if (task.category !== undefined && (typeof task.category !== 'string' || task.category.length > 50)) return false;
             if (task.time !== undefined && (typeof task.time !== 'string' || task.time.length > 30)) return false;
             if (task.repeat !== undefined) {
@@ -2679,10 +2658,8 @@
             if (task.archived !== undefined && typeof task.archived !== 'boolean') return false;
             if (task.alarm !== undefined && typeof task.alarm !== 'boolean') return false;
             if (task.createdAt !== undefined && (typeof task.createdAt !== 'string' || task.createdAt.length > 30)) return false;
-            // Blokiraj uvoz deljenih zadataka i stranih ownerUid-ova
             if (task.sharedKey !== undefined) return false;
             if (task.ownerUid !== undefined && task.ownerUid !== currentUser.uid) return false;
-            // Subtaskovi - osnovna provera
             if (task.subtasks !== undefined) {
                 if (typeof task.subtasks !== 'object') return false;
                 for (const sub of Object.values(task.subtasks)) {
@@ -2699,7 +2676,6 @@
                 return;
             }
 
-            // FIX: Ograničenje veličine fajla na 5 MB
             if (file.size > 5 * 1024 * 1024) {
                 showToast('❌ Fajl je prevelik (max 5 MB).', 'error');
                 return;
@@ -2714,24 +2690,20 @@
                         return;
                     }
 
-                    // FIX: Ograničenje broja zadataka u jednom uvozu
                     const allKeys = Object.keys(data.tasks);
                     if (allKeys.length > 1000) {
                         showToast('❌ Previše zadataka u fajlu (max 1000).', 'error');
                         return;
                     }
 
-                    // FIX: Strikta validacija svakog zadatka pre uvoza
                     const validTasks = {};
                     const rejected = [];
                     allKeys.forEach(function(key) {
-                        // Ključ mora biti alfanumerički (Firebase push ID format)
                         if (!/^[a-zA-Z0-9_\-]{1,64}$/.test(key)) {
                             rejected.push(key);
                             return;
                         }
                         if (!allTasks[key] && validateImportedTask(data.tasks[key])) {
-                            // Uvek postavi ownerUid na trenutnog korisnika
                             const clean = {
                                 text: data.tasks[key].text.trim(),
                                 category: data.tasks[key].category || 'Razno',
@@ -3235,7 +3207,6 @@
             const task = allTasks[key];
             const nowISO = dateToISO(new Date());
 
-            // FIX: Deljeni zadaci — samo u sharedTasks
             if (task && task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
                     archived: true,
@@ -3303,7 +3274,6 @@
             const nowISO = dateToISO(new Date());
             const task = allTasks[key];
 
-            // FIX: Deljeni zadaci — samo u sharedTasks
             if (task && task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
                     alarm: checked,
@@ -3925,9 +3895,6 @@
             const nowISO = dateToISO(new Date());
             const task = allTasks[key];
 
-            // FIX: Deljeni zadaci se ažuriraju SAMO u sharedTasks čvoru.
-            // Ne smemo pisati u childovu task DB jer sintetički ključ tamo ne postoji
-            // — to bi kreiralo smeće bez teksta koje se stalno vraća.
             if (task && task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
                     deleted: true,
@@ -3942,7 +3909,7 @@
                 }).catch(function(e) {
                     showToast('❌ Greška: ' + e.message, 'error');
                 });
-                return; // ← ne pisati u childovu DB
+                return;
             }
 
             const updates = {
@@ -3965,7 +3932,6 @@
             if (!currentUser) return;
             
             const task = allTasks[key];
-            // FIX: Isto kao moveToTrash — deljeni zadaci samo u sharedTasks
             if (task && task.sharedKey) {
                 database.ref('sharedTasks/' + task.sharedKey).update({
                     deleted: false,
@@ -3990,25 +3956,51 @@
             showToast('↩ Zadatak vraćen iz smeća!', 'success');
         };
 
+        // ===== OVO JE KLJUČNA IZMENA – NOVI deleteTaskPermanently =====
         window.deleteTaskPermanently = function(key) {
             if (!confirm('⚠️ Trajno obrisati zadatak? Ova radnja se NE MOŽE opozvati!')) return;
-            
             if (!currentUser) return;
-            
-            const task = allTasks[key];
-            
-            if (task && task.sharedKey) {
-                const db = getDbRef(currentUser.uid);
-                // FIX: Ukloni sharedTaskRef (odjavljivanje od deljenog zadatka)
-                // i očisti eventualni smeće koji je mogao nastati u childovoj DB
-                const ops = [
-                    database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + task.sharedKey).remove()
-                ];
-                // Ako je moveToTrash ranije greškom upisao entry u childovu DB, briše ga
-                if (db) ops.push(db.child(key).remove().catch(function() {}));
 
-                Promise.all(ops)
+            const task = allTasks[key];
+
+            // --- DELJENI ZADATAK ---
+            if (task && task.sharedKey) {
+                const sharedKey = task.sharedKey;
+
+                // Proveri ko je vlasnik
+                database.ref('sharedTasks/' + sharedKey + '/createdBy').once('value')
+                    .then(function(snap) {
+                        const creator = snap.val();
+
+                        if (creator === currentUser.uid) {
+                            // ✅ VI STE VLASNIK – briši ceo zadatak za SVE
+                            return database.ref('sharedTasks/' + sharedKey).remove();
+                        } else {
+                            // ❌ NISTE VLASNIK – samo uklonite sebe iz zadatka
+                            const updates = {};
+                            updates['users/' + currentUser.uid + '/sharedTaskRefs/' + sharedKey] = null;
+                            updates['sharedTasks/' + sharedKey + '/participants/' + currentUser.uid] = null;
+                            return database.ref().update(updates);
+                        }
+                    })
                     .then(function() {
+                        // Ako je vlasnik obrisao – ukloni reference i kod ostalih učesnika
+                        if (creator === currentUser.uid) {
+                            return database.ref('users')
+                                .orderByChild('sharedTaskRefs/' + sharedKey)
+                                .equalTo(true)
+                                .once('value')
+                                .then(function(snap) {
+                                    const updates = {};
+                                    snap.forEach(function(child) {
+                                        updates[child.key + '/sharedTaskRefs/' + sharedKey] = null;
+                                    });
+                                    return database.ref().update(updates);
+                                });
+                        }
+                    })
+                    .then(function() {
+                        // Ukloni lokalno
                         delete allTasks[key];
                         renderTasks();
                         showToast('Deljeni zadatak trajno uklonjen.', 'info');
@@ -4019,7 +4011,8 @@
                     });
                 return;
             }
-            
+
+            // --- OBIČAN (NEDELJENI) ZADATAK ---
             const db = getDbRef(currentUser.uid);
             if (navigator.onLine) {
                 db.child(key).remove();
@@ -4028,7 +4021,6 @@
                 delete allTasks[key];
                 renderTasks();
             }
-            
             showToast('🗑️ Zadatak trajno obrisan!', 'success');
         };
 
@@ -4653,8 +4645,6 @@
                 console.log('❌ Service Worker nije podržan');
                 return;
             }
-            // FIX: SW kod se upisuje kao Blob jer nema posebnog sw.js fajla.
-            // Ovo dozvoljava notifikacije putem SW i na Androidu dok je tab otvoren.
             const swCode = `
 self.addEventListener('install', function(e) { self.skipWaiting(); });
 self.addEventListener('activate', function(e) { e.waitUntil(self.clients.claim()); });
@@ -4679,7 +4669,6 @@ self.addEventListener('fetch', function(e) {});
                         console.log('✅ Service Worker registrovan!', reg.scope);
                     })
                     .catch(function(e) {
-                        // Blob SW može biti blokiran u nekim browserima - tiho ignorišemo
                         console.warn('⚠️ SW (blob) greška:', e.message);
                     });
             } catch(e) {
@@ -4765,7 +4754,6 @@ self.addEventListener('fetch', function(e) {});
             } else {
                 currentUser = null;
                 currentNickname = '';
-                // FIX: Brisanje polja i resetovanje eye dugmadi pri odjavi
                 loginEmail.value = '';
                 loginPass.value = '';
                 loginPass.type = 'password';
@@ -4824,140 +4812,136 @@ self.addEventListener('fetch', function(e) {});
         console.log('✅ RESET - trostruka potvrda');
         console.log('✅ Firebase pravila - validacija na nivou baze');
     </script>
-	<!-- ============================================================ -->
-<!-- POPRAVKA ZA PRIJAVU - DODAJ OVO NA KRAJ FAJLA              -->
-<!-- ============================================================ -->
-<script>
-// ============================================================
-//  HITNA POPRAVKA - POVEZIVANJE DUGMETA ZA PRIJAVU
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔧 Popravka za prijavu - aktivan!');
-    
-    // Pronađi dugme za prijavu
-    const loginBtn = document.getElementById('loginBtn');
-    const loginEmail = document.getElementById('loginEmail');
-    const loginPass = document.getElementById('loginPass');
-    const loginPass2 = document.getElementById('loginPass2');
-    const loginErr = document.getElementById('loginErr');
-    const loginOk = document.getElementById('loginOk');
-    const loginSubtitle = document.getElementById('loginSubtitle');
-    const loginToggle = document.getElementById('loginToggle');
-    
-    if (!loginBtn) {
-        console.error('❌ Dugme za prijavu nije pronađeno!');
-        return;
-    }
-    
-    console.log('✅ Dugme za prijavu pronađeno!');
-    
-    let isRegisterMode = false;
-    
-    // Funkcija za prijavu/registraciju
-    function doAuth() {
-        const email = loginEmail.value.trim();
-        const pass = loginPass.value;
-        const pass2 = loginPass2.value;
+
+    <!-- ============================================================ -->
+    <!-- POPRAVKA ZA PRIJAVU - DODAJ OVO NA KRAJ FAJLA                  -->
+    <!-- ============================================================ -->
+    <script>
+    // ============================================================
+    //  HITNA POPRAVKA - POVEZIVANJE DUGMETA ZA PRIJAVU
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔧 Popravka za prijavu - aktivan!');
         
-        loginErr.textContent = '';
-        loginOk.textContent = '';
+        const loginBtn = document.getElementById('loginBtn');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPass = document.getElementById('loginPass');
+        const loginPass2 = document.getElementById('loginPass2');
+        const loginErr = document.getElementById('loginErr');
+        const loginOk = document.getElementById('loginOk');
+        const loginSubtitle = document.getElementById('loginSubtitle');
+        const loginToggle = document.getElementById('loginToggle');
         
-        console.log('🔐 Pokušaj:', { email, mode: isRegisterMode ? 'register' : 'login' });
-        
-        if (!email || !pass) {
-            loginErr.textContent = 'Unesite email i šifru.';
+        if (!loginBtn) {
+            console.error('❌ Dugme za prijavu nije pronađeno!');
             return;
         }
         
-        if (isRegisterMode) {
-            if (pass.length < 6) {
-                loginErr.textContent = 'Šifra mora imati najmanje 6 karaktera.';
-                return;
-            }
-            if (pass !== pass2) {
-                loginErr.textContent = 'Šifre se ne poklapaju.';
+        console.log('✅ Dugme za prijavu pronađeno!');
+        
+        let isRegisterMode = false;
+        
+        function doAuth() {
+            const email = loginEmail.value.trim();
+            const pass = loginPass.value;
+            const pass2 = loginPass2.value;
+            
+            loginErr.textContent = '';
+            loginOk.textContent = '';
+            
+            console.log('🔐 Pokušaj:', { email, mode: isRegisterMode ? 'register' : 'login' });
+            
+            if (!email || !pass) {
+                loginErr.textContent = 'Unesite email i šifru.';
                 return;
             }
             
-            console.log('📝 Registracija...');
-            firebase.auth().createUserWithEmailAndPassword(email, pass)
-                .then(function(userCredential) {
-                    console.log('✅ Registracija uspešna!', userCredential.user.email);
-                    loginOk.textContent = '✅ Nalog kreiran! Prijavljujemo...';
-                    setTimeout(function() { location.reload(); }, 1500);
-                })
-                .catch(function(error) {
-                    console.error('❌ Greška:', error.code, error.message);
-                    loginErr.textContent = translateError(error.code);
-                });
-        } else {
-            console.log('🔐 Prijava...');
-            firebase.auth().signInWithEmailAndPassword(email, pass)
-                .then(function(userCredential) {
-                    console.log('✅ Prijava uspešna!', userCredential.user.email);
-                    loginOk.textContent = '✅ Prijavljeni ste!';
-                    setTimeout(function() { location.reload(); }, 1500);
-                })
-                .catch(function(error) {
-                    console.error('❌ Greška:', error.code, error.message);
-                    loginErr.textContent = translateError(error.code);
-                });
-        }
-    }
-    
-    function translateError(code) {
-        const map = {
-            'auth/user-not-found': '❌ Korisnik nije pronađen. Registrujte se prvo.',
-            'auth/wrong-password': '❌ Pogrešna šifra.',
-            'auth/invalid-email': '❌ Neispravan email.',
-            'auth/email-already-in-use': '❌ Email već postoji. Prijavite se.',
-            'auth/too-many-requests': '⏳ Previše pokušaja. Sačekajte.',
-            'auth/operation-not-allowed': '❌ Prijava nije omogućena u Firebase konzoli.',
-            'auth/network-request-failed': '🌐 Proverite internet konekciju.',
-            'auth/weak-password': '🔑 Šifra mora imati 6+ karaktera.'
-        };
-        return map[code] || '❌ Greška: ' + code;
-    }
-    
-    function toggleMode() {
-        isRegisterMode = !isRegisterMode;
-        if (loginSubtitle) {
-            loginSubtitle.textContent = isRegisterMode ? 'Napravite novi nalog' : 'Prijavite se da nastavite';
-        }
-        loginBtn.textContent = isRegisterMode ? 'Registruj se' : 'Prijavi se';
-        if (loginPass2) {
-            loginPass2.style.display = isRegisterMode ? 'block' : 'none';
-        }
-        if (loginToggle) {
-            loginToggle.innerHTML = isRegisterMode 
-                ? 'Već imate nalog? <span onclick="window.toggleMode()">Prijavite se</span>'
-                : 'Nemate nalog? <span onclick="window.toggleMode()">Registrujte se</span>';
-        }
-        loginErr.textContent = '';
-        loginOk.textContent = '';
-    }
-    
-    // Poveži dugme
-    loginBtn.addEventListener('click', doAuth);
-    
-    // Enter za prijavu
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            const loginOverlay = document.getElementById('loginOverlay');
-            if (loginOverlay && loginOverlay.style.display !== 'none') {
-                e.preventDefault();
-                doAuth();
+            if (isRegisterMode) {
+                if (pass.length < 6) {
+                    loginErr.textContent = 'Šifra mora imati najmanje 6 karaktera.';
+                    return;
+                }
+                if (pass !== pass2) {
+                    loginErr.textContent = 'Šifre se ne poklapaju.';
+                    return;
+                }
+                
+                console.log('📝 Registracija...');
+                firebase.auth().createUserWithEmailAndPassword(email, pass)
+                    .then(function(userCredential) {
+                        console.log('✅ Registracija uspešna!', userCredential.user.email);
+                        loginOk.textContent = '✅ Nalog kreiran! Prijavljujemo...';
+                        setTimeout(function() { location.reload(); }, 1500);
+                    })
+                    .catch(function(error) {
+                        console.error('❌ Greška:', error.code, error.message);
+                        loginErr.textContent = translateError(error.code);
+                    });
+            } else {
+                console.log('🔐 Prijava...');
+                firebase.auth().signInWithEmailAndPassword(email, pass)
+                    .then(function(userCredential) {
+                        console.log('✅ Prijava uspešna!', userCredential.user.email);
+                        loginOk.textContent = '✅ Prijavljeni ste!';
+                        setTimeout(function() { location.reload(); }, 1500);
+                    })
+                    .catch(function(error) {
+                        console.error('❌ Greška:', error.code, error.message);
+                        loginErr.textContent = translateError(error.code);
+                    });
             }
         }
+        
+        function translateError(code) {
+            const map = {
+                'auth/user-not-found': '❌ Korisnik nije pronađen. Registrujte se prvo.',
+                'auth/wrong-password': '❌ Pogrešna šifra.',
+                'auth/invalid-email': '❌ Neispravan email.',
+                'auth/email-already-in-use': '❌ Email već postoji. Prijavite se.',
+                'auth/too-many-requests': '⏳ Previše pokušaja. Sačekajte.',
+                'auth/operation-not-allowed': '❌ Prijava nije omogućena u Firebase konzoli.',
+                'auth/network-request-failed': '🌐 Proverite internet konekciju.',
+                'auth/weak-password': '🔑 Šifra mora imati 6+ karaktera.'
+            };
+            return map[code] || '❌ Greška: ' + code;
+        }
+        
+        function toggleMode() {
+            isRegisterMode = !isRegisterMode;
+            if (loginSubtitle) {
+                loginSubtitle.textContent = isRegisterMode ? 'Napravite novi nalog' : 'Prijavite se da nastavite';
+            }
+            loginBtn.textContent = isRegisterMode ? 'Registruj se' : 'Prijavi se';
+            if (loginPass2) {
+                loginPass2.style.display = isRegisterMode ? 'block' : 'none';
+            }
+            if (loginToggle) {
+                loginToggle.innerHTML = isRegisterMode 
+                    ? 'Već imate nalog? <span onclick="window.toggleMode()">Prijavite se</span>'
+                    : 'Nemate nalog? <span onclick="window.toggleMode()">Registrujte se</span>';
+            }
+            loginErr.textContent = '';
+            loginOk.textContent = '';
+        }
+        
+        loginBtn.addEventListener('click', doAuth);
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const loginOverlay = document.getElementById('loginOverlay');
+                if (loginOverlay && loginOverlay.style.display !== 'none') {
+                    e.preventDefault();
+                    doAuth();
+                }
+            }
+        });
+        
+        window.doAuth = doAuth;
+        window.toggleMode = toggleMode;
+        window.translateError = translateError;
+        
+        console.log('✅ Popravka za prijavu aktivirana!');
     });
-    
-    // Eksportuj funkcije
-    window.doAuth = doAuth;
-    window.toggleMode = toggleMode;
-    window.translateError = translateError;
-    
-    console.log('✅ Popravka za prijavu aktivirana!');
-});
-</script>
+    </script>
 </body>
 </html>
