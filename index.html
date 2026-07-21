@@ -3187,7 +3187,16 @@
                         html += '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\'' + key + '\')" title="Podeli">📤</button>';
                     }
                     html += '<button class="iconbtn" style="background:#8e44ad" onclick="archiveTask(\'' + key + '\')" title="Arhiviraj">📦</button>';
-                    html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>';
+
+                    // === PRAVILNA LOGIKA: Vlasnik vidi korpu, ostali vide X ===
+                    if (task.ownerUid === currentUser.uid) {
+                        // ✅ VI STE VLASNIK – prikaži korpu (može da briše za sve)
+                        html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>';
+                    } else {
+                        // ❌ VI STE UČESNIK – prikaži X (samo uklanja iz vašeg prikaza)
+                        html += '<button class="iconbtn" style="background:#e74c3c" onclick="removeSharedRef(\'' + key + '\')" title="Ukloni iz mog prikaza">✕</button>';
+                    }
+                    // ====================
                 }
                 
                 html += '</div></div>';
