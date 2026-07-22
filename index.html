@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="sr" data-theme="dark">
 <head>
     <meta charset="UTF-8" />
@@ -162,6 +162,28 @@
         }
         .theme-toggle:hover {
             transform: rotate(30deg);
+            border-color: var(--border-hover);
+        }
+
+        /* ===== NOVO DUGME ZA JEZIK ===== */
+        .lang-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2px 8px;
+            height: 34px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text);
+            background: var(--panel);
+        }
+        .lang-toggle:hover {
+            transform: scale(1.05);
             border-color: var(--border-hover);
         }
 
@@ -1264,11 +1286,11 @@
     <div id="alarmOverlay">
         <div class="alarm-box">
             <span class="alarm-icon">🔔</span>
-            <div class="alarm-title">⏰ VREME JE!</div>
+            <div class="alarm-title" data-key="alarm_title">⏰ VREME JE!</div>
             <div class="alarm-text" id="alarmText">Zadatak</div>
             <div class="alarm-actions">
-                <button class="btn green" onclick="snoozeAlarm()">😴 Snooze (5 min)</button>
-                <button class="btn gray" onclick="stopAlarm()">✅ OK</button>
+                <button class="btn green" onclick="snoozeAlarm()" data-key="alarm_snooze">😴 Snooze (5 min)</button>
+                <button class="btn gray" onclick="stopAlarm()" data-key="alarm_ok">✅ OK</button>
             </div>
         </div>
     </div>
@@ -1277,14 +1299,14 @@
     <div id="guideModal">
         <div class="guide-box">
             <div class="guide-header">
-                <h3>📖 Korisničko uputstvo</h3>
+                <h3 data-key="guide_title">📖 Korisničko uputstvo</h3>
                 <button class="close-btn" onclick="closeGuide()">✕</button>
             </div>
             <div class="guide-content" id="guideContent">
-                <div class="loading-spinner"></div> Učitavanje...
+                <div class="loading-spinner"></div> <span data-key="loading">Učitavanje...</span>
             </div>
             <div class="guide-footer">
-                <button class="btn gray small" onclick="closeGuide()">Zatvori</button>
+                <button class="btn gray small" onclick="closeGuide()" data-key="close">Zatvori</button>
             </div>
         </div>
     </div>
@@ -1293,11 +1315,11 @@
     <div id="productivityModal">
         <div class="prod-box">
             <div class="prod-header">
-                <h3>📊 Izveštaj o produktivnosti</h3>
+                <h3 data-key="productivity_title">📊 Izveštaj o produktivnosti</h3>
                 <button class="close-btn" onclick="closeProductivity()">✕</button>
             </div>
             <div id="productivityContent">
-                <div class="loading-spinner"></div> Učitavanje...
+                <div class="loading-spinner"></div> <span data-key="loading">Učitavanje...</span>
             </div>
         </div>
     </div>
@@ -1306,7 +1328,7 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2 class="login-title">☁️ Moj Planer</h2>
-            <p class="login-sub" id="loginSubtitle">Prijavite se da nastavite</p>
+            <p class="login-sub" id="loginSubtitle" data-key="login_subtitle">Prijavite se da nastavite</p>
             <input type="email" id="loginEmail" placeholder="Email adresa" autocomplete="email" />
             <div class="pass-wrap">
                 <input type="password" id="loginPass" placeholder="Šifra" autocomplete="new-password" />
@@ -1318,11 +1340,11 @@
             </div>
             <div class="login-err" id="loginErr"></div>
             <div class="login-ok" id="loginOk"></div>
-            <button class="btn green" id="loginBtn" style="width:100%;padding:13px;font-size:15px;">Prijavi se</button>
+            <button class="btn green" id="loginBtn" style="width:100%;padding:13px;font-size:15px;" data-key="login_btn">Prijavi se</button>
             <div class="login-switch" id="loginToggle">
-                Nemate nalog? <span onclick="toggleAuthMode()">Registrujte se</span>
+                <span data-key="no_account">Nemate nalog?</span> <span onclick="toggleAuthMode()" data-key="register">Registrujte se</span>
             </div>
-            <div class="forgot-link" id="forgotLink" onclick="doForgotPassword()">Zaboravili ste šifru?</div>
+            <div class="forgot-link" id="forgotLink" onclick="doForgotPassword()" data-key="forgot_pass">Zaboravili ste šifru?</div>
         </div>
     </div>
 
@@ -1340,9 +1362,10 @@
             <!-- Forma za unos -->
             <div class="panel form">
                 <div class="form-top">
-                    <button class="btn red small" onclick="resetAll()">⚠️ RESET</button>
+                    <button class="btn red small" onclick="resetAll()" data-key="reset_btn">⚠️ RESET</button>
                     <h3 class="title">☁️ Moj Planer <span style="font-size:11px;color:var(--blue);" id="userEmailLabel"></span></h3>
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <button class="lang-toggle" onclick="cycleLanguage()" id="langToggle" title="Promeni jezik">🇷🇸</button>
                         <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Promeni temu">🌙</button>
                         <button class="theme-toggle" onclick="openGuide()" title="Korisničko uputstvo" style="font-size:16px;">❓</button>
                         <input type="text" id="userNickname" placeholder="Vaš nadimak..." style="max-width:130px;padding:5px 8px;font-size:12px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);" />
@@ -1351,14 +1374,14 @@
                         <button class="btn blue small" onclick="manualRefresh()" title="Osveži podatke" style="padding:6px 10px;font-size:12px;">🔄</button>
                     </div>
                 </div>
-                <div class="offline" id="offlineBar">Rad bez interneta — sinhronizacija kasnije.</div>
+                <div class="offline" id="offlineBar" data-key="offline_msg">Rad bez interneta — sinhronizacija kasnije.</div>
                 
                 <div id="cats" class="chips" style="margin-bottom:10px;"></div>
                 <div class="vis-toggle" id="doneInfo"></div>
                 
                 <!-- Daily Progress -->
                 <div class="daily-progress" id="dailyProgress">
-                    <span class="dp-label">📊 Danas:</span>
+                    <span class="dp-label" data-key="today_label">📊 Danas:</span>
                     <div class="dp-track">
                         <div class="dp-fill" id="dpFill" style="width:0%"></div>
                     </div>
@@ -1373,31 +1396,31 @@
                     <select id="taskCat" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);"></select>
                     <input type="datetime-local" id="taskTime" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);" />
                     <select id="taskRepeat" style="width:100%;border:none;outline:none;border-radius:12px;background:var(--input-bg);color:var(--text);padding:11px 12px;border:1px solid var(--border);font-size:14px;transition:var(--transition);">
-                        <option value="none">Bez ponavljanja</option>
-                        <option value="daily">Svaki dan</option>
-                        <option value="weekly">Svake nedelje</option>
-                        <option value="monthly">Svaki mesec</option>
-                        <option value="yearly">Svake godine</option>
-                        <option value="weekdays">Radni dani (pon-pet)</option>
+                        <option value="none" data-key="repeat_none">Bez ponavljanja</option>
+                        <option value="daily" data-key="repeat_daily">Svaki dan</option>
+                        <option value="weekly" data-key="repeat_weekly">Svake nedelje</option>
+                        <option value="monthly" data-key="repeat_monthly">Svaki mesec</option>
+                        <option value="yearly" data-key="repeat_yearly">Svake godine</option>
+                        <option value="weekdays" data-key="repeat_weekdays">Radni dani (pon-pet)</option>
                     </select>
                 </div>
                 
                 <div class="save-row">
-                    <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()">🔔 Notifikacije</button>
-                    <button class="btn green" id="saveBtn" onclick="saveTask()">💾 Sačuvaj</button>
-                    <button class="btn teal" id="saveShareBtn" onclick="saveAndShareTask()">📤 Sačuvaj i podeli</button>
-                    <button class="btn orange" onclick="testAlarm()">🔊 Test zvuka</button>
+                    <button id="notif-bar" class="btn blue" onclick="requestNotifPermission()" data-key="notif_btn">🔔 Notifikacije</button>
+                    <button class="btn green" id="saveBtn" onclick="saveTask()" data-key="save_btn">💾 Sačuvaj</button>
+                    <button class="btn teal" id="saveShareBtn" onclick="saveAndShareTask()" data-key="save_share_btn">📤 Sačuvaj i podeli</button>
+                    <button class="btn orange" onclick="testAlarm()" data-key="test_alarm_btn">🔊 Test zvuka</button>
                 </div>
             </div>
 
             <!-- Toolbar -->
             <div class="panel section" style="padding:14px 14px 6px;">
                 <div class="toolbar">
-                    <button class="btn blue" onclick="setSortMode('time')">⏰ Po vremenu</button>
-                    <button class="btn blue" onclick="setSortMode('created')">🆕 Novo prvo</button>
-                    <button class="btn gray" id="doneBtn" onclick="toggleDoneView()">📁 Završeni</button>
-                    <button class="btn orange" id="trashBtn" onclick="toggleTrashView()">🗑️ Smeće</button>
-                    <button class="btn purple" id="statsBtn" onclick="toggleStatsDropdown()">📊 Statistika</button>
+                    <button class="btn blue" onclick="setSortMode('time')" data-key="sort_time">⏰ Po vremenu</button>
+                    <button class="btn blue" onclick="setSortMode('created')" data-key="sort_new">🆕 Novo prvo</button>
+                    <button class="btn gray" id="doneBtn" onclick="toggleDoneView()" data-key="done_btn">📁 Završeni</button>
+                    <button class="btn orange" id="trashBtn" onclick="toggleTrashView()" data-key="trash_btn">🗑️ Smeće</button>
+                    <button class="btn purple" id="statsBtn" onclick="toggleStatsDropdown()" data-key="stats_btn">📊 Statistika</button>
                 </div>
                 
                 <!-- Padajući meni za statistiku -->
@@ -1405,29 +1428,29 @@
                     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
                         <div class="stat-card total">
                             <span class="stat-number" id="statTotal2">0</span>
-                            <span class="stat-label">📋 Ukupno</span>
+                            <span class="stat-label" data-key="stat_total">📋 Ukupno</span>
                         </div>
                         <div class="stat-card active">
                             <span class="stat-number" id="statActive2">0</span>
-                            <span class="stat-label">✅ Aktivni</span>
+                            <span class="stat-label" data-key="stat_active">✅ Aktivni</span>
                         </div>
                         <div class="stat-card done">
                             <span class="stat-number" id="statDone2">0</span>
-                            <span class="stat-label">📁 Završeni</span>
+                            <span class="stat-label" data-key="stat_done">📁 Završeni</span>
                         </div>
                         <div class="stat-card shared">
                             <span class="stat-number" id="statShared2">0</span>
-                            <span class="stat-label">🤝 Deljeni</span>
+                            <span class="stat-label" data-key="stat_shared">🤝 Deljeni</span>
                         </div>
                     </div>
                     <div style="margin-top:10px;text-align:center;font-size:12px;color:var(--muted);">
-                        Kategorije: 
+                        <span data-key="categories_label">Kategorije:</span> 
                         <span id="statsCategories"></span>
                     </div>
                     <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
-                        <button class="btn blue small" onclick="showProductivity()">📈 Produktivnost</button>
-                        <button class="btn teal small" onclick="exportTasks()">📦 Izvezi</button>
-                        <button class="btn orange small" onclick="document.getElementById('importFile').click()">📥 Uvezi</button>
+                        <button class="btn blue small" onclick="showProductivity()" data-key="prod_btn">📈 Produktivnost</button>
+                        <button class="btn teal small" onclick="exportTasks()" data-key="export_btn">📦 Izvezi</button>
+                        <button class="btn orange small" onclick="document.getElementById('importFile').click()" data-key="import_btn">📥 Uvezi</button>
                         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importTasks(this.files[0])" />
                     </div>
                 </div>
@@ -1444,7 +1467,7 @@
     <!-- Toast kontejner -->
     <div id="toastContainer"></div>
 
-     <script>
+    <script>
         // ============================================================
         //  FIREBASE KONFIGURACIJA
         // ============================================================
@@ -1532,6 +1555,187 @@
 
         const initTheme = getStoredTheme();
         setTheme(initTheme);
+
+        // ============================================================
+        //  JEZIK / PREVOD (INTERFEJS)
+        // ============================================================
+        const langs = ['sr', 'en', 'de'];
+        let currentLang = localStorage.getItem('mp_lang') || 'sr';
+
+        const translations = {
+            sr: {
+                // Opšte
+                loading: 'Učitavanje...',
+                close: 'Zatvori',
+                // Alarm
+                alarm_title: '⏰ VREME JE!',
+                alarm_snooze: '😴 Snooze (5 min)',
+                alarm_ok: '✅ OK',
+                // Login
+                login_subtitle: 'Prijavite se da nastavite',
+                login_btn: 'Prijavi se',
+                no_account: 'Nemate nalog?',
+                register: 'Registrujte se',
+                forgot_pass: 'Zaboravili ste šifru?',
+                // Uputstvo
+                guide_title: '📖 Korisničko uputstvo',
+                // Produktivnost
+                productivity_title: '📊 Izveštaj o produktivnosti',
+                // Glavni interfejs
+                offline_msg: 'Rad bez interneta — sinhronizacija kasnije.',
+                today_label: '📊 Danas:',
+                reset_btn: '⚠️ RESET',
+                notif_btn: '🔔 Notifikacije',
+                save_btn: '💾 Sačuvaj',
+                save_share_btn: '📤 Sačuvaj i podeli',
+                test_alarm_btn: '🔊 Test zvuka',
+                sort_time: '⏰ Po vremenu',
+                sort_new: '🆕 Novo prvo',
+                done_btn: '📁 Završeni',
+                trash_btn: '🗑️ Smeće',
+                stats_btn: '📊 Statistika',
+                stat_total: '📋 Ukupno',
+                stat_active: '✅ Aktivni',
+                stat_done: '📁 Završeni',
+                stat_shared: '🤝 Deljeni',
+                categories_label: 'Kategorije:',
+                prod_btn: '📈 Produktivnost',
+                export_btn: '📦 Izvezi',
+                import_btn: '📥 Uvezi',
+                repeat_none: 'Bez ponavljanja',
+                repeat_daily: 'Svaki dan',
+                repeat_weekly: 'Svake nedelje',
+                repeat_monthly: 'Svaki mesec',
+                repeat_yearly: 'Svake godine',
+                repeat_weekdays: 'Radni dani (pon-pet)',
+                // Task poruke
+                task_deleted: '🗑️ Zadatak trajno obrisan!',
+                task_restored: '↩ Zadatak vraćen iz smeća!',
+                shared_removed: 'Deljeni zadatak uklonjen iz prikaza.',
+                no_tasks: 'Nema zadataka.'
+            },
+            en: {
+                loading: 'Loading...',
+                close: 'Close',
+                alarm_title: '⏰ TIME IS UP!',
+                alarm_snooze: '😴 Snooze (5 min)',
+                alarm_ok: '✅ OK',
+                login_subtitle: 'Sign in to continue',
+                login_btn: 'Sign In',
+                no_account: 'No account?',
+                register: 'Register',
+                forgot_pass: 'Forgot password?',
+                guide_title: '📖 User Guide',
+                productivity_title: '📊 Productivity Report',
+                offline_msg: 'Working offline — sync will happen later.',
+                today_label: '📊 Today:',
+                reset_btn: '⚠️ RESET',
+                notif_btn: '🔔 Notifications',
+                save_btn: '💾 Save',
+                save_share_btn: '📤 Save & Share',
+                test_alarm_btn: '🔊 Test Sound',
+                sort_time: '⏰ By Time',
+                sort_new: '🆕 Newest First',
+                done_btn: '📁 Completed',
+                trash_btn: '🗑️ Trash',
+                stats_btn: '📊 Statistics',
+                stat_total: '📋 Total',
+                stat_active: '✅ Active',
+                stat_done: '📁 Completed',
+                stat_shared: '🤝 Shared',
+                categories_label: 'Categories:',
+                prod_btn: '📈 Productivity',
+                export_btn: '📦 Export',
+                import_btn: '📥 Import',
+                repeat_none: 'No repeat',
+                repeat_daily: 'Daily',
+                repeat_weekly: 'Weekly',
+                repeat_monthly: 'Monthly',
+                repeat_yearly: 'Yearly',
+                repeat_weekdays: 'Weekdays (Mon-Fri)',
+                task_deleted: '🗑️ Task permanently deleted!',
+                task_restored: '↩ Task restored from trash!',
+                shared_removed: 'Shared task removed from view.',
+                no_tasks: 'No tasks.'
+            },
+            de: {
+                loading: 'Laden...',
+                close: 'Schließen',
+                alarm_title: '⏰ ZEIT IST UM!',
+                alarm_snooze: '😴 Schlummern (5 Min)',
+                alarm_ok: '✅ OK',
+                login_subtitle: 'Melden Sie sich an',
+                login_btn: 'Anmelden',
+                no_account: 'Kein Konto?',
+                register: 'Registrieren',
+                forgot_pass: 'Passwort vergessen?',
+                guide_title: '📖 Benutzerhandbuch',
+                productivity_title: '📊 Produktivitätsbericht',
+                offline_msg: 'Offline — Synchronisierung später.',
+                today_label: '📊 Heute:',
+                reset_btn: '⚠️ RESET',
+                notif_btn: '🔔 Benachrichtigungen',
+                save_btn: '💾 Speichern',
+                save_share_btn: '📤 Speichern & Teilen',
+                test_alarm_btn: '🔊 Test Ton',
+                sort_time: '⏰ Nach Zeit',
+                sort_new: '🆕 Neueste zuerst',
+                done_btn: '📁 Erledigt',
+                trash_btn: '🗑️ Papierkorb',
+                stats_btn: '📊 Statistik',
+                stat_total: '📋 Gesamt',
+                stat_active: '✅ Aktiv',
+                stat_done: '📁 Erledigt',
+                stat_shared: '🤝 Geteilt',
+                categories_label: 'Kategorien:',
+                prod_btn: '📈 Produktivität',
+                export_btn: '📦 Exportieren',
+                import_btn: '📥 Importieren',
+                repeat_none: 'Keine Wiederholung',
+                repeat_daily: 'Täglich',
+                repeat_weekly: 'Wöchentlich',
+                repeat_monthly: 'Monatlich',
+                repeat_yearly: 'Jährlich',
+                repeat_weekdays: 'Werktage (Mo-Fr)',
+                task_deleted: '🗑️ Aufgabe dauerhaft gelöscht!',
+                task_restored: '↩ Aufgabe aus Papierkorb wiederhergestellt!',
+                shared_removed: 'Geteilte Aufgabe aus Ansicht entfernt.',
+                no_tasks: 'Keine Aufgaben.'
+            }
+        };
+
+        function translatePage() {
+            const langData = translations[currentLang] || translations.sr;
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (langData[key] !== undefined) {
+                    el.textContent = langData[key];
+                }
+            });
+            // Dodatno: placeholder-i za input i textarea
+            const inputPlaceholders = {
+                'userNickname': currentLang === 'sr' ? 'Vaš nadimak...' : currentLang === 'en' ? 'Your nickname...' : 'Ihr Spitzname...',
+                'quickSearch': currentLang === 'sr' ? '🔍 Pretraga svih zadataka...' : currentLang === 'en' ? '🔍 Search all tasks...' : '🔍 Alle Aufgaben durchsuchen...',
+                'taskText': currentLang === 'sr' ? 'Šta treba uraditi?' : currentLang === 'en' ? 'What needs to be done?' : 'Was ist zu tun?'
+            };
+            document.getElementById('userNickname').placeholder = inputPlaceholders.userNickname;
+            document.getElementById('quickSearch').placeholder = inputPlaceholders.quickSearch;
+            document.getElementById('taskText').placeholder = inputPlaceholders.taskText;
+            
+            // Ažuriraj dugme za jezik
+            const langMap = { sr: '🇷🇸', en: '🇬🇧', de: '🇩🇪' };
+            document.getElementById('langToggle').textContent = langMap[currentLang] || '🇷🇸';
+            localStorage.setItem('mp_lang', currentLang);
+        }
+
+        window.cycleLanguage = function() {
+            const idx = langs.indexOf(currentLang);
+            currentLang = langs[(idx + 1) % langs.length];
+            translatePage();
+            // Osveži i zadatke da bi se poruke (npr. "Nema zadataka") prikazale na novom jeziku
+            renderTasks();
+            showToast(currentLang === 'sr' ? '🇷🇸 Srpski' : currentLang === 'en' ? '🇬🇧 English' : '🇩🇪 Deutsch', 'info', 1500);
+        };
 
         // ============================================================
         //  DATUM
@@ -2472,7 +2676,6 @@
         // ============================================================
         //  KORISNIČKO UPUTSTVO
         // ============================================================
-        
         const DEFAULT_GUIDE = `
         <div class="guide-step">
             <div class="step-title">📝 Dodavanje zadatka</div>
@@ -3803,7 +4006,7 @@
                                 createdBy: sharedData.createdBy || currentUser.uid,
                                 createdByEmail: sharedData.createdByEmail || currentUser.email,
                                 createdByNickname: sharedData.createdByNickname || currentNickname || '',
-                                subtasks: task.subtasks || {},
+                                subtasks: task.subtasks ? JSON.parse(JSON.stringify(task.subtasks)) : {},
                                 alarm: task.alarm !== false,
                                 ownerUid: currentUser.uid,
                                 archived: false
@@ -3842,7 +4045,8 @@
                         createdAt: task.createdAt || nowISO,
                         alarm: task.alarm !== false,
                         ownerUid: currentUser.uid,
-                        archived: false
+                        archived: false,
+                        subtasks: task.subtasks ? JSON.parse(JSON.stringify(task.subtasks)) : {}
                     };
                     
                     if (navigator.onLine) {
