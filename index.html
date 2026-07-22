@@ -1612,7 +1612,14 @@
                 task_deleted: '🗑️ Zadatak trajno obrisan!',
                 task_restored: '↩ Zadatak vraćen iz smeća!',
                 shared_removed: 'Deljeni zadatak uklonjen iz prikaza.',
-                no_tasks: 'Nema zadataka.'
+                no_tasks: 'Nema zadataka.',
+                no_time: 'Bez vremena',
+                chip_shared: 'Deljeni',
+                chip_archive: 'Arhiva',
+                categories: {
+                    Sve: 'Sve', Kola: 'Kola', Zdravlje: 'Zdravlje', Kupovina: 'Kupovina',
+                    Hobi: 'Hobi', Dom: 'Dom', Posao: 'Posao', Razno: 'Razno'
+                }
             },
             en: {
                 loading: 'Loading...',
@@ -1656,7 +1663,14 @@
                 task_deleted: '🗑️ Task permanently deleted!',
                 task_restored: '↩ Task restored from trash!',
                 shared_removed: 'Shared task removed from view.',
-                no_tasks: 'No tasks.'
+                no_tasks: 'No tasks.',
+                no_time: 'No time set',
+                chip_shared: 'Shared',
+                chip_archive: 'Archive',
+                categories: {
+                    Sve: 'All', Kola: 'Car', Zdravlje: 'Health', Kupovina: 'Shopping',
+                    Hobi: 'Hobby', Dom: 'Home', Posao: 'Work', Razno: 'Other'
+                }
             },
             de: {
                 loading: 'Laden...',
@@ -1700,9 +1714,27 @@
                 task_deleted: '🗑️ Aufgabe dauerhaft gelöscht!',
                 task_restored: '↩ Aufgabe aus Papierkorb wiederhergestellt!',
                 shared_removed: 'Geteilte Aufgabe aus Ansicht entfernt.',
-                no_tasks: 'Keine Aufgaben.'
+                no_tasks: 'Keine Aufgaben.',
+                no_time: 'Keine Zeit',
+                chip_shared: 'Geteilt',
+                chip_archive: 'Archiv',
+                categories: {
+                    Sve: 'Alle', Kola: 'Auto', Zdravlje: 'Gesundheit', Kupovina: 'Einkauf',
+                    Hobi: 'Hobby', Dom: 'Zuhause', Posao: 'Arbeit', Razno: 'Sonstiges'
+                }
             }
         };
+
+        // Vraća prevedeni naziv kategorije za trenutni jezik; interni (skladišni)
+        // naziv kategorije (npr. 'Kola') ostaje nepromenjen radi kompatibilnosti sa
+        // već sačuvanim zadacima — menja se samo ono što korisnik vidi na ekranu.
+        function catLabel(name) {
+            const langData = translations[currentLang] || translations.sr;
+            if (langData.categories && langData.categories[name] !== undefined) {
+                return langData.categories[name];
+            }
+            return name || '';
+        }
 
         function translatePage() {
             const langData = translations[currentLang] || translations.sr;
@@ -1732,8 +1764,11 @@
             const idx = langs.indexOf(currentLang);
             currentLang = langs[(idx + 1) % langs.length];
             translatePage();
-            // Osveži i zadatke da bi se poruke (npr. "Nema zadataka") prikazale na novom jeziku
+            // Osveži pločice kategorija (Kola, Zdravlje...) i zadatke da bi se sve
+            // - uključujući kategorije i podzadatke - prikazalo na novom jeziku
+            renderCategories();
             renderTasks();
+            if (statsDropdownOpen) updateStatsDisplay();
             showToast(currentLang === 'sr' ? '🇷🇸 Srpski' : currentLang === 'en' ? '🇬🇧 English' : '🇩🇪 Deutsch', 'info', 1500);
         };
 
@@ -3019,7 +3054,7 @@
             });
             
             const catHtml = Object.keys(catStats).map(c => 
-                (catEmoji[c] || '📌') + ' ' + c + ': ' + catStats[c]
+                (catEmoji[c] || '📌') + ' ' + catLabel(c) + ': ' + catStats[c]
             ).join(' | ');
             document.getElementById('statsCategories').textContent = catHtml || 'Nema zadataka';
         }
@@ -3168,7 +3203,7 @@
             
             let html = categories.map(function(c) {
                 const isActive = filterCategory === c && !isShared && !showDone && !showTrash && !showArchived;
-                return '<button class="chip' + (isActive ? ' active' : '') + '" onclick="setCat(\'' + c + '\')">' + (catEmoji[c] || '📌') + ' ' + c + '</button>';
+                return '<button class="chip' + (isActive ? ' active' : '') + '" onclick="setCat(\'' + c + '\')">' + (catEmoji[c] || '📌') + ' ' + catLabel(c) + '</button>';
             }).join('');
             
             const lastViewedShared = parseInt(localStorage.getItem('mp_last_viewed_shared') || '0');
@@ -3179,17 +3214,20 @@
             
             const extraStyle = hasUnreadShared ? 'style="animation: blink-glow 1.5s infinite ease-in-out; border: 1px solid var(--teal);"' : '';
             
-            html += '<button class="chip teal-chip' + (isShared ? ' active-teal' : '') + '" ' + extraStyle + ' onclick="setCat(\'Deljeni\')">🤝 Deljeni' + (sharedCount > 0 ? ' (' + sharedCount + ')' : '') + '</button>';
+            const tShared = (translations[currentLang] || translations.sr).chip_shared || 'Deljeni';
+            const tArchive = (translations[currentLang] || translations.sr).chip_archive || 'Arhiva';
+            
+            html += '<button class="chip teal-chip' + (isShared ? ' active-teal' : '') + '" ' + extraStyle + ' onclick="setCat(\'Deljeni\')">🤝 ' + tShared + (sharedCount > 0 ? ' (' + sharedCount + ')' : '') + '</button>';
             
             const archivedCount = Object.values(allTasks).filter(function(t) { return t.archived && !t.deleted; }).length;
-            html += '<button class="chip orange-chip' + (showArchived ? ' active-orange' : '') + '" onclick="toggleArchivedView()">📦 Arhiva' + (archivedCount > 0 ? ' (' + archivedCount + ')' : '') + '</button>';
+            html += '<button class="chip orange-chip' + (showArchived ? ' active-orange' : '') + '" onclick="toggleArchivedView()">📦 ' + tArchive + (archivedCount > 0 ? ' (' + archivedCount + ')' : '') + '</button>';
             
             container.innerHTML = html;
             
             const catSelect = document.getElementById('taskCat');
             if (catSelect) {
                 catSelect.innerHTML = categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
-                    return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + c + '</option>';
+                    return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + catLabel(c) + '</option>';
                 }).join('');
             }
         }
@@ -3351,7 +3389,7 @@
                     html += '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>';
                 }
                 
-                html += '<div class="task-head"><div>' + emoji + ' ' + (task.category || 'Razno') + repeatInfo + (isShared ? ' 🤝' : '') + (isArchived ? ' 📦' : '') + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>';
+                html += '<div class="task-head"><div>' + emoji + ' ' + catLabel(task.category || 'Razno') + repeatInfo + (isShared ? ' 🤝' : '') + (isArchived ? ' 📦' : '') + '</div><div>' + (task.time ? displayDate(task.time) : (translations[currentLang] || translations.sr).no_time) + '</div></div>';
                 
                 if (task.createdAt && !isDeleted) {
                     html += '<div class="task-meta">Postavljeno: ' + displayDate(task.createdAt) + '</div>';
@@ -3516,7 +3554,7 @@
                     '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
                     '<select id="subtaskCategory_' + taskKey + '">' +
                     categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
-                        return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + c + '</option>';
+                        return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + catLabel(c) + '</option>';
                     }).join('') +
                     '</select>' +
                     '<button onclick="addSubtaskWithCategory(document.getElementById(\'subtaskInput_' + taskKey + '\'), document.getElementById(\'subtaskCategory_' + taskKey + '\'), \'' + taskKey + '\', ' + isShared + ')">+</button>' +
@@ -3554,7 +3592,7 @@
                 '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
                 '<select id="subtaskCategory_' + taskKey + '">' +
                 categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
-                    return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + c + '</option>';
+                    return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + catLabel(c) + '</option>';
                 }).join('') +
                 '</select>' +
                 '<button onclick="addSubtaskWithCategory(document.getElementById(\'subtaskInput_' + taskKey + '\'), document.getElementById(\'subtaskCategory_' + taskKey + '\'), \'' + taskKey + '\', ' + isShared + ')">+</button>' +
@@ -4759,7 +4797,7 @@
                 
                 html += '<div class="task shared-task cat-' + task.category + (task.completed ? ' done' : '') + (isAlarm ? ' alarm' : '') + (shouldBlink ? ' blink-shared' : '') + '">' +
                     (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
-                    '<div class="task-head"><div>' + emoji + ' ' + task.category + '</div><div>' + (task.time ? displayDate(task.time) : 'Bez vremena') + '</div></div>' +
+                    '<div class="task-head"><div>' + emoji + ' ' + catLabel(task.category) + '</div><div>' + (task.time ? displayDate(task.time) : (translations[currentLang] || translations.sr).no_time) + '</div></div>' +
                     '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">🤝 Učesnici: ' + escapeHtml(parts) + '</div>' +
                     (task.createdByEmail ? '<div class="task-meta">Kreirao/la: ' + escapeHtml(creatorDisplay) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
@@ -4993,7 +5031,7 @@ self.addEventListener('fetch', function(e) {});
         const catSelect = document.getElementById('taskCat');
         if (catSelect) {
             catSelect.innerHTML = categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
-                return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + c + '</option>';
+                return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + catLabel(c) + '</option>';
             }).join('');
         }
 
