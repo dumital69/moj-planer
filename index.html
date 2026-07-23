@@ -1534,13 +1534,13 @@
             if (current === 'auto') {
                 const sys = getSystemTheme();
                 setTheme(sys === 'dark' ? 'light' : 'dark');
-                showToast('☀️ Ručna tema', 'info', 1500);
+                showToast(t('theme_manual'), 'info', 1500);
             } else if (current === 'dark') {
                 setTheme('light');
-                showToast('☀️ Svetla tema', 'info', 1500);
+                showToast(t('theme_light'), 'info', 1500);
             } else {
                 setTheme('auto');
-                showToast('🌓 Automatska tema', 'info', 1500);
+                showToast(t('theme_auto'), 'info', 1500);
             }
         };
 
@@ -1616,6 +1616,167 @@
                 no_time: 'Bez vremena',
                 chip_shared: 'Deljeni',
                 chip_archive: 'Arhiva',
+                notif_blocked: '🔕 Blokirano',
+                notif_active: '🔔 PUSH AKTIVNE',
+                active_label: '📋 Aktivni',
+                info_done_shown: '📁 Prikazani završeni zadaci',
+                info_trash_shown: '🗑️ Prikazano smeće (zadaci se brišu nakon 30 dana)',
+                info_archived_shown: '📦 Prikazana arhiva',
+                msg_trash_empty: '🗑️ Smeće je prazno.',
+                msg_no_done: '📁 Nema završenih zadataka.',
+                msg_archive_empty: '📦 Arhiva je prazna.',
+                msg_no_active: 'Nema aktivnih zadataka.',
+                trash_count_suffix: 'zadaci se brišu nakon 30 dana',
+                label_done_tasks: '📁 Završeni zadaci',
+                label_archived_tasks: '📦 Arhivirani zadaci',
+                label_active_tasks: '📋 Aktivni zadaci',
+                created_label: 'Postavljeno:',
+                subtask_placeholder: 'Dodaj podzadatak...',
+                shared_header_title: 'Deljeni zadaci',
+                shared_header_sub: 'Izmene su vidljive svim učesnicima odmah',
+                shared_empty: 'Nemate deljenih zadataka.',
+                shared_empty_hint: 'Koristite dugme 📤 na zadatku da ga podelite.',
+                participants_label: '🤝 Učesnici:',
+                created_by_label: 'Kreirao/la:',
+                title_restore: 'Vrati',
+                title_delete_permanent: 'Obriši trajno',
+                title_restore_archive: 'Vrati iz arhive',
+                title_to_trash: 'Pošalji u smeće',
+                title_archive: 'Arhiviraj',
+                title_complete: 'Završi',
+                title_edit: 'Izmeni',
+                title_share: 'Podeli',
+                title_remove_my_view: 'Ukloni iz mog prikaza',
+                title_remove: 'Ukloni',
+                date_changed_toast: '📅 Datum promenjen - kalendar osvežen',
+                cal_month_btn: '📅 Mesec',
+                cal_week_btn: '📆 Nedelja',
+                cal_week_label: 'Nedelja',
+                cal_more: 'još',
+                months: ['Januar', 'Februar', 'Mart', 'April', 'Maj', 'Jun', 'Jul', 'Avgust', 'Septembar', 'Oktobar', 'Novembar', 'Decembar'],
+                days: ['Po', 'Ut', 'Sr', 'Če', 'Pe', 'Su', 'Ne'],
+                theme_manual: '☀️ Ručna tema',
+                theme_light: '☀️ Svetla tema',
+                theme_auto: '🌓 Automatska tema',
+                alarm_snoozed: '😴 Alarm odložen na 5 minuta',
+                share_rate_limit: '⏳ Previše pokušaja deljenja. Sačekajte minut.',
+                share_daily_limit_prefix: '⏳ Dnevni limit deljenja dostignut (',
+                share_daily_limit_suffix: '/dan). Pokušajte sutra.',
+                offline_op_saved: 'Operacija sačuvana za offline sinhronizaciju.',
+                offline_synced: 'Sve offline operacije su sinhronizovane!',
+                account_created: '✅ Nalog uspešno kreiran!',
+                login_success: '✅ Uspešno prijavljeni!',
+                enter_nickname: 'Unesite nadimak.',
+                nickname_too_long: 'Nadimak je predugačak (max 49 karaktera).',
+                nickname_invalid_chars: 'Nadimak sme da sadrži samo slova, brojeve, _, - i .',
+                save_error_prefix: 'Greška pri čuvanju: ',
+                nickname_taken: 'Ovaj nadimak je već zauzet! Izaberite drugi.',
+                nickname_saved: 'Nadimak uspešno sačuvan!',
+                profile_save_error_prefix: 'Greška pri čuvanju profila: ',
+                export_success: '📦 Zadataci izvezeni!',
+                import_login_required: 'Morate biti prijavljeni za uvoz.',
+                import_file_too_large: '❌ Fajl je prevelik (max 5 MB).',
+                import_invalid_format: '❌ Neispravan format fajla.',
+                import_too_many: '❌ Previše zadataka u fajlu (max 1000).',
+                import_none_valid: '❌ Nijedan zadatak nije prošao validaciju.',
+                import_success_prefix: '✅ ',
+                import_success_suffix: ' zadataka uvezeno!',
+                generic_error_prefix: '❌ Greška: ',
+                import_error_prefix: '❌ Greška pri uvozu: ',
+                auto_refreshed: '🔄 Auto-osveženo (30 min)',
+                trash_auto_deleted_suffix: ' zadatak(a) trajno obrisan iz smeća (30 dana)',
+                shared_archived: '📦 Deljeni zadatak arhiviran!',
+                task_archived: '📦 Zadatak arhiviran!',
+                task_unarchived: '↩ Zadatak vraćen iz arhive!',
+                not_logged_in: 'Niste prijavljeni.',
+                enter_subtask_text: 'Unesite tekst podzadatka.',
+                save_task_first: 'Prvo sačuvajte zadatak pa dodajte podzadatke.',
+                subtask_added: '✅ Podzadatak dodat!',
+                text_cannot_be_empty: 'Tekst ne može biti prazan.',
+                subtask_text_updated: '✅ Tekst podzadatka ažuriran!',
+                subtask_updated: '✅ Podzadatak ažuriran!',
+                category_changed: '🔄 Kategorija promenjena!',
+                subtask_deleted: '🗑️ Podzadatak obrisan!',
+                task_repeated_prefix: 'Zadatak ponovljen za ',
+                task_marked_undone: '↩ Zadatak vraćen kao nezavršen!',
+                shared_trashed: '🗑️ Deljeni zadatak poslat u smeće!',
+                task_trashed: '🗑️ Zadatak poslat u smeće!',
+                shared_restored: '↩ Deljeni zadatak vraćen iz smeće!',
+                shared_removed_permanent: 'Deljeni zadatak trajno uklonjen.',
+                shared_updated: 'Deljeni zadatak ažuriran!',
+                task_updated: 'Zadatak ažuriran!',
+                task_added: 'Zadatak dodat!',
+                confirm_logout: 'Odjaviti se?',
+                confirm_archive: 'Arhivirati zadatak?',
+                confirm_delete_subtask: 'Obrisati podzadatak?',
+                confirm_to_trash: 'Pošalji zadatak u smeće?',
+                confirm_delete_permanent: '⚠️ Trajno obrisati zadatak? Ova radnja se NE MOŽE opozvati!',
+                confirm_delete_all_1: '⚠️ UPOZORENJE: Ovo će trajno obrisati SVE vaše zadatke!\n\nDa li ste sigurni?',
+                confirm_delete_all_2: '🔴 POSLEDNJA POTVRDA: Obrisati sve zadatke trajno?\n\nOva radnja se NE MOŽE opozvati!',
+                confirm_remove_shared: 'Ukloniti ovaj deljeni zadatak iz vašeg prikaza?',
+                notif_not_supported: 'Vaš pretraživač ne podržava notifikacije.',
+                notif_enabled: 'Notifikacije omogućene!',
+                notif_denied: 'Notifikacije odbijene.',
+                translate_auth_error_prefix: '❌ ',
+                generic_error_prefix2: 'Greška: ',
+                cannot_share_with_self: 'Ne možete podeliti zadatak sa samim sobom.',
+                user_not_found_prefix: 'Korisnik "',
+                user_not_found_suffix: '" nije pronađen.',
+                task_added_offline: 'Zadatak dodat (offline)!',
+                confirm_wrong: '❌ Operacija otkazana - pogrešna potvrda.',
+                operation_cancelled: '❌ Operacija otkazana.',
+                all_tasks_deleted: '✅ Svi zadaci su trajno obrisani!',
+                delete_error_prefix: 'Greška pri brisanju: ',
+                tasks_deleted_when_online: '📦 Zadaci će biti obrisani kada se vrati internet.',
+                task_not_found: 'Zadatak nije pronađen.',
+                already_participant: 'Ovaj korisnik je već učesnik u ovom zadatku!',
+                user_added_to_shared_prefix: 'Korisnik ',
+                user_added_to_shared_suffix: ' dodat u deljeni zadatak!',
+                task_shared_with_prefix: 'Zadatak uspešno podeljen sa: ',
+                shared_removed_from_view: 'Deljeni zadatak uklonjen iz prikaza.',
+                refreshing: '🔄 Osvežavam...',
+                refreshed: '✅ Osveženo!',
+                working_offline: 'Radite offline. Promene će biti sinhronizovane kasnije.',
+                completed_label: 'Završeno:',
+                in_trash_label: '🗑️ U smeću:',
+                days_left_prefix: '(još ',
+                days_left_suffix: ' dana)',
+                shared_with_label: '📤 Deljeno sa: ',
+                share_prompt: 'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n',
+                confirm_delete_all_prompt: '📝 Da biste potvrdili, upišite reč "DA" (velikim slovima):',
+                task_text_too_long: 'Tekst zadatka je predugačak (maks. 500 karaktera)',
+                edit_btn: '✏️ Izmeni',
+                edit_shared_btn: '✏️ Izmeni deljeni',
+                register_subtitle: 'Napravite novi nalog',
+                register_btn: 'Registruj se',
+                have_account: 'Već imate nalog?',
+                login_link: 'Prijavite se',
+                auth_user_not_found: 'Korisnik nije pronađen.',
+                auth_wrong_password: 'Pogrešna šifra.',
+                auth_invalid_email: 'Neispravna email adresa.',
+                auth_email_in_use: 'Email je već u upotrebi.',
+                auth_too_many_requests: 'Previše pokušaja. Pokušajte kasnije.',
+                auth_invalid_credential: 'Pogrešan email ili šifra.',
+                auth_weak_password: 'Šifra mora imati najmanje 6 karaktera.',
+                auth_network_error: 'Greška u mreži. Proverite internet konekciju.',
+                auth_op_not_allowed: 'Prijava email-om nije omogućena u Firebase konzoli.',
+                auth_generic_error_prefix: 'Greška: ',
+                forgot_enter_email: 'Unesite email pa kliknite "Zaboravili ste šifru?".',
+                reset_email_sent: 'Email za reset šifre je poslat!',
+                auth2_enter_email_pass: 'Unesite email i šifru.',
+                auth2_weak_password: 'Šifra mora imati najmanje 6 karaktera.',
+                auth2_pass_mismatch: 'Šifre se ne poklapaju.',
+                auth2_account_created: '✅ Nalog kreiran! Prijavljujemo...',
+                auth2_signed_in: '✅ Prijavljeni ste!',
+                auth2_user_not_found: '❌ Korisnik nije pronađen. Registrujte se prvo.',
+                auth2_wrong_password: '❌ Pogrešna šifra.',
+                auth2_invalid_email: '❌ Neispravan email.',
+                auth2_email_in_use: '❌ Email već postoji. Prijavite se.',
+                auth2_too_many_requests: '⏳ Previše pokušaja. Sačekajte.',
+                auth2_op_not_allowed: '❌ Prijava nije omogućena u Firebase konzoli.',
+                auth2_network_error: '🌐 Proverite internet konekciju.',
+                auth2_weak_password_map: '🔑 Šifra mora imati 6+ karaktera.',
+                auth2_generic_error_prefix: '❌ Greška: ',
                 categories: {
                     Sve: 'Sve', Kola: 'Kola', Zdravlje: 'Zdravlje', Kupovina: 'Kupovina',
                     Hobi: 'Hobi', Dom: 'Dom', Posao: 'Posao', Razno: 'Razno'
@@ -1667,6 +1828,167 @@
                 no_time: 'No time set',
                 chip_shared: 'Shared',
                 chip_archive: 'Archive',
+                notif_blocked: '🔕 Blocked',
+                notif_active: '🔔 PUSH ACTIVE',
+                active_label: '📋 Active',
+                info_done_shown: '📁 Showing completed tasks',
+                info_trash_shown: '🗑️ Showing trash (tasks are deleted after 30 days)',
+                info_archived_shown: '📦 Showing archive',
+                msg_trash_empty: '🗑️ Trash is empty.',
+                msg_no_done: '📁 No completed tasks.',
+                msg_archive_empty: '📦 Archive is empty.',
+                msg_no_active: 'No active tasks.',
+                trash_count_suffix: 'tasks are deleted after 30 days',
+                label_done_tasks: '📁 Completed tasks',
+                label_archived_tasks: '📦 Archived tasks',
+                label_active_tasks: '📋 Active tasks',
+                created_label: 'Created:',
+                subtask_placeholder: 'Add subtask...',
+                shared_header_title: 'Shared tasks',
+                shared_header_sub: 'Changes are visible to all participants immediately',
+                shared_empty: 'You have no shared tasks.',
+                shared_empty_hint: 'Use the 📤 button on a task to share it.',
+                participants_label: '🤝 Participants:',
+                created_by_label: 'Created by:',
+                title_restore: 'Restore',
+                title_delete_permanent: 'Delete permanently',
+                title_restore_archive: 'Restore from archive',
+                title_to_trash: 'Move to trash',
+                title_archive: 'Archive',
+                title_complete: 'Complete',
+                title_edit: 'Edit',
+                title_share: 'Share',
+                title_remove_my_view: 'Remove from my view',
+                title_remove: 'Remove',
+                date_changed_toast: '📅 Date changed - calendar refreshed',
+                cal_month_btn: '📅 Month',
+                cal_week_btn: '📆 Week',
+                cal_week_label: 'Week',
+                cal_more: 'more',
+                months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                theme_manual: '☀️ Manual theme',
+                theme_light: '☀️ Light theme',
+                theme_auto: '🌓 Automatic theme',
+                alarm_snoozed: '😴 Alarm snoozed for 5 minutes',
+                share_rate_limit: '⏳ Too many share attempts. Please wait a minute.',
+                share_daily_limit_prefix: '⏳ Daily share limit reached (',
+                share_daily_limit_suffix: '/day). Try again tomorrow.',
+                offline_op_saved: 'Operation saved for offline sync.',
+                offline_synced: 'All offline operations have been synced!',
+                account_created: '✅ Account created successfully!',
+                login_success: '✅ Signed in successfully!',
+                enter_nickname: 'Enter a nickname.',
+                nickname_too_long: 'Nickname is too long (max 49 characters).',
+                nickname_invalid_chars: 'Nickname may only contain letters, numbers, _, - and .',
+                save_error_prefix: 'Error while saving: ',
+                nickname_taken: 'This nickname is already taken! Choose another.',
+                nickname_saved: 'Nickname saved successfully!',
+                profile_save_error_prefix: 'Error saving profile: ',
+                export_success: '📦 Tasks exported!',
+                import_login_required: 'You must be signed in to import.',
+                import_file_too_large: '❌ File is too large (max 5 MB).',
+                import_invalid_format: '❌ Invalid file format.',
+                import_too_many: '❌ Too many tasks in file (max 1000).',
+                import_none_valid: '❌ No task passed validation.',
+                import_success_prefix: '✅ ',
+                import_success_suffix: ' task(s) imported!',
+                generic_error_prefix: '❌ Error: ',
+                import_error_prefix: '❌ Import error: ',
+                auto_refreshed: '🔄 Auto-refreshed (30 min)',
+                trash_auto_deleted_suffix: ' task(s) permanently deleted from trash (30 days)',
+                shared_archived: '📦 Shared task archived!',
+                task_archived: '📦 Task archived!',
+                task_unarchived: '↩ Task restored from archive!',
+                not_logged_in: 'You are not signed in.',
+                enter_subtask_text: 'Enter subtask text.',
+                save_task_first: 'Save the task first, then add subtasks.',
+                subtask_added: '✅ Subtask added!',
+                text_cannot_be_empty: 'Text cannot be empty.',
+                subtask_text_updated: '✅ Subtask text updated!',
+                subtask_updated: '✅ Subtask updated!',
+                category_changed: '🔄 Category changed!',
+                subtask_deleted: '🗑️ Subtask deleted!',
+                task_repeated_prefix: 'Task repeated for ',
+                task_marked_undone: '↩ Task marked as not done!',
+                shared_trashed: '🗑️ Shared task moved to trash!',
+                task_trashed: '🗑️ Task moved to trash!',
+                shared_restored: '↩ Shared task restored from trash!',
+                shared_removed_permanent: 'Shared task permanently removed.',
+                shared_updated: 'Shared task updated!',
+                task_updated: 'Task updated!',
+                task_added: 'Task added!',
+                confirm_logout: 'Sign out?',
+                confirm_archive: 'Archive this task?',
+                confirm_delete_subtask: 'Delete this subtask?',
+                confirm_to_trash: 'Move task to trash?',
+                confirm_delete_permanent: '⚠️ Permanently delete this task? This action CANNOT be undone!',
+                confirm_delete_all_1: '⚠️ WARNING: This will permanently delete ALL your tasks!\n\nAre you sure?',
+                confirm_delete_all_2: '🔴 FINAL CONFIRMATION: Permanently delete all tasks?\n\nThis action CANNOT be undone!',
+                confirm_remove_shared: 'Remove this shared task from your view?',
+                notif_not_supported: 'Your browser does not support notifications.',
+                notif_enabled: 'Notifications enabled!',
+                notif_denied: 'Notifications denied.',
+                translate_auth_error_prefix: '❌ ',
+                generic_error_prefix2: 'Error: ',
+                cannot_share_with_self: 'You cannot share a task with yourself.',
+                user_not_found_prefix: 'User "',
+                user_not_found_suffix: '" not found.',
+                task_added_offline: 'Task added (offline)!',
+                confirm_wrong: '❌ Operation cancelled - confirmation did not match.',
+                operation_cancelled: '❌ Operation cancelled.',
+                all_tasks_deleted: '✅ All tasks permanently deleted!',
+                delete_error_prefix: 'Error while deleting: ',
+                tasks_deleted_when_online: '📦 Tasks will be deleted once you are back online.',
+                task_not_found: 'Task not found.',
+                already_participant: 'This user is already a participant in this task!',
+                user_added_to_shared_prefix: 'User ',
+                user_added_to_shared_suffix: ' added to shared task!',
+                task_shared_with_prefix: 'Task successfully shared with: ',
+                shared_removed_from_view: 'Shared task removed from view.',
+                refreshing: '🔄 Refreshing...',
+                refreshed: '✅ Refreshed!',
+                working_offline: 'You are working offline. Changes will be synced later.',
+                completed_label: 'Completed:',
+                in_trash_label: '🗑️ In trash:',
+                days_left_prefix: '(',
+                days_left_suffix: ' days left)',
+                shared_with_label: '📤 Shared with: ',
+                share_prompt: 'Enter the EMAIL or NICKNAME of the person you want to share the task with:\n\n',
+                confirm_delete_all_prompt: '📝 To confirm, type the word "DA" (in capital letters):',
+                task_text_too_long: 'Task text is too long (max. 500 characters)',
+                edit_btn: '✏️ Edit',
+                edit_shared_btn: '✏️ Edit shared',
+                register_subtitle: 'Create a new account',
+                register_btn: 'Register',
+                have_account: 'Already have an account?',
+                login_link: 'Sign in',
+                auth_user_not_found: 'User not found.',
+                auth_wrong_password: 'Incorrect password.',
+                auth_invalid_email: 'Invalid email address.',
+                auth_email_in_use: 'Email is already in use.',
+                auth_too_many_requests: 'Too many attempts. Try again later.',
+                auth_invalid_credential: 'Incorrect email or password.',
+                auth_weak_password: 'Password must be at least 6 characters.',
+                auth_network_error: 'Network error. Check your internet connection.',
+                auth_op_not_allowed: 'Email sign-in is not enabled in the Firebase console.',
+                auth_generic_error_prefix: 'Error: ',
+                forgot_enter_email: 'Enter your email, then click "Forgot password?".',
+                reset_email_sent: 'Password reset email sent!',
+                auth2_enter_email_pass: 'Enter your email and password.',
+                auth2_weak_password: 'Password must be at least 6 characters.',
+                auth2_pass_mismatch: 'Passwords do not match.',
+                auth2_account_created: '✅ Account created! Signing you in...',
+                auth2_signed_in: '✅ You are signed in!',
+                auth2_user_not_found: '❌ User not found. Please register first.',
+                auth2_wrong_password: '❌ Incorrect password.',
+                auth2_invalid_email: '❌ Invalid email.',
+                auth2_email_in_use: '❌ Email already exists. Please sign in.',
+                auth2_too_many_requests: '⏳ Too many attempts. Please wait.',
+                auth2_op_not_allowed: '❌ Sign-in is not enabled in the Firebase console.',
+                auth2_network_error: '🌐 Check your internet connection.',
+                auth2_weak_password_map: '🔑 Password must have 6+ characters.',
+                auth2_generic_error_prefix: '❌ Error: ',
                 categories: {
                     Sve: 'All', Kola: 'Car', Zdravlje: 'Health', Kupovina: 'Shopping',
                     Hobi: 'Hobby', Dom: 'Home', Posao: 'Work', Razno: 'Other'
@@ -1718,6 +2040,167 @@
                 no_time: 'Keine Zeit',
                 chip_shared: 'Geteilt',
                 chip_archive: 'Archiv',
+                notif_blocked: '🔕 Blockiert',
+                notif_active: '🔔 PUSH AKTIV',
+                active_label: '📋 Aktiv',
+                info_done_shown: '📁 Erledigte Aufgaben angezeigt',
+                info_trash_shown: '🗑️ Papierkorb angezeigt (Aufgaben werden nach 30 Tagen gelöscht)',
+                info_archived_shown: '📦 Archiv angezeigt',
+                msg_trash_empty: '🗑️ Papierkorb ist leer.',
+                msg_no_done: '📁 Keine erledigten Aufgaben.',
+                msg_archive_empty: '📦 Archiv ist leer.',
+                msg_no_active: 'Keine aktiven Aufgaben.',
+                trash_count_suffix: 'Aufgaben werden nach 30 Tagen gelöscht',
+                label_done_tasks: '📁 Erledigte Aufgaben',
+                label_archived_tasks: '📦 Archivierte Aufgaben',
+                label_active_tasks: '📋 Aktive Aufgaben',
+                created_label: 'Erstellt:',
+                subtask_placeholder: 'Unteraufgabe hinzufügen...',
+                shared_header_title: 'Geteilte Aufgaben',
+                shared_header_sub: 'Änderungen sind für alle Teilnehmer sofort sichtbar',
+                shared_empty: 'Sie haben keine geteilten Aufgaben.',
+                shared_empty_hint: 'Verwenden Sie die Schaltfläche 📤 bei einer Aufgabe, um sie zu teilen.',
+                participants_label: '🤝 Teilnehmer:',
+                created_by_label: 'Erstellt von:',
+                title_restore: 'Wiederherstellen',
+                title_delete_permanent: 'Endgültig löschen',
+                title_restore_archive: 'Aus Archiv wiederherstellen',
+                title_to_trash: 'In den Papierkorb verschieben',
+                title_archive: 'Archivieren',
+                title_complete: 'Abschließen',
+                title_edit: 'Bearbeiten',
+                title_share: 'Teilen',
+                title_remove_my_view: 'Aus meiner Ansicht entfernen',
+                title_remove: 'Entfernen',
+                date_changed_toast: '📅 Datum geändert - Kalender aktualisiert',
+                cal_month_btn: '📅 Monat',
+                cal_week_btn: '📆 Woche',
+                cal_week_label: 'Woche',
+                cal_more: 'mehr',
+                months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+                days: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+                theme_manual: '☀️ Manuelles Design',
+                theme_light: '☀️ Helles Design',
+                theme_auto: '🌓 Automatisches Design',
+                alarm_snoozed: '😴 Alarm um 5 Minuten verschoben',
+                share_rate_limit: '⏳ Zu viele Freigabeversuche. Bitte warten Sie eine Minute.',
+                share_daily_limit_prefix: '⏳ Tägliches Freigabelimit erreicht (',
+                share_daily_limit_suffix: '/Tag). Versuchen Sie es morgen erneut.',
+                offline_op_saved: 'Vorgang für Offline-Synchronisierung gespeichert.',
+                offline_synced: 'Alle Offline-Vorgänge wurden synchronisiert!',
+                account_created: '✅ Konto erfolgreich erstellt!',
+                login_success: '✅ Erfolgreich angemeldet!',
+                enter_nickname: 'Geben Sie einen Spitznamen ein.',
+                nickname_too_long: 'Der Spitzname ist zu lang (max. 49 Zeichen).',
+                nickname_invalid_chars: 'Der Spitzname darf nur Buchstaben, Zahlen, _, - und . enthalten.',
+                save_error_prefix: 'Fehler beim Speichern: ',
+                nickname_taken: 'Dieser Spitzname ist bereits vergeben! Wählen Sie einen anderen.',
+                nickname_saved: 'Spitzname erfolgreich gespeichert!',
+                profile_save_error_prefix: 'Fehler beim Speichern des Profils: ',
+                export_success: '📦 Aufgaben exportiert!',
+                import_login_required: 'Sie müssen angemeldet sein, um zu importieren.',
+                import_file_too_large: '❌ Die Datei ist zu groß (max. 5 MB).',
+                import_invalid_format: '❌ Ungültiges Dateiformat.',
+                import_too_many: '❌ Zu viele Aufgaben in der Datei (max. 1000).',
+                import_none_valid: '❌ Keine Aufgabe hat die Validierung bestanden.',
+                import_success_prefix: '✅ ',
+                import_success_suffix: ' Aufgabe(n) importiert!',
+                generic_error_prefix: '❌ Fehler: ',
+                import_error_prefix: '❌ Fehler beim Importieren: ',
+                auto_refreshed: '🔄 Automatisch aktualisiert (30 Min.)',
+                trash_auto_deleted_suffix: ' Aufgabe(n) endgültig aus dem Papierkorb gelöscht (30 Tage)',
+                shared_archived: '📦 Geteilte Aufgabe archiviert!',
+                task_archived: '📦 Aufgabe archiviert!',
+                task_unarchived: '↩ Aufgabe aus dem Archiv wiederhergestellt!',
+                not_logged_in: 'Sie sind nicht angemeldet.',
+                enter_subtask_text: 'Geben Sie den Text der Unteraufgabe ein.',
+                save_task_first: 'Speichern Sie zuerst die Aufgabe und fügen Sie dann Unteraufgaben hinzu.',
+                subtask_added: '✅ Unteraufgabe hinzugefügt!',
+                text_cannot_be_empty: 'Der Text darf nicht leer sein.',
+                subtask_text_updated: '✅ Text der Unteraufgabe aktualisiert!',
+                subtask_updated: '✅ Unteraufgabe aktualisiert!',
+                category_changed: '🔄 Kategorie geändert!',
+                subtask_deleted: '🗑️ Unteraufgabe gelöscht!',
+                task_repeated_prefix: 'Aufgabe wiederholt für ',
+                task_marked_undone: '↩ Aufgabe als nicht erledigt markiert!',
+                shared_trashed: '🗑️ Geteilte Aufgabe in den Papierkorb verschoben!',
+                task_trashed: '🗑️ Aufgabe in den Papierkorb verschoben!',
+                shared_restored: '↩ Geteilte Aufgabe aus dem Papierkorb wiederhergestellt!',
+                shared_removed_permanent: 'Geteilte Aufgabe endgültig entfernt.',
+                shared_updated: 'Geteilte Aufgabe aktualisiert!',
+                task_updated: 'Aufgabe aktualisiert!',
+                task_added: 'Aufgabe hinzugefügt!',
+                confirm_logout: 'Abmelden?',
+                confirm_archive: 'Diese Aufgabe archivieren?',
+                confirm_delete_subtask: 'Diese Unteraufgabe löschen?',
+                confirm_to_trash: 'Aufgabe in den Papierkorb verschieben?',
+                confirm_delete_permanent: '⚠️ Diese Aufgabe endgültig löschen? Diese Aktion kann NICHT rückgängig gemacht werden!',
+                confirm_delete_all_1: '⚠️ WARNUNG: Dadurch werden ALLE Ihre Aufgaben endgültig gelöscht!\n\nSind Sie sicher?',
+                confirm_delete_all_2: '🔴 LETZTE BESTÄTIGUNG: Alle Aufgaben endgültig löschen?\n\nDiese Aktion kann NICHT rückgängig gemacht werden!',
+                confirm_remove_shared: 'Diese geteilte Aufgabe aus Ihrer Ansicht entfernen?',
+                notif_not_supported: 'Ihr Browser unterstützt keine Benachrichtigungen.',
+                notif_enabled: 'Benachrichtigungen aktiviert!',
+                notif_denied: 'Benachrichtigungen abgelehnt.',
+                translate_auth_error_prefix: '❌ ',
+                generic_error_prefix2: 'Fehler: ',
+                cannot_share_with_self: 'Sie können eine Aufgabe nicht mit sich selbst teilen.',
+                user_not_found_prefix: 'Benutzer "',
+                user_not_found_suffix: '" nicht gefunden.',
+                task_added_offline: 'Aufgabe hinzugefügt (offline)!',
+                confirm_wrong: '❌ Vorgang abgebrochen - Bestätigung stimmte nicht überein.',
+                operation_cancelled: '❌ Vorgang abgebrochen.',
+                all_tasks_deleted: '✅ Alle Aufgaben endgültig gelöscht!',
+                delete_error_prefix: 'Fehler beim Löschen: ',
+                tasks_deleted_when_online: '📦 Aufgaben werden gelöscht, sobald die Internetverbindung wiederhergestellt ist.',
+                task_not_found: 'Aufgabe nicht gefunden.',
+                already_participant: 'Dieser Benutzer ist bereits Teilnehmer dieser Aufgabe!',
+                user_added_to_shared_prefix: 'Benutzer ',
+                user_added_to_shared_suffix: ' zur geteilten Aufgabe hinzugefügt!',
+                task_shared_with_prefix: 'Aufgabe erfolgreich geteilt mit: ',
+                shared_removed_from_view: 'Geteilte Aufgabe aus der Ansicht entfernt.',
+                refreshing: '🔄 Wird aktualisiert...',
+                refreshed: '✅ Aktualisiert!',
+                working_offline: 'Sie arbeiten offline. Änderungen werden später synchronisiert.',
+                completed_label: 'Erledigt:',
+                in_trash_label: '🗑️ Im Papierkorb:',
+                days_left_prefix: '(noch ',
+                days_left_suffix: ' Tage)',
+                shared_with_label: '📤 Geteilt mit: ',
+                share_prompt: 'Geben Sie die E-MAIL oder den SPITZNAMEN der Person ein, mit der Sie die Aufgabe teilen möchten:\n\n',
+                confirm_delete_all_prompt: '📝 Zur Bestätigung geben Sie das Wort "DA" (in Großbuchstaben) ein:',
+                task_text_too_long: 'Der Aufgabentext ist zu lang (max. 500 Zeichen)',
+                edit_btn: '✏️ Bearbeiten',
+                edit_shared_btn: '✏️ Geteilte bearbeiten',
+                register_subtitle: 'Erstellen Sie ein neues Konto',
+                register_btn: 'Registrieren',
+                have_account: 'Haben Sie bereits ein Konto?',
+                login_link: 'Anmelden',
+                auth_user_not_found: 'Benutzer nicht gefunden.',
+                auth_wrong_password: 'Falsches Passwort.',
+                auth_invalid_email: 'Ungültige E-Mail-Adresse.',
+                auth_email_in_use: 'E-Mail wird bereits verwendet.',
+                auth_too_many_requests: 'Zu viele Versuche. Versuchen Sie es später erneut.',
+                auth_invalid_credential: 'Falsche E-Mail oder falsches Passwort.',
+                auth_weak_password: 'Das Passwort muss mindestens 6 Zeichen lang sein.',
+                auth_network_error: 'Netzwerkfehler. Überprüfen Sie Ihre Internetverbindung.',
+                auth_op_not_allowed: 'E-Mail-Anmeldung ist in der Firebase-Konsole nicht aktiviert.',
+                auth_generic_error_prefix: 'Fehler: ',
+                forgot_enter_email: 'Geben Sie Ihre E-Mail ein und klicken Sie auf "Passwort vergessen?".',
+                reset_email_sent: 'E-Mail zum Zurücksetzen des Passworts wurde gesendet!',
+                auth2_enter_email_pass: 'Geben Sie E-Mail und Passwort ein.',
+                auth2_weak_password: 'Das Passwort muss mindestens 6 Zeichen lang sein.',
+                auth2_pass_mismatch: 'Die Passwörter stimmen nicht überein.',
+                auth2_account_created: '✅ Konto erstellt! Sie werden angemeldet...',
+                auth2_signed_in: '✅ Sie sind angemeldet!',
+                auth2_user_not_found: '❌ Benutzer nicht gefunden. Bitte registrieren Sie sich zuerst.',
+                auth2_wrong_password: '❌ Falsches Passwort.',
+                auth2_invalid_email: '❌ Ungültige E-Mail.',
+                auth2_email_in_use: '❌ E-Mail existiert bereits. Bitte melden Sie sich an.',
+                auth2_too_many_requests: '⏳ Zu viele Versuche. Bitte warten Sie.',
+                auth2_op_not_allowed: '❌ Anmeldung ist in der Firebase-Konsole nicht aktiviert.',
+                auth2_network_error: '🌐 Überprüfen Sie Ihre Internetverbindung.',
+                auth2_weak_password_map: '🔑 Das Passwort muss mindestens 6 Zeichen haben.',
+                auth2_generic_error_prefix: '❌ Fehler: ',
                 categories: {
                     Sve: 'Alle', Kola: 'Auto', Zdravlje: 'Gesundheit', Kupovina: 'Einkauf',
                     Hobi: 'Hobby', Dom: 'Zuhause', Posao: 'Arbeit', Razno: 'Sonstiges'
@@ -1734,6 +2217,12 @@
                 return langData.categories[name];
             }
             return name || '';
+        }
+
+        // Generička pomoćna funkcija: vraća prevedeni tekst za dati ključ na trenutnom jeziku.
+        function t(key) {
+            const langData = translations[currentLang] || translations.sr;
+            return langData[key] !== undefined ? langData[key] : (translations.sr[key] || key);
         }
 
         function translatePage() {
@@ -1896,7 +2385,7 @@
             }
             document.getElementById('alarmOverlay').classList.remove('active');
             
-            showToast('😴 Alarm odložen na 5 minuta', 'warning', 3000);
+            showToast(t('alarm_snoozed'), 'warning', 3000);
             setTimeout(function() {
                 if (currentAlarmTaskKey && allTasks[currentAlarmTaskKey]) {
                     const task = allTasks[currentAlarmTaskKey];
@@ -1996,7 +2485,7 @@
                 errors.push('Unesite tekst zadatka');
             }
             if (text && text.length > 500) {
-                errors.push('Tekst zadatka je predugačak (maks. 500 karaktera)');
+                errors.push(t('task_text_too_long'));
             }
             if (time && !isValidDateTime(time)) {
                 errors.push('Neispravan format datuma/vremena');
@@ -2079,14 +2568,14 @@
                 return now - t < SHARE_WINDOW;
             });
             if (shareAttempts.length >= SHARE_LIMIT) {
-                showToast('⏳ Previše pokušaja deljenja. Sačekajte minut.', 'warning', 4000);
+                showToast(t('share_rate_limit'), 'warning', 4000);
                 return false;
             }
             const today = new Date().toISOString().split('T')[0];
             const dailyKey = 'mp_share_daily_' + today;
             const dailyCount = parseInt(localStorage.getItem(dailyKey) || '0');
             if (dailyCount >= SHARE_DAILY_LIMIT) {
-                showToast('⏳ Dnevni limit deljenja dostignut (' + SHARE_DAILY_LIMIT + '/dan). Pokušajte sutra.', 'warning', 5000);
+                showToast(t('share_daily_limit_prefix') + SHARE_DAILY_LIMIT + t('share_daily_limit_suffix'), 'warning', 5000);
                 return false;
             }
             shareAttempts.push(now);
@@ -2122,7 +2611,7 @@
                 timestamp: new Date().toISOString()
             });
             saveQueue();
-            showToast('Operacija sačuvana za offline sinhronizaciju.', 'info', 2000);
+            showToast(t('offline_op_saved'), 'info', 2000);
         }
 
         async function flushQueue() {
@@ -2162,7 +2651,7 @@
             }
             
             if (offlineQueue.length === 0) {
-                showToast('Sve offline operacije su sinhronizovane!', 'success', 2000);
+                showToast(t('offline_synced'), 'success', 2000);
             }
         }
 
@@ -2197,28 +2686,28 @@
 
         function translateAuthError(code) {
             const messages = {
-                'auth/user-not-found': 'Korisnik nije pronađen.',
-                'auth/wrong-password': 'Pogrešna šifra.',
-                'auth/invalid-email': 'Neispravna email adresa.',
-                'auth/email-already-in-use': 'Email je već u upotrebi.',
-                'auth/too-many-requests': 'Previše pokušaja. Pokušajte kasnije.',
-                'auth/invalid-credential': 'Pogrešan email ili šifra.',
-                'auth/weak-password': 'Šifra mora imati najmanje 6 karaktera.',
-                'auth/network-request-failed': 'Greška u mreži. Proverite internet konekciju.',
-                'auth/operation-not-allowed': 'Prijava email-om nije omogućena u Firebase konzoli.'
+                'auth/user-not-found': t('auth_user_not_found'),
+                'auth/wrong-password': t('auth_wrong_password'),
+                'auth/invalid-email': t('auth_invalid_email'),
+                'auth/email-already-in-use': t('auth_email_in_use'),
+                'auth/too-many-requests': t('auth_too_many_requests'),
+                'auth/invalid-credential': t('auth_invalid_credential'),
+                'auth/weak-password': t('auth_weak_password'),
+                'auth/network-request-failed': t('auth_network_error'),
+                'auth/operation-not-allowed': t('auth_op_not_allowed')
             };
-            return messages[code] || 'Greška: ' + code;
+            return messages[code] || t('auth_generic_error_prefix') + code;
         }
 
         window.toggleAuthMode = function() {
             isRegisterMode = !isRegisterMode;
-            loginSubtitle.textContent = isRegisterMode ? 'Napravite novi nalog' : 'Prijavite se da nastavite';
-            loginBtn.textContent = isRegisterMode ? 'Registruj se' : 'Prijavi se';
+            loginSubtitle.textContent = isRegisterMode ? t('register_subtitle') : t('login_subtitle');
+            loginBtn.textContent = isRegisterMode ? t('register_btn') : t('login_btn');
             document.getElementById('loginPass2Wrap').style.display = isRegisterMode ? 'block' : 'none';
             forgotLink.style.display = isRegisterMode ? 'none' : 'block';
             loginToggle.innerHTML = isRegisterMode 
-                ? 'Već imate nalog? <span onclick="toggleAuthMode()">Prijavite se</span>'
-                : 'Nemate nalog? <span onclick="toggleAuthMode()">Registrujte se</span>';
+                ? t('have_account') + ' <span onclick="toggleAuthMode()">' + t('login_link') + '</span>'
+                : t('no_account') + ' <span onclick="toggleAuthMode()">' + t('register') + '</span>';
             loginErr.textContent = '';
             loginOk.textContent = '';
         };
@@ -2234,17 +2723,17 @@
             console.log('🔐 Pokušaj autentifikacije:', { email, isRegisterMode });
             
             if (!email || !pass) {
-                loginErr.textContent = 'Unesite email i šifru.';
+                loginErr.textContent = t('auth2_enter_email_pass');
                 return;
             }
             
             if (isRegisterMode) {
                 if (pass.length < 6) {
-                    loginErr.textContent = 'Šifra mora imati najmanje 6 karaktera.';
+                    loginErr.textContent = t('auth2_weak_password');
                     return;
                 }
                 if (pass !== pass2) {
-                    loginErr.textContent = 'Šifre se ne poklapaju.';
+                    loginErr.textContent = t('auth2_pass_mismatch');
                     return;
                 }
                 
@@ -2253,12 +2742,12 @@
                     .then(function(userCredential) {
                         console.log('✅ Registracija uspešna!', userCredential.user.email);
                         loginOk.textContent = '✅ Nalog kreiran! Prijavljujemo...';
-                        showToast('✅ Nalog uspešno kreiran!', 'success');
+                        showToast(t('account_created'), 'success');
                     })
                     .catch(function(e) {
                         console.error('❌ Greška pri registraciji:', e.code, e.message);
                         loginErr.textContent = translateAuthError(e.code);
-                        showToast('❌ ' + translateAuthError(e.code), 'error');
+                        showToast(t('translate_auth_error_prefix') + translateAuthError(e.code), 'error');
                     });
             } else {
                 console.log('🔐 Prijava korisnika...');
@@ -2266,12 +2755,12 @@
                     .then(function(userCredential) {
                         console.log('✅ Prijava uspešna!', userCredential.user.email);
                         loginOk.textContent = '✅ Prijavljeni ste!';
-                        showToast('✅ Uspešno prijavljeni!', 'success');
+                        showToast(t('login_success'), 'success');
                     })
                     .catch(function(e) {
                         console.error('❌ Greška pri prijavi:', e.code, e.message);
                         loginErr.textContent = translateAuthError(e.code);
-                        showToast('❌ ' + translateAuthError(e.code), 'error');
+                        showToast(t('translate_auth_error_prefix') + translateAuthError(e.code), 'error');
                     });
             }
         };
@@ -2282,12 +2771,12 @@
             loginOk.textContent = '';
             
             if (!email) {
-                loginErr.textContent = 'Unesite email pa kliknite "Zaboravili ste šifru?".';
+                loginErr.textContent = t('forgot_enter_email');
                 return;
             }
             
             auth.sendPasswordResetEmail(email)
-                .then(function() { loginOk.textContent = 'Email za reset šifre je poslat!'; })
+                .then(function() { loginOk.textContent = t('reset_email_sent'); })
                 .catch(function(e) { loginErr.textContent = translateAuthError(e.code); });
         };
 
@@ -2303,7 +2792,7 @@
         };
 
         window.doSignOut = function() {
-            if (confirm('Odjaviti se?')) {
+            if (confirm(t('confirm_logout'))) {
                 auth.signOut();
             }
         };
@@ -2313,16 +2802,16 @@
             
             const nick = document.getElementById('userNickname').value.trim();
             if (!nick) {
-                showToast('Unesite nadimak.', 'warning');
+                showToast(t('enter_nickname'), 'warning');
                 return;
             }
 
             if (nick.length > 49) {
-                showToast('Nadimak je predugačak (max 49 karaktera).', 'error');
+                showToast(t('nickname_too_long'), 'error');
                 return;
             }
             if (!/^[a-zA-Z0-9_.\-]+$/.test(nick)) {
-                showToast('Nadimak sme da sadrži samo slova, brojeve, _, - i .', 'warning');
+                showToast(t('nickname_invalid_chars'), 'warning');
                 return;
             }
             
@@ -2338,18 +2827,18 @@
                 return uid;
             }, function(error, committed, snapshot) {
                 if (error) {
-                    showToast('Greška pri čuvanju: ' + error.message, 'error');
+                    showToast(t('save_error_prefix') + error.message, 'error');
                 } else if (!committed) {
-                    showToast('Ovaj nadimak je već zauzet! Izaberite drugi.', 'error');
+                    showToast(t('nickname_taken'), 'error');
                 } else {
                     db.ref('users/' + uid + '/nickname').set(nick)
                         .then(function() {
                             currentNickname = nick;
                             updateUserLabel();
-                            showToast('Nadimak uspešno sačuvan!', 'success');
+                            showToast(t('nickname_saved'), 'success');
                         })
                         .catch(function(err) {
-                            showToast('Greška pri čuvanju profila: ' + err.message, 'error');
+                            showToast(t('profile_save_error_prefix') + err.message, 'error');
                         });
                 }
             });
@@ -2372,17 +2861,17 @@
 
         window.requestNotifPermission = function() {
             if (!('Notification' in window)) {
-                showToast('Vaš pretraživač ne podržava notifikacije.', 'warning');
+                showToast(t('notif_not_supported'), 'warning');
                 return;
             }
             
             Notification.requestPermission().then(function(permission) {
                 updateNotifBar();
                 if (permission === 'granted') {
-                    showToast('Notifikacije omogućene!', 'success');
+                    showToast(t('notif_enabled'), 'success');
                     checkAndNotify();
                 } else {
-                    showToast('Notifikacije odbijene.', 'warning');
+                    showToast(t('notif_denied'), 'warning');
                 }
             });
         };
@@ -2398,17 +2887,17 @@
             
             if (Notification.permission === 'default') {
                 bar.style.display = 'inline-block';
-                bar.textContent = '🔔 Notifikacije';
+                bar.textContent = t('notif_btn');
                 bar.className = 'btn blue';
                 bar.onclick = requestNotifPermission;
             } else if (Notification.permission === 'denied') {
                 bar.style.display = 'inline-block';
-                bar.textContent = '🔕 Blokirano';
+                bar.textContent = t('notif_blocked');
                 bar.className = 'btn gray';
                 bar.onclick = null;
             } else {
                 bar.style.display = 'inline-block';
-                bar.textContent = '🔔 PUSH AKTIVNE';
+                bar.textContent = t('notif_active');
                 bar.className = 'btn green';
                 bar.onclick = null;
             }
@@ -2531,9 +3020,10 @@
         // ============================================================
         //  KALENDAR
         // ============================================================
-        const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", 
-                        "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
-        const days = ["Po", "Ut", "Sr", "Če", "Pe", "Su", "Ne"];
+        // Meseci i dani se čitaju iz trenutnog jezika (translations[currentLang].months/days)
+        // umesto fiksnog srpskog niza, kako bi se kalendar ispravno prikazivao na en/de.
+        function getMonths() { return t('months'); }
+        function getDays() { return t('days'); }
         let calendarView = 'month';
         let weekOffset = 0;
 
@@ -2546,7 +3036,7 @@
                 renderCalendar('cal2m', 1);
                 const lastToast = parseInt(localStorage.getItem('mp_last_date_toast') || '0');
                 if (Date.now() - lastToast > 300000) {
-                    showToast('📅 Datum promenjen - kalendar osvežen', 'info', 1500);
+                    showToast(t('date_changed_toast'), 'info', 1500);
                     localStorage.setItem('mp_last_date_toast', Date.now().toString());
                 }
             } else {
@@ -2577,18 +3067,18 @@
             
             let html = '<div class="cal-head">';
             html += '<button class="cal-nav" onclick="changeMonth(-1, \'' + id + '\')">◀</button>';
-            html += '<span>' + months[month] + ' ' + year + '</span>';
+            html += '<span>' + getMonths()[month] + ' ' + year + '</span>';
             html += '<button class="cal-nav" onclick="changeMonth(1, \'' + id + '\')">▶</button>';
             html += '</div>';
             
             html += '<div class="cal-view-toggle" style="margin-bottom:8px;">';
-            html += '<button class="' + (calendarView === 'month' ? 'active' : '') + '" onclick="setCalendarView(\'month\', \'' + id + '\')">📅 Mesec</button>';
-            html += '<button class="' + (calendarView === 'week' ? 'active' : '') + '" onclick="setCalendarView(\'week\', \'' + id + '\')">📆 Nedelja</button>';
+            html += '<button class="' + (calendarView === 'month' ? 'active' : '') + '" onclick="setCalendarView(\'month\', \'' + id + '\')">' + t('cal_month_btn') + '</button>';
+            html += '<button class="' + (calendarView === 'week' ? 'active' : '') + '" onclick="setCalendarView(\'week\', \'' + id + '\')">' + t('cal_week_btn') + '</button>';
             html += '</div>';
             
             html += '<div class="cal-grid">';
             
-            days.forEach(function(day) {
+            getDays().forEach(function(day) {
                 html += '<div class="dayname">' + day + '</div>';
             });
             
@@ -2624,13 +3114,13 @@
             
             let html = '<div class="cal-head">';
             html += '<button class="cal-nav" onclick="changeWeek(-1, \'' + el.id + '\')">◀</button>';
-            html += '<span>Nedelja ' + getWeekNumber(startOfWeek) + ' (' + formatDateRange(startOfWeek) + ')</span>';
+            html += '<span>' + t('cal_week_label') + ' ' + getWeekNumber(startOfWeek) + ' (' + formatDateRange(startOfWeek) + ')</span>';
             html += '<button class="cal-nav" onclick="changeWeek(1, \'' + el.id + '\')">▶</button>';
             html += '</div>';
             
             html += '<div class="cal-view-toggle" style="margin-bottom:8px;">';
-            html += '<button class="' + (calendarView === 'month' ? 'active' : '') + '" onclick="setCalendarView(\'month\', \'' + el.id + '\')">📅 Mesec</button>';
-            html += '<button class="' + (calendarView === 'week' ? 'active' : '') + '" onclick="setCalendarView(\'week\', \'' + el.id + '\')">📆 Nedelja</button>';
+            html += '<button class="' + (calendarView === 'month' ? 'active' : '') + '" onclick="setCalendarView(\'month\', \'' + el.id + '\')">' + t('cal_month_btn') + '</button>';
+            html += '<button class="' + (calendarView === 'week' ? 'active' : '') + '" onclick="setCalendarView(\'week\', \'' + el.id + '\')">' + t('cal_week_btn') + '</button>';
             html += '</div>';
             
             html += '<div class="week-grid">';
@@ -2645,7 +3135,7 @@
                 const dateStr = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
                 const dayNum = date.getDate();
                 const isToday = todayStr === dateStr;
-                const monthName = months[date.getMonth()];
+                const monthName = getMonths()[date.getMonth()];
                 
                 const dayTasks = Object.values(allTasks).filter(function(task) {
                     if (!task.time || task.deleted || task.archived) return false;
@@ -2666,7 +3156,7 @@
                 });
                 
                 if (dayTasks.length > 3) {
-                    html += '<div style="font-size:8px;color:var(--muted);">+' + (dayTasks.length - 3) + ' još</div>';
+                    html += '<div style="font-size:8px;color:var(--muted);">+' + (dayTasks.length - 3) + ' ' + t('cal_more') + '</div>';
                 }
                 
                 html += '</div>';
@@ -2878,7 +3368,7 @@
             a.download = 'planer_backup_' + new Date().toISOString().split('T')[0] + '.json';
             a.click();
             URL.revokeObjectURL(url);
-            showToast('📦 Zadataci izvezeni!', 'success', 2000);
+            showToast(t('export_success'), 'success', 2000);
         };
 
         function validateImportedTask(task) {
@@ -2910,12 +3400,12 @@
         window.importTasks = function(file) {
             if (!file) return;
             if (!currentUser) {
-                showToast('Morate biti prijavljeni za uvoz.', 'error');
+                showToast(t('import_login_required'), 'error');
                 return;
             }
 
             if (file.size > 5 * 1024 * 1024) {
-                showToast('❌ Fajl je prevelik (max 5 MB).', 'error');
+                showToast(t('import_file_too_large'), 'error');
                 return;
             }
             
@@ -2924,13 +3414,13 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     if (!data.tasks || typeof data.tasks !== 'object' || Array.isArray(data.tasks)) {
-                        showToast('❌ Neispravan format fajla.', 'error');
+                        showToast(t('import_invalid_format'), 'error');
                         return;
                     }
 
                     const allKeys = Object.keys(data.tasks);
                     if (allKeys.length > 1000) {
-                        showToast('❌ Previše zadataka u fajlu (max 1000).', 'error');
+                        showToast(t('import_too_many'), 'error');
                         return;
                     }
 
@@ -2963,7 +3453,7 @@
 
                     const validCount = Object.keys(validTasks).length;
                     if (validCount === 0) {
-                        showToast('❌ Nijedan zadatak nije prošao validaciju.', 'error');
+                        showToast(t('import_none_valid'), 'error');
                         return;
                     }
 
@@ -2975,14 +3465,14 @@
                     
                     const db = getDbRef(currentUser.uid);
                     db.update(validTasks).then(function() {
-                        showToast('✅ ' + validCount + ' zadataka uvezeno!', 'success', 3000);
+                        showToast(t('import_success_prefix') + validCount + t('import_success_suffix'), 'success', 3000);
                         allTasks = { ...allTasks, ...validTasks };
                         renderTasks();
                     }).catch(function(err) {
-                        showToast('❌ Greška: ' + err.message, 'error');
+                        showToast(t('generic_error_prefix') + err.message, 'error');
                     });
                 } catch (err) {
-                    showToast('❌ Greška pri uvozu: ' + err.message, 'error');
+                    showToast(t('import_error_prefix') + err.message, 'error');
                 }
             };
             reader.readAsText(file);
@@ -3056,7 +3546,7 @@
             const catHtml = Object.keys(catStats).map(c => 
                 (catEmoji[c] || '📌') + ' ' + catLabel(c) + ': ' + catStats[c]
             ).join(' | ');
-            document.getElementById('statsCategories').textContent = catHtml || 'Nema zadataka';
+            document.getElementById('statsCategories').textContent = catHtml || t('no_tasks');
         }
 
         window.toggleStatsDropdown = function() {
@@ -3081,7 +3571,7 @@
                         dbRef.once('value', function(s) {
                             allTasks = s.val() || {};
                             renderTasks();
-                            showToast('🔄 Auto-osveženo (30 min)', 'info', 1500);
+                            showToast(t('auto_refreshed'), 'info', 1500);
                         });
                     }
                 }
@@ -3121,7 +3611,7 @@
             });
             
             if (deletedCount > 0) {
-                showToast('🗑️ ' + deletedCount + ' zadatak(a) trajno obrisan iz smeća (30 dana)', 'info', 3000);
+                showToast('🗑️ ' + deletedCount + t('trash_auto_deleted_suffix'), 'info', 3000);
                 renderTasks();
             }
         }
@@ -3347,20 +3837,20 @@
             renderPagination(totalItems);
             
             if (pageKeys.length === 0) {
-                let message = 'Nema zadataka.';
-                if (showTrash) message = '🗑️ Smeće je prazno.';
-                else if (showDone) message = '📁 Nema završenih zadataka.';
-                else if (showArchived) message = '📦 Arhiva je prazna.';
-                else message = 'Nema aktivnih zadataka.';
+                let message = t('no_tasks');
+                if (showTrash) message = t('msg_trash_empty');
+                else if (showDone) message = t('msg_no_done');
+                else if (showArchived) message = t('msg_archive_empty');
+                else message = t('msg_no_active');
                 list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px;">' + message + '</div>';
                 return;
             }
             
             let infoText = '';
-            if (showTrash) infoText = '🗑️ Smeće (' + totalItems + ') - zadaci se brišu nakon 30 dana';
-            else if (showDone) infoText = '📁 Završeni zadaci (' + totalItems + ')';
-            else if (showArchived) infoText = '📦 Arhivirani zadaci (' + totalItems + ')';
-            else infoText = '📋 Aktivni zadaci (' + totalItems + ')';
+            if (showTrash) infoText = t('trash_btn') + ' (' + totalItems + ') - ' + t('trash_count_suffix');
+            else if (showDone) infoText = t('label_done_tasks') + ' (' + totalItems + ')';
+            else if (showArchived) infoText = t('label_archived_tasks') + ' (' + totalItems + ')';
+            else infoText = t('label_active_tasks') + ' (' + totalItems + ')';
             
             let html = '<div style="margin-bottom:12px;text-align:center;color:var(--muted);font-size:13px;">' + infoText + '</div>';
             
@@ -3392,17 +3882,17 @@
                 html += '<div class="task-head"><div>' + emoji + ' ' + catLabel(task.category || 'Razno') + repeatInfo + (isShared ? ' 🤝' : '') + (isArchived ? ' 📦' : '') + '</div><div>' + (task.time ? displayDate(task.time) : (translations[currentLang] || translations.sr).no_time) + '</div></div>';
                 
                 if (task.createdAt && !isDeleted) {
-                    html += '<div class="task-meta">Postavljeno: ' + displayDate(task.createdAt) + '</div>';
+                    html += '<div class="task-meta">' + t('created_label') + ' ' + displayDate(task.createdAt) + '</div>';
                 }
                 if (task.completedAt && isDone) {
-                    html += '<div class="task-meta">Završeno: ' + displayDate(task.completedAt) + '</div>';
+                    html += '<div class="task-meta">' + t('completed_label') + ' ' + displayDate(task.completedAt) + '</div>';
                 }
                 if (task.deletedAt && isDeleted) {
                     const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - new Date(task.deletedAt).getTime()) / (24 * 60 * 60 * 1000)));
-                    html += '<div class="task-meta">🗑️ U smeću: ' + displayDate(task.deletedAt) + ' (još ' + daysLeft + ' dana)</div>';
+                    html += '<div class="task-meta">' + t('in_trash_label') + ' ' + displayDate(task.deletedAt) + ' ' + t('days_left_prefix') + daysLeft + t('days_left_suffix') + '</div>';
                 }
                 if (task.sharedWith) {
-                    html += '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">📤 Deljeno sa: ' + escapeHtml(task.sharedWith) + '</div>';
+                    html += '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">' + t('shared_with_label') + escapeHtml(task.sharedWith) + '</div>';
                 }
                 
                 html += '<div class="task-text">' + escapeHtml(task.text) + '</div>';
@@ -3412,30 +3902,30 @@
                 html += '<div class="actions">';
                 
                 if (isDeleted) {
-                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromTrash(\'' + key + '\')" title="Vrati">↩</button>';
-                    html += '<button class="iconbtn" style="background:#e74c3c" onclick="deleteTaskPermanently(\'' + key + '\')" title="Obriši trajno">🗑️</button>';
+                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromTrash(\'' + key + '\')" title="' + t('title_restore') + '">↩</button>';
+                    html += '<button class="iconbtn" style="background:#e74c3c" onclick="deleteTaskPermanently(\'' + key + '\')" title="' + t('title_delete_permanent') + '">🗑️</button>';
                 } else if (isArchived) {
-                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="unarchiveTask(\'' + key + '\')" title="Vrati iz arhive">↩</button>';
-                    html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>';
+                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="unarchiveTask(\'' + key + '\')" title="' + t('title_restore_archive') + '">↩</button>';
+                    html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="' + t('title_to_trash') + '">🗑️</button>';
                 } else if (isDone) {
-                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromDone(\'' + key + '\')" title="Vrati">↩</button>';
-                    html += '<button class="iconbtn" style="background:#8e44ad" onclick="archiveTask(\'' + key + '\')" title="Arhiviraj">📦</button>';
-                    html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>';
+                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="restoreFromDone(\'' + key + '\')" title="' + t('title_restore') + '">↩</button>';
+                    html += '<button class="iconbtn" style="background:#8e44ad" onclick="archiveTask(\'' + key + '\')" title="' + t('title_archive') + '">📦</button>';
+                    html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="' + t('title_to_trash') + '">🗑️</button>';
                 } else {
-                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="Završi">✓</button>';
-                    html += '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="Izmeni">✏️</button>';
+                    html += '<button class="iconbtn" style="background:#2ecc71" onclick="toggleComplete(\'' + key + '\')" title="' + t('title_complete') + '">✓</button>';
+                    html += '<button class="iconbtn" style="background:#3498db" onclick="prepareEdit(\'' + key + '\')" title="' + t('title_edit') + '">✏️</button>';
                     if (!isShared) {
-                        html += '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\'' + key + '\')" title="Podeli">📤</button>';
+                        html += '<button class="iconbtn" style="background:#1abc9c" onclick="shareTask(\'' + key + '\')" title="' + t('title_share') + '">📤</button>';
                     }
-                    html += '<button class="iconbtn" style="background:#8e44ad" onclick="archiveTask(\'' + key + '\')" title="Arhiviraj">📦</button>';
+                    html += '<button class="iconbtn" style="background:#8e44ad" onclick="archiveTask(\'' + key + '\')" title="' + t('title_archive') + '">📦</button>';
 
                     // === PRAVILNA LOGIKA: Vlasnik vidi korpu, ostali vide X ===
                     if (task.ownerUid === currentUser.uid) {
                         // ✅ VI STE VLASNIK – prikaži korpu (može da briše za sve)
-                        html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="Pošalji u smeće">🗑️</button>';
+                        html += '<button class="iconbtn" style="background:#e67e22" onclick="moveToTrash(\'' + key + '\')" title="' + t('title_to_trash') + '">🗑️</button>';
                     } else {
                         // ❌ VI STE UČESNIK – prikaži X (samo uklanja iz vašeg prikaza)
-                        html += '<button class="iconbtn" style="background:#e74c3c" onclick="removeSharedRef(\'' + key + '\')" title="Ukloni iz mog prikaza">✕</button>';
+                        html += '<button class="iconbtn" style="background:#e74c3c" onclick="removeSharedRef(\'' + key + '\')" title="' + t('title_remove_my_view') + '">✕</button>';
                     }
                     // ====================
                 }
@@ -3452,7 +3942,7 @@
         // ===== ARHIVIRANJE =====
         window.archiveTask = function(key) {
             if (!currentUser) return;
-            if (!confirm('Arhivirati zadatak?')) return;
+            if (!confirm(t('confirm_archive'))) return;
             
             const task = allTasks[key];
             const nowISO = dateToISO(new Date());
@@ -3463,9 +3953,9 @@
                     lastChangedAt: nowISO,
                     lastChangedBy: currentUser.uid
                 }).then(function() {
-                    showToast('📦 Deljeni zadatak arhiviran!', 'success');
+                    showToast(t('shared_archived'), 'success');
                 }).catch(function(e) {
-                    showToast('❌ Greška: ' + e.message, 'error');
+                    showToast(t('generic_error_prefix') + e.message, 'error');
                 });
                 return;
             }
@@ -3477,7 +3967,7 @@
             } else {
                 addToQueue({ type: 'update', key: key, payload: updates });
             }
-            showToast('📦 Zadatak arhiviran!', 'success');
+            showToast(t('task_archived'), 'success');
         };
 
         window.unarchiveTask = function(key) {
@@ -3491,7 +3981,7 @@
             } else {
                 addToQueue({ type: 'update', key: key, payload: updates });
             }
-            showToast('↩ Zadatak vraćen iz arhive!', 'success');
+            showToast(t('task_unarchived'), 'success');
         };
 
         window.toggleArchivedView = function() {
@@ -3551,7 +4041,7 @@
         function renderSubtasksHTML(subtasks, taskKey, isShared) {
             if (!subtasks || Object.keys(subtasks).length === 0) {
                 return '<div class="subtasks"><div class="subtask-add">' +
-                    '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
+                    '<input type="text" placeholder="' + t('subtask_placeholder') + '" id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
                     '<select id="subtaskCategory_' + taskKey + '">' +
                     categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
                         return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + catLabel(c) + '</option>';
@@ -3589,7 +4079,7 @@
             });
             
             html += '<div class="subtask-add">' +
-                '<input type="text" placeholder="Dodaj podzadatak..." id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
+                '<input type="text" placeholder="' + t('subtask_placeholder') + '" id="subtaskInput_' + taskKey + '" onkeydown="if(event.key===\'Enter\')addSubtask(this, \'' + taskKey + '\', ' + isShared + ')" />' +
                 '<select id="subtaskCategory_' + taskKey + '">' +
                 categories.filter(function(c) { return c !== 'Sve'; }).map(function(c) {
                     return '<option value="' + c + '">' + (catEmoji[c] || '📌') + ' ' + catLabel(c) + '</option>';
@@ -3604,20 +4094,20 @@
 
         window.addSubtaskWithCategory = function(input, catSelect, taskKey, isShared) {
             if (!currentUser) {
-                showToast('Niste prijavljeni.', 'error');
+                showToast(t('not_logged_in'), 'error');
                 return;
             }
             
             const text = sanitizeText(input.value);
             if (!text) {
-                showToast('Unesite tekst podzadatka.', 'warning');
+                showToast(t('enter_subtask_text'), 'warning');
                 return;
             }
             
             const category = catSelect.value || 'Razno';
             
             if (!taskKey) {
-                showToast('Prvo sačuvajte zadatak pa dodajte podzadatke.', 'warning');
+                showToast(t('save_task_first'), 'warning');
                 return;
             }
             
@@ -3670,7 +4160,7 @@
             }
             
             input.value = '';
-            showToast('✅ Podzadatak dodat!', 'success');
+            showToast(t('subtask_added'), 'success');
             renderTasks();
         };
 
@@ -3692,7 +4182,7 @@
             const newText = prompt('Izmeni tekst podzadatka:', sub.text);
             
             if (newText === null || !newText.trim()) {
-                if (newText !== null) showToast('Tekst ne može biti prazan.', 'warning');
+                if (newText !== null) showToast(t('text_cannot_be_empty'), 'warning');
                 return;
             }
             
@@ -3728,7 +4218,7 @@
                 }
             }
             
-            showToast('✅ Tekst podzadatka ažuriran!', 'success');
+            showToast(t('subtask_text_updated'), 'success');
             renderTasks();
         };
 
@@ -3787,7 +4277,7 @@
                         }
                     }
                     
-                    showToast('✅ Podzadatak ažuriran!', 'success');
+                    showToast(t('subtask_updated'), 'success');
                 }
                 renderTasks();
             };
@@ -3842,7 +4332,7 @@
                 }
             }
             
-            showToast('🔄 Kategorija promenjena!', 'success');
+            showToast(t('category_changed'), 'success');
             renderTasks();
         };
 
@@ -3889,10 +4379,10 @@
 
         window.deleteSubtask = function(taskKey, subId, isShared) {
             if (!currentUser) {
-                showToast('Niste prijavljeni.', 'error');
+                showToast(t('not_logged_in'), 'error');
                 return;
             }
-            if (!confirm('Obrisati podzadatak?')) return;
+            if (!confirm(t('confirm_delete_subtask'))) return;
             
             const nowISO = dateToISO(new Date());
             
@@ -3925,7 +4415,7 @@
                 }
             }
             
-            showToast('🗑️ Podzadatak obrisan!', 'success');
+            showToast(t('subtask_deleted'), 'success');
             renderTasks();
         };
 
@@ -3934,19 +4424,19 @@
             const trashBtn = document.getElementById('trashBtn');
             
             if (doneBtn) {
-                doneBtn.textContent = showDone ? '📋 Aktivni' : '📁 Završeni';
+                doneBtn.textContent = showDone ? t('active_label') : t('done_btn');
                 doneBtn.className = showDone ? 'btn blue' : 'btn gray';
             }
             if (trashBtn) {
-                trashBtn.textContent = showTrash ? '📋 Aktivni' : '🗑️ Smeće';
+                trashBtn.textContent = showTrash ? t('active_label') : t('trash_btn');
                 trashBtn.className = showTrash ? 'btn blue' : 'btn orange';
             }
             
             const info = document.getElementById('doneInfo');
             if (info) {
-                if (showDone) info.textContent = '📁 Prikazani završeni zadaci';
-                else if (showTrash) info.textContent = '🗑️ Prikazano smeće (zadaci se brišu nakon 30 dana)';
-                else if (showArchived) info.textContent = '📦 Prikazana arhiva';
+                if (showDone) info.textContent = t('info_done_shown');
+                else if (showTrash) info.textContent = t('info_trash_shown');
+                else if (showArchived) info.textContent = t('info_archived_shown');
                 else info.textContent = '';
             }
         }
@@ -4061,7 +4551,7 @@
                                 updates['sharedTasks/' + task.sharedKey] = null;
                                 
                                 database.ref().update(updates).then(function() {
-                                    showToast('Zadatak ponovljen za ' + task.repeat, 'success');
+                                    showToast(t('task_repeated_prefix') + task.repeat, 'success');
                                 });
                             });
                         }
@@ -4094,7 +4584,7 @@
                         addToQueue({ type: 'push', payload: newTask });
                         addToQueue({ type: 'remove', key: key });
                     }
-                    showToast('Zadatak ponovljen za ' + task.repeat, 'success');
+                    showToast(t('task_repeated_prefix') + task.repeat, 'success');
                     return;
                 }
             }
@@ -4136,12 +4626,12 @@
             } else {
                 addToQueue({ type: 'update', key: key, payload: updates });
             }
-            showToast('↩ Zadatak vraćen kao nezavršen!', 'success');
+            showToast(t('task_marked_undone'), 'success');
         };
 
         window.moveToTrash = function(key) {
             if (!currentUser) return;
-            if (!confirm('Pošalji zadatak u smeće?')) return;
+            if (!confirm(t('confirm_to_trash'))) return;
             
             const nowISO = dateToISO(new Date());
             const task = allTasks[key];
@@ -4156,9 +4646,9 @@
                     completedAt: '',
                     archived: false
                 }).then(function() {
-                    showToast('🗑️ Deljeni zadatak poslat u smeće!', 'warning');
+                    showToast(t('shared_trashed'), 'warning');
                 }).catch(function(e) {
-                    showToast('❌ Greška: ' + e.message, 'error');
+                    showToast(t('generic_error_prefix') + e.message, 'error');
                 });
                 return;
             }
@@ -4176,7 +4666,7 @@
             } else {
                 addToQueue({ type: 'update', key: key, payload: updates });
             }
-            showToast('🗑️ Zadatak poslat u smeće!', 'warning');
+            showToast(t('task_trashed'), 'warning');
         };
 
         window.restoreFromTrash = function(key) {
@@ -4190,9 +4680,9 @@
                     lastChangedAt: dateToISO(new Date()),
                     lastChangedBy: currentUser.uid
                 }).then(function() {
-                    showToast('↩ Deljeni zadatak vraćen iz smeća!', 'success');
+                    showToast(t('shared_restored'), 'success');
                 }).catch(function(e) {
-                    showToast('❌ Greška: ' + e.message, 'error');
+                    showToast(t('generic_error_prefix') + e.message, 'error');
                 });
                 return;
             }
@@ -4204,12 +4694,12 @@
             } else {
                 addToQueue({ type: 'update', key: key, payload: updates });
             }
-            showToast('↩ Zadatak vraćen iz smeća!', 'success');
+            showToast(t('task_restored'), 'success');
         };
 
         // ===== OVO JE KLJUČNA IZMENA – NOVI deleteTaskPermanently =====
         window.deleteTaskPermanently = function(key) {
-            if (!confirm('⚠️ Trajno obrisati zadatak? Ova radnja se NE MOŽE opozvati!')) return;
+            if (!confirm(t('confirm_delete_permanent'))) return;
             if (!currentUser) return;
 
             const task = allTasks[key];
@@ -4254,11 +4744,11 @@
                         // Ukloni lokalno
                         delete allTasks[key];
                         renderTasks();
-                        showToast('Deljeni zadatak trajno uklonjen.', 'info');
+                        showToast(t('shared_removed_permanent'), 'info');
                     })
                     .catch(function(err) {
                         console.error('Greška pri uklanjanju deljenog zadatka:', err);
-                        showToast('Greška: ' + err.message, 'error');
+                        showToast(t('generic_error_prefix2') + err.message, 'error');
                     });
                 return;
             }
@@ -4272,7 +4762,7 @@
                 delete allTasks[key];
                 renderTasks();
             }
-            showToast('🗑️ Zadatak trajno obrisan!', 'success');
+            showToast(t('task_deleted'), 'success');
         };
 
         // ===== CRUD OPERACIJE =====
@@ -4289,7 +4779,7 @@
             }
             
             if (!currentUser) {
-                showToast('Niste prijavljeni.', 'error');
+                showToast(t('not_logged_in'), 'error');
                 return;
             }
             
@@ -4306,9 +4796,9 @@
                     lastChangedBy: currentUser.uid
                 });
                 editSharedKey = null;
-                document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
+                document.getElementById('saveBtn').textContent = t('save_btn');
                 clearForm();
-                showToast('Deljeni zadatak ažuriran!', 'success');
+                showToast(t('shared_updated'), 'success');
                 return;
             }
             
@@ -4346,15 +4836,15 @@
                     addToQueue({ type: 'update', key: editKey, payload: data });
                 }
                 editKey = null;
-                document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
-                showToast('Zadatak ažuriran!', 'success');
+                document.getElementById('saveBtn').textContent = t('save_btn');
+                showToast(t('task_updated'), 'success');
             } else {
                 if (navigator.onLine) {
                     db.push(payload);
                 } else {
                     addToQueue({ type: 'push', payload: payload });
                 }
-                showToast('Zadatak dodat!', 'success');
+                showToast(t('task_added'), 'success');
             }
             
             clearForm();
@@ -4373,7 +4863,7 @@
             }
             
             if (!currentUser) {
-                showToast('Niste prijavljeni.', 'error');
+                showToast(t('not_logged_in'), 'error');
                 return;
             }
             
@@ -4393,15 +4883,15 @@
                 });
                 const sharedKey = editSharedKey;
                 editSharedKey = null;
-                document.getElementById('saveBtn').textContent = '💾 Sačuvaj';
+                document.getElementById('saveBtn').textContent = t('save_btn');
                 clearForm();
-                showToast('Deljeni zadatak ažuriran!', 'success');
+                showToast(t('shared_updated'), 'success');
                 
                 setTimeout(function() {
                     const task = sharedTasksData[sharedKey];
                     if (task) {
                         const userInput = prompt(
-                            'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n' + 
+                            t('share_prompt') + 
                             task.text.slice(0, 60) + (task.text.length > 60 ? '...' : '')
                         );
                         if (userInput) {
@@ -4410,12 +4900,12 @@
                             const isEmail = target.includes('@');
                             
                             if (isEmail && target.toLowerCase() === currentUser.email.toLowerCase()) {
-                                showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                                showToast(t('cannot_share_with_self'), 'warning');
                                 return;
                             }
                             
                             if (!isEmail && currentNickname && target.toLowerCase() === currentNickname.toLowerCase()) {
-                                showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                                showToast(t('cannot_share_with_self'), 'warning');
                                 return;
                             }
                             
@@ -4426,14 +4916,14 @@
                                 .then(function(snap) {
                                     const recipientUid = snap.val();
                                     if (!recipientUid) {
-                                        showToast('Korisnik "' + target + '" nije pronađen.', 'error');
+                                        showToast(t('user_not_found_prefix') + target + t('user_not_found_suffix'), 'error');
                                         return;
                                     }
                                     executeSharing(sharedKey, task, recipientUid, target);
                                 })
                                 .catch(function(err) {
                                     console.error('Greška pri deljenju:', err);
-                                    showToast('Greška: ' + err.message, 'error');
+                                    showToast(t('generic_error_prefix2') + err.message, 'error');
                                 });
                         }
                     }
@@ -4459,10 +4949,10 @@
             if (navigator.onLine) {
                 const newRef = db.push(payload);
                 newKey = newRef.key;
-                showToast('Zadatak dodat!', 'success');
+                showToast(t('task_added'), 'success');
             } else {
                 addToQueue({ type: 'push', payload: payload });
-                showToast('Zadatak dodat (offline)!', 'success');
+                showToast(t('task_added_offline'), 'success');
                 clearForm();
                 return;
             }
@@ -4474,7 +4964,7 @@
                     clearInterval(checkInterval);
                     const task = allTasks[newKey];
                     const userInput = prompt(
-                        'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n' + 
+                        t('share_prompt') + 
                         task.text.slice(0, 60) + (task.text.length > 60 ? '...' : '')
                     );
                     if (userInput) {
@@ -4483,12 +4973,12 @@
                         const isEmail = target.includes('@');
                         
                         if (isEmail && target.toLowerCase() === currentUser.email.toLowerCase()) {
-                            showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                            showToast(t('cannot_share_with_self'), 'warning');
                             return;
                         }
                         
                         if (!isEmail && currentNickname && target.toLowerCase() === currentNickname.toLowerCase()) {
-                            showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                            showToast(t('cannot_share_with_self'), 'warning');
                             return;
                         }
                         
@@ -4499,14 +4989,14 @@
                             .then(function(snap) {
                                 const recipientUid = snap.val();
                                 if (!recipientUid) {
-                                    showToast('Korisnik "' + target + '" nije pronađen.', 'error');
+                                    showToast(t('user_not_found_prefix') + target + t('user_not_found_suffix'), 'error');
                                     return;
                                 }
                                 executeSharing(newKey, task, recipientUid, target);
                             })
                             .catch(function(err) {
                                 console.error('Greška pri deljenju:', err);
-                                showToast('Greška: ' + err.message, 'error');
+                                showToast(t('generic_error_prefix2') + err.message, 'error');
                             });
                     }
                 }
@@ -4533,30 +5023,30 @@
             document.getElementById('taskTime').value = task.time || '';
             document.getElementById('taskCat').value = task.category || 'Razno';
             document.getElementById('taskRepeat').value = task.repeat || 'none';
-            document.getElementById('saveBtn').textContent = '✏️ Izmeni';
+            document.getElementById('saveBtn').textContent = t('edit_btn');
             document.getElementById('taskText').focus();
         };
 
         // ===== RESET =====
         window.resetAll = function() {
-            if (!confirm('⚠️ UPOZORENJE: Ovo će trajno obrisati SVE vaše zadatke!\n\nDa li ste sigurni?')) {
+            if (!confirm(t('confirm_delete_all_1'))) {
                 return;
             }
             
-            const confirmation = prompt('📝 Da biste potvrdili, upišite reč "DA" (velikim slovima):');
+            const confirmation = prompt(t('confirm_delete_all_prompt'));
             
             if (confirmation !== 'DA') {
-                showToast('❌ Operacija otkazana - pogrešna potvrda.', 'warning', 3000);
+                showToast(t('confirm_wrong'), 'warning', 3000);
                 return;
             }
             
-            if (!confirm('🔴 POSLEDNJA POTVRDA: Obrisati sve zadatke trajno?\n\nOva radnja se NE MOŽE opozvati!')) {
-                showToast('❌ Operacija otkazana.', 'warning', 2000);
+            if (!confirm(t('confirm_delete_all_2'))) {
+                showToast(t('operation_cancelled'), 'warning', 2000);
                 return;
             }
             
             if (!currentUser) {
-                showToast('Niste prijavljeni.', 'error');
+                showToast(t('not_logged_in'), 'error');
                 return;
             }
             
@@ -4564,16 +5054,16 @@
             if (navigator.onLine) {
                 db.remove()
                     .then(function() {
-                        showToast('✅ Svi zadaci su trajno obrisani!', 'success', 4000);
+                        showToast(t('all_tasks_deleted'), 'success', 4000);
                         allTasks = {};
                         renderTasks();
                     })
                     .catch(function(err) {
-                        showToast('Greška pri brisanju: ' + err.message, 'error');
+                        showToast(t('delete_error_prefix') + err.message, 'error');
                     });
             } else {
                 addToQueue({ type: 'removeall' });
-                showToast('📦 Zadaci će biti obrisani kada se vrati internet.', 'info', 3000);
+                showToast(t('tasks_deleted_when_online'), 'info', 3000);
             }
         };
 
@@ -4583,7 +5073,7 @@
         window.shareTask = function(key) {
             const task = allTasks[key];
             if (!task) {
-                showToast('Zadatak nije pronađen.', 'error');
+                showToast(t('task_not_found'), 'error');
                 return;
             }
             
@@ -4592,7 +5082,7 @@
             if (!canShare()) return;
             
             const userInput = prompt(
-                'Unesite EMAIL ili NADIMAK osobe kojoj želite da podelite zadatak:\n\n' + 
+                t('share_prompt') + 
                 task.text.slice(0, 60) + (task.text.length > 60 ? '...' : '')
             );
             
@@ -4604,12 +5094,12 @@
             const isEmail = target.includes('@');
             
             if (isEmail && target.toLowerCase() === currentUser.email.toLowerCase()) {
-                showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                showToast(t('cannot_share_with_self'), 'warning');
                 return;
             }
             
             if (!isEmail && currentNickname && target.toLowerCase() === currentNickname.toLowerCase()) {
-                showToast('Ne možete podeliti zadatak sa samim sobom.', 'warning');
+                showToast(t('cannot_share_with_self'), 'warning');
                 return;
             }
             
@@ -4620,14 +5110,14 @@
                 .then(function(snap) {
                     const recipientUid = snap.val();
                     if (!recipientUid) {
-                        showToast('Korisnik "' + target + '" nije pronađen.', 'error');
+                        showToast(t('user_not_found_prefix') + target + t('user_not_found_suffix'), 'error');
                         return;
                     }
                     executeSharing(key, task, recipientUid, target);
                 })
                 .catch(function(err) {
                     console.error('Greška pri deljenju:', err);
-                    showToast('Greška: ' + err.message, 'error');
+                    showToast(t('generic_error_prefix2') + err.message, 'error');
                 });
         };
 
@@ -4642,7 +5132,7 @@
                     .then(function(snap) {
                         const currentParticipants = snap.val() || {};
                         if (currentParticipants[recipientUid]) {
-                            showToast('Ovaj korisnik je već učesnik u ovom zadatku!', 'warning');
+                            showToast(t('already_participant'), 'warning');
                             return;
                         }
                         
@@ -4659,11 +5149,11 @@
                         return db.ref().update(updates);
                     })
                     .then(function() {
-                        showToast('Korisnik ' + rawTarget + ' dodat u deljeni zadatak!', 'success');
+                        showToast(t('user_added_to_shared_prefix') + rawTarget + t('user_added_to_shared_suffix'), 'success');
                     })
                     .catch(function(err) {
                         console.error('Greška pri dodavanju učesnika:', err);
-                        showToast('Greška: ' + err.message, 'error');
+                        showToast(t('generic_error_prefix2') + err.message, 'error');
                     });
                 return;
             }
@@ -4708,11 +5198,11 @@
                     if (dbRef && navigator.onLine) {
                         dbRef.child(key).remove();
                     }
-                    showToast('Zadatak uspešno podeljen sa: ' + rawTarget, 'success');
+                    showToast(t('task_shared_with_prefix') + rawTarget, 'success');
                 })
                 .catch(function(err) {
                     console.error('Greška pri deljenju:', err);
-                    showToast('Greška: ' + err.message, 'error');
+                    showToast(t('generic_error_prefix2') + err.message, 'error');
                 });
         }
 
@@ -4749,22 +5239,22 @@
             document.getElementById('taskTime').value = task.time || '';
             document.getElementById('taskCat').value = task.category || 'Razno';
             document.getElementById('taskRepeat').value = task.repeat || 'none';
-            document.getElementById('saveBtn').textContent = '✏️ Izmeni deljeni';
+            document.getElementById('saveBtn').textContent = t('edit_shared_btn');
             document.getElementById('taskText').focus();
         };
 
         window.removeSharedRef = function(key) {
-            if (!confirm('Ukloniti ovaj deljeni zadatak iz vašeg prikaza?')) return;
+            if (!confirm(t('confirm_remove_shared'))) return;
             
             if (!currentUser) return;
             
             database.ref('users/' + currentUser.uid + '/sharedTaskRefs/' + key).remove()
                 .then(function() {
-                    showToast('Deljeni zadatak uklonjen iz prikaza.', 'info');
+                    showToast(t('shared_removed_from_view'), 'info');
                 })
                 .catch(function(err) {
                     console.error('Greška pri uklanjanju:', err);
-                    showToast('Greška: ' + err.message, 'error');
+                    showToast(t('generic_error_prefix2') + err.message, 'error');
                 });
         };
 
@@ -4772,13 +5262,13 @@
             const keys = Object.keys(sharedTasksData);
             
             if (!keys.length) {
-                list.innerHTML = '<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim učesnicima odmah</div></div></div><div style="text-align:center;color:var(--muted);padding:30px;">Nemate deljenih zadataka.<br><br>Koristite dugme 📤 na zadatku da ga podelite.</div>';
+                list.innerHTML = '<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">' + t('shared_header_title') + '</div><div class="shared-header-sub">' + t('shared_header_sub') + '</div></div></div><div style="text-align:center;color:var(--muted);padding:30px;">' + t('shared_empty') + '<br><br>' + t('shared_empty_hint') + '</div>';
                 return;
             }
             
             const lastViewedShared = parseInt(localStorage.getItem('mp_last_viewed_shared') || '0');
             
-            let html = '<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">Deljeni zadaci</div><div class="shared-header-sub">Izmene su vidljive svim učesnicima odmah</div></div></div>';
+            let html = '<div class="shared-header"><div class="shared-header-icon">🤝</div><div><div class="shared-header-text">' + t('shared_header_title') + '</div><div class="shared-header-sub">' + t('shared_header_sub') + '</div></div></div>';
             
             keys.forEach(function(key) {
                 const task = sharedTasksData[key];
@@ -4798,15 +5288,15 @@
                 html += '<div class="task shared-task cat-' + task.category + (task.completed ? ' done' : '') + (isAlarm ? ' alarm' : '') + (shouldBlink ? ' blink-shared' : '') + '">' +
                     (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
                     '<div class="task-head"><div>' + emoji + ' ' + catLabel(task.category) + '</div><div>' + (task.time ? displayDate(task.time) : (translations[currentLang] || translations.sr).no_time) + '</div></div>' +
-                    '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">🤝 Učesnici: ' + escapeHtml(parts) + '</div>' +
-                    (task.createdByEmail ? '<div class="task-meta">Kreirao/la: ' + escapeHtml(creatorDisplay) + '</div>' : '') +
+                    '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">' + t('participants_label') + ' ' + escapeHtml(parts) + '</div>' +
+                    (task.createdByEmail ? '<div class="task-meta">' + t('created_by_label') + ' ' + escapeHtml(creatorDisplay) + '</div>' : '') +
                     '<div class="task-text">' + escapeHtml(task.text) + '</div>' +
                     renderSubtasksHTML(task.subtasks, key, true) +
                     renderAlarmCheckbox(key, task) +
                     '<div class="actions">' +
-                    '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\'' + key + '\')" title="' + (task.completed ? 'Vrati' : 'Završi') + '">✓</button>' +
-                    '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\'' + key + '\')" title="Izmeni">✏️</button>' +
-                    '<button class="iconbtn" style="background:#e74c3c" onclick="removeSharedRef(\'' + key + '\')" title="Ukloni">✕</button>' +
+                    '<button class="iconbtn" style="background:#2ecc71" onclick="toggleSharedComplete(\'' + key + '\')" title="' + (task.completed ? t('title_restore') : t('title_complete')) + '">✓</button>' +
+                    '<button class="iconbtn" style="background:#3498db" onclick="editSharedTask(\'' + key + '\')" title="' + t('title_edit') + '">✏️</button>' +
+                    '<button class="iconbtn" style="background:#e74c3c" onclick="removeSharedRef(\'' + key + '\')" title="' + t('title_remove') + '">✕</button>' +
                     '</div></div>';
             });
             
@@ -4873,14 +5363,14 @@
         //  MANUALNO OSVEŽAVANJE
         // ============================================================
         window.manualRefresh = function() {
-            showToast('🔄 Osvežavam...', 'info', 1500);
+            showToast(t('refreshing'), 'info', 1500);
             if (currentUser) {
                 const dbRef = getDbRef(currentUser.uid);
                 if (dbRef) {
                     dbRef.once('value', function(s) {
                         allTasks = s.val() || {};
                         renderTasks();
-                        showToast('✅ Osveženo!', 'success', 1000);
+                        showToast(t('refreshed'), 'success', 1000);
                     });
                 }
             } else {
@@ -4944,7 +5434,7 @@ self.addEventListener('fetch', function(e) {});
 
         window.addEventListener('offline', function() {
             document.getElementById('offlineBar').style.display = 'block';
-            showToast('Radite offline. Promene će biti sinhronizovane kasnije.', 'warning', 3000);
+            showToast(t('working_offline'), 'warning', 3000);
         });
 
         // ============================================================
@@ -5042,7 +5532,7 @@ self.addEventListener('fetch', function(e) {});
                 renderTasks();
                 const lastToast = parseInt(localStorage.getItem('mp_last_date_toast') || '0');
                 if (Date.now() - lastToast > 86400000) {
-                    showToast('📅 Datum promenjen - sve osveženo', 'info', 1500);
+                    showToast(t('date_changed_toast'), 'info', 1500);
                     localStorage.setItem('mp_last_date_toast', Date.now().toString());
                 }
             }
@@ -5103,17 +5593,17 @@ self.addEventListener('fetch', function(e) {});
             console.log('🔐 Pokušaj:', { email, mode: isRegisterMode ? 'register' : 'login' });
             
             if (!email || !pass) {
-                loginErr.textContent = 'Unesite email i šifru.';
+                loginErr.textContent = t('auth2_enter_email_pass');
                 return;
             }
             
             if (isRegisterMode) {
                 if (pass.length < 6) {
-                    loginErr.textContent = 'Šifra mora imati najmanje 6 karaktera.';
+                    loginErr.textContent = t('auth2_weak_password');
                     return;
                 }
                 if (pass !== pass2) {
-                    loginErr.textContent = 'Šifre se ne poklapaju.';
+                    loginErr.textContent = t('auth2_pass_mismatch');
                     return;
                 }
                 
@@ -5121,7 +5611,7 @@ self.addEventListener('fetch', function(e) {});
                 firebase.auth().createUserWithEmailAndPassword(email, pass)
                     .then(function(userCredential) {
                         console.log('✅ Registracija uspešna!', userCredential.user.email);
-                        loginOk.textContent = '✅ Nalog kreiran! Prijavljujemo...';
+                        loginOk.textContent = t('auth2_account_created');
                         setTimeout(function() { location.reload(); }, 1500);
                     })
                     .catch(function(error) {
@@ -5133,7 +5623,7 @@ self.addEventListener('fetch', function(e) {});
                 firebase.auth().signInWithEmailAndPassword(email, pass)
                     .then(function(userCredential) {
                         console.log('✅ Prijava uspešna!', userCredential.user.email);
-                        loginOk.textContent = '✅ Prijavljeni ste!';
+                        loginOk.textContent = t('auth2_signed_in');
                         setTimeout(function() { location.reload(); }, 1500);
                     })
                     .catch(function(error) {
@@ -5145,31 +5635,31 @@ self.addEventListener('fetch', function(e) {});
         
         function translateError(code) {
             const map = {
-                'auth/user-not-found': '❌ Korisnik nije pronađen. Registrujte se prvo.',
-                'auth/wrong-password': '❌ Pogrešna šifra.',
-                'auth/invalid-email': '❌ Neispravan email.',
-                'auth/email-already-in-use': '❌ Email već postoji. Prijavite se.',
-                'auth/too-many-requests': '⏳ Previše pokušaja. Sačekajte.',
-                'auth/operation-not-allowed': '❌ Prijava nije omogućena u Firebase konzoli.',
-                'auth/network-request-failed': '🌐 Proverite internet konekciju.',
-                'auth/weak-password': '🔑 Šifra mora imati 6+ karaktera.'
+                'auth/user-not-found': t('auth2_user_not_found'),
+                'auth/wrong-password': t('auth2_wrong_password'),
+                'auth/invalid-email': t('auth2_invalid_email'),
+                'auth/email-already-in-use': t('auth2_email_in_use'),
+                'auth/too-many-requests': t('auth2_too_many_requests'),
+                'auth/operation-not-allowed': t('auth2_op_not_allowed'),
+                'auth/network-request-failed': t('auth2_network_error'),
+                'auth/weak-password': t('auth2_weak_password_map')
             };
-            return map[code] || '❌ Greška: ' + code;
+            return map[code] || t('auth2_generic_error_prefix') + code;
         }
         
         function toggleMode() {
             isRegisterMode = !isRegisterMode;
             if (loginSubtitle) {
-                loginSubtitle.textContent = isRegisterMode ? 'Napravite novi nalog' : 'Prijavite se da nastavite';
+                loginSubtitle.textContent = isRegisterMode ? t('register_subtitle') : t('login_subtitle');
             }
-            loginBtn.textContent = isRegisterMode ? 'Registruj se' : 'Prijavi se';
+            loginBtn.textContent = isRegisterMode ? t('register_btn') : t('login_btn');
             if (loginPass2) {
                 loginPass2.style.display = isRegisterMode ? 'block' : 'none';
             }
             if (loginToggle) {
                 loginToggle.innerHTML = isRegisterMode 
-                    ? 'Već imate nalog? <span onclick="window.toggleMode()">Prijavite se</span>'
-                    : 'Nemate nalog? <span onclick="window.toggleMode()">Registrujte se</span>';
+                    ? t('have_account') + ' <span onclick="window.toggleMode()">' + t('login_link') + '</span>'
+                    : t('no_account') + ' <span onclick="window.toggleMode()">' + t('register') + '</span>';
             }
             loginErr.textContent = '';
             loginOk.textContent = '';
