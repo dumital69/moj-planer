@@ -4138,11 +4138,32 @@
                     }
                 });
                 
+                input.value = '';
+                renderTasks();
+                
                 const updates = {};
                 updates['subtasks/' + subtaskId] = newSubtask;
                 updates['lastChangedAt'] = nowISO;
                 updates['lastChangedBy'] = currentUser.uid;
-                database.ref('sharedTasks/' + taskKey).update(updates);
+                database.ref('sharedTasks/' + taskKey).update(updates)
+                    .then(function() {
+                        showToast(t('subtask_added'), 'success');
+                    })
+                    .catch(function(err) {
+                        console.error('Greška pri upisu podzadatka:', err);
+                        // Poništi lokalnu (optimističku) izmenu jer upis nije uspeo na serveru
+                        if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks) {
+                            delete sharedTasksData[taskKey].subtasks[subtaskId];
+                        }
+                        Object.keys(allTasks).forEach(function(key) {
+                            if (allTasks[key] && allTasks[key].sharedKey === taskKey && allTasks[key].subtasks) {
+                                delete allTasks[key].subtasks[subtaskId];
+                            }
+                        });
+                        renderTasks();
+                        showToast(t('generic_error_prefix2') + err.message, 'error');
+                    });
+                return;
                 
             } else {
                 if (!allTasks[taskKey]) {
@@ -4155,7 +4176,15 @@
                 
                 const db = getDbRef(currentUser.uid);
                 if (db) {
-                    db.child(taskKey + '/subtasks/' + subtaskId).set(newSubtask);
+                    db.child(taskKey + '/subtasks/' + subtaskId).set(newSubtask)
+                        .catch(function(err) {
+                            console.error('Greška pri upisu podzadatka:', err);
+                            if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
+                                delete allTasks[taskKey].subtasks[subtaskId];
+                            }
+                            renderTasks();
+                            showToast(t('generic_error_prefix2') + err.message, 'error');
+                        });
                 }
             }
             
@@ -4188,6 +4217,7 @@
             
             const sanitized = sanitizeText(newText);
             const nowISO = dateToISO(new Date());
+            const oldText = sub.text;
             
             if (isShared) {
                 if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks) {
@@ -4200,12 +4230,30 @@
                         }
                     }
                 });
+                renderTasks();
                 
                 const updates = {};
                 updates['subtasks/' + subId + '/text'] = sanitized;
                 updates['lastChangedAt'] = nowISO;
                 updates['lastChangedBy'] = currentUser.uid;
-                database.ref('sharedTasks/' + taskKey).update(updates);
+                database.ref('sharedTasks/' + taskKey).update(updates)
+                    .then(function() {
+                        showToast(t('subtask_text_updated'), 'success');
+                    })
+                    .catch(function(err) {
+                        console.error('Greška pri upisu podzadatka:', err);
+                        if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks && sharedTasksData[taskKey].subtasks[subId]) {
+                            sharedTasksData[taskKey].subtasks[subId].text = oldText;
+                        }
+                        Object.keys(allTasks).forEach(function(key) {
+                            if (allTasks[key] && allTasks[key].sharedKey === taskKey && allTasks[key].subtasks && allTasks[key].subtasks[subId]) {
+                                allTasks[key].subtasks[subId].text = oldText;
+                            }
+                        });
+                        renderTasks();
+                        showToast(t('generic_error_prefix2') + err.message, 'error');
+                    });
+                return;
                 
             } else {
                 if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
@@ -4214,7 +4262,15 @@
                 
                 const db = getDbRef(currentUser.uid);
                 if (db) {
-                    db.child(taskKey + '/subtasks/' + subId + '/text').set(sanitized);
+                    db.child(taskKey + '/subtasks/' + subId + '/text').set(sanitized)
+                        .catch(function(err) {
+                            console.error('Greška pri upisu podzadatka:', err);
+                            if (allTasks[taskKey] && allTasks[taskKey].subtasks && allTasks[taskKey].subtasks[subId]) {
+                                allTasks[taskKey].subtasks[subId].text = oldText;
+                            }
+                            renderTasks();
+                            showToast(t('generic_error_prefix2') + err.message, 'error');
+                        });
                 }
             }
             
@@ -4259,12 +4315,30 @@
                                 }
                             }
                         });
+                        renderTasks();
                         
                         const updates = {};
                         updates['subtasks/' + subId + '/text'] = newText;
                         updates['lastChangedAt'] = nowISO;
                         updates['lastChangedBy'] = currentUser.uid;
-                        database.ref('sharedTasks/' + taskKey).update(updates);
+                        database.ref('sharedTasks/' + taskKey).update(updates)
+                            .then(function() {
+                                showToast(t('subtask_updated'), 'success');
+                            })
+                            .catch(function(err) {
+                                console.error('Greška pri upisu podzadatka:', err);
+                                if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks && sharedTasksData[taskKey].subtasks[subId]) {
+                                    sharedTasksData[taskKey].subtasks[subId].text = currentText;
+                                }
+                                Object.keys(allTasks).forEach(function(key) {
+                                    if (allTasks[key] && allTasks[key].sharedKey === taskKey && allTasks[key].subtasks && allTasks[key].subtasks[subId]) {
+                                        allTasks[key].subtasks[subId].text = currentText;
+                                    }
+                                });
+                                renderTasks();
+                                showToast(t('generic_error_prefix2') + err.message, 'error');
+                            });
+                        return;
                         
                     } else {
                         if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
@@ -4273,7 +4347,15 @@
                         
                         const db = getDbRef(currentUser.uid);
                         if (db) {
-                            db.child(taskKey + '/subtasks/' + subId + '/text').set(newText);
+                            db.child(taskKey + '/subtasks/' + subId + '/text').set(newText)
+                                .catch(function(err) {
+                                    console.error('Greška pri upisu podzadatka:', err);
+                                    if (allTasks[taskKey] && allTasks[taskKey].subtasks && allTasks[taskKey].subtasks[subId]) {
+                                        allTasks[taskKey].subtasks[subId].text = currentText;
+                                    }
+                                    renderTasks();
+                                    showToast(t('generic_error_prefix2') + err.message, 'error');
+                                });
                         }
                     }
                     
@@ -4302,6 +4384,7 @@
             if (!task || !task.subtasks || !task.subtasks[subId]) return;
             
             const nowISO = dateToISO(new Date());
+            const oldCategory = task.subtasks[subId].category;
             
             if (isShared) {
                 if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks) {
@@ -4314,12 +4397,30 @@
                         }
                     }
                 });
+                renderTasks();
                 
                 const updates = {};
                 updates['subtasks/' + subId + '/category'] = newCategory;
                 updates['lastChangedAt'] = nowISO;
                 updates['lastChangedBy'] = currentUser.uid;
-                database.ref('sharedTasks/' + taskKey).update(updates);
+                database.ref('sharedTasks/' + taskKey).update(updates)
+                    .then(function() {
+                        showToast(t('category_changed'), 'success');
+                    })
+                    .catch(function(err) {
+                        console.error('Greška pri upisu podzadatka:', err);
+                        if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks && sharedTasksData[taskKey].subtasks[subId]) {
+                            sharedTasksData[taskKey].subtasks[subId].category = oldCategory;
+                        }
+                        Object.keys(allTasks).forEach(function(key) {
+                            if (allTasks[key] && allTasks[key].sharedKey === taskKey && allTasks[key].subtasks && allTasks[key].subtasks[subId]) {
+                                allTasks[key].subtasks[subId].category = oldCategory;
+                            }
+                        });
+                        renderTasks();
+                        showToast(t('generic_error_prefix2') + err.message, 'error');
+                    });
+                return;
                 
             } else {
                 if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
@@ -4328,7 +4429,15 @@
                 
                 const db = getDbRef(currentUser.uid);
                 if (db) {
-                    db.child(taskKey + '/subtasks/' + subId + '/category').set(newCategory);
+                    db.child(taskKey + '/subtasks/' + subId + '/category').set(newCategory)
+                        .catch(function(err) {
+                            console.error('Greška pri upisu podzadatka:', err);
+                            if (allTasks[taskKey] && allTasks[taskKey].subtasks && allTasks[taskKey].subtasks[subId]) {
+                                allTasks[taskKey].subtasks[subId].category = oldCategory;
+                            }
+                            renderTasks();
+                            showToast(t('generic_error_prefix2') + err.message, 'error');
+                        });
                 }
             }
             
@@ -4361,7 +4470,20 @@
                 updates['subtasks/' + subId + '/completed'] = newStatus;
                 updates['lastChangedAt'] = nowISO;
                 updates['lastChangedBy'] = currentUser.uid;
-                database.ref('sharedTasks/' + taskKey).update(updates);
+                database.ref('sharedTasks/' + taskKey).update(updates)
+                    .catch(function(err) {
+                        console.error('Greška pri upisu podzadatka:', err);
+                        if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks && sharedTasksData[taskKey].subtasks[subId]) {
+                            sharedTasksData[taskKey].subtasks[subId].completed = !newStatus;
+                        }
+                        Object.keys(allTasks).forEach(function(key) {
+                            if (allTasks[key] && allTasks[key].sharedKey === taskKey && allTasks[key].subtasks && allTasks[key].subtasks[subId]) {
+                                allTasks[key].subtasks[subId].completed = !newStatus;
+                            }
+                        });
+                        renderTasks();
+                        showToast(t('generic_error_prefix2') + err.message, 'error');
+                    });
                 
             } else {
                 if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
@@ -4370,7 +4492,15 @@
                 
                 const db = getDbRef(currentUser.uid);
                 if (db) {
-                    db.child(taskKey + '/subtasks/' + subId + '/completed').set(newStatus);
+                    db.child(taskKey + '/subtasks/' + subId + '/completed').set(newStatus)
+                        .catch(function(err) {
+                            console.error('Greška pri upisu podzadatka:', err);
+                            if (allTasks[taskKey] && allTasks[taskKey].subtasks && allTasks[taskKey].subtasks[subId]) {
+                                allTasks[taskKey].subtasks[subId].completed = !newStatus;
+                            }
+                            renderTasks();
+                            showToast(t('generic_error_prefix2') + err.message, 'error');
+                        });
                 }
             }
             
@@ -4385,6 +4515,8 @@
             if (!confirm(t('confirm_delete_subtask'))) return;
             
             const nowISO = dateToISO(new Date());
+            const task = isShared ? sharedTasksData[taskKey] : allTasks[taskKey];
+            const removedSubtask = task && task.subtasks ? task.subtasks[subId] : null;
             
             if (isShared) {
                 if (sharedTasksData[taskKey] && sharedTasksData[taskKey].subtasks) {
@@ -4397,12 +4529,34 @@
                         }
                     }
                 });
+                renderTasks();
                 
                 const updates = {};
                 updates['subtasks/' + subId] = null;
                 updates['lastChangedAt'] = nowISO;
                 updates['lastChangedBy'] = currentUser.uid;
-                database.ref('sharedTasks/' + taskKey).update(updates);
+                database.ref('sharedTasks/' + taskKey).update(updates)
+                    .then(function() {
+                        showToast(t('subtask_deleted'), 'success');
+                    })
+                    .catch(function(err) {
+                        console.error('Greška pri upisu podzadatka:', err);
+                        if (removedSubtask) {
+                            if (sharedTasksData[taskKey]) {
+                                if (!sharedTasksData[taskKey].subtasks) sharedTasksData[taskKey].subtasks = {};
+                                sharedTasksData[taskKey].subtasks[subId] = removedSubtask;
+                            }
+                            Object.keys(allTasks).forEach(function(key) {
+                                if (allTasks[key] && allTasks[key].sharedKey === taskKey) {
+                                    if (!allTasks[key].subtasks) allTasks[key].subtasks = {};
+                                    allTasks[key].subtasks[subId] = removedSubtask;
+                                }
+                            });
+                        }
+                        renderTasks();
+                        showToast(t('generic_error_prefix2') + err.message, 'error');
+                    });
+                return;
                 
             } else {
                 if (allTasks[taskKey] && allTasks[taskKey].subtasks) {
@@ -4411,7 +4565,16 @@
                 
                 const db = getDbRef(currentUser.uid);
                 if (db) {
-                    db.child(taskKey + '/subtasks/' + subId).remove();
+                    db.child(taskKey + '/subtasks/' + subId).remove()
+                        .catch(function(err) {
+                            console.error('Greška pri upisu podzadatka:', err);
+                            if (removedSubtask && allTasks[taskKey]) {
+                                if (!allTasks[taskKey].subtasks) allTasks[taskKey].subtasks = {};
+                                allTasks[taskKey].subtasks[subId] = removedSubtask;
+                            }
+                            renderTasks();
+                            showToast(t('generic_error_prefix2') + err.message, 'error');
+                        });
                 }
             }
             
