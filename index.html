@@ -5464,8 +5464,8 @@
             });
             
             list.innerHTML = DOMPurify.sanitize(html, {
-                ALLOWED_TAGS: ['div', 'span', 'button', 'br', 'strong', 'em', 'p', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4'],
-                ALLOWED_ATTR: ['class', 'id', 'style', 'onclick', 'title', 'type']
+                ALLOWED_TAGS: ['div', 'span', 'button', 'input', 'select', 'option', 'label', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'p', 'h1', 'h2', 'h3', 'h4'],
+                ALLOWED_ATTR: ['class', 'id', 'style', 'onclick', 'onchange', 'oninput', 'onkeydown', 'type', 'value', 'placeholder', 'checked', 'title', 'disabled', 'min', 'max', 'step', 'role', 'aria-label', 'aria-hidden', 'data-*']
             });
         }
 
