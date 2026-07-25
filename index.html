@@ -3212,11 +3212,19 @@
         </div>
         <div class="guide-step">
             <div class="step-title">📤 Deljenje zadatka</div>
-            <div class="step-desc">Kliknite 📤 na zadatku i unesite email ili nadimak osobe sa kojom želite da podelite.</div>
+            <div class="step-desc">Kliknite 📤 na zadatku i unesite email ili nadimak osobe sa kojom želite da podelite. Deljeni zadatak se posle toga vidi <strong>samo</strong> u "Deljeni" tabu (kod obe osobe), a ne u običnim kategorijama.</div>
         </div>
         <div class="guide-step">
             <div class="step-title">📋 Podzadaci</div>
             <div class="step-desc">Kliknite "+" ispod zadatka da dodate podzadatke. Svaki podzadatak ima svoju kategoriju. Kliknite na tekst podzadatka da ga izmenite.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-title">📅 Kalendar</div>
+            <div class="step-desc">Kliknite na datum u kalendaru da vidite samo zadatke tog dana. Dugmad "Mesec"/"Nedelja" prebacuju prikaz. Tačkica ispod broja dana znači da zadatak postoji tog dana.</div>
+        </div>
+        <div class="guide-step">
+            <div class="step-title">🌐 Jezik</div>
+            <div class="step-desc">Dugme sa zastavicom menja jezik aplikacije (srpski / engleski / nemački). Podaci ostaju isti, menja se samo prikaz.</div>
         </div>
         <div class="guide-step">
             <div class="step-title">🔔 Alarm</div>
@@ -3243,6 +3251,8 @@
             <div class="step-desc">
                 <strong>Kako da vratim obrisan zadatak?</strong><br>
                 Otvorite "Smeće" i kliknite ↩ na zadatku.<br><br>
+                <strong>Zašto ne vidim deljeni zadatak u kategoriji (npr. Kupovina)?</strong><br>
+                To je normalno — deljeni zadaci se prikazuju isključivo u "Deljeni" tabu, radi preglednosti.<br><br>
                 <strong>Zašto ne vidim deljeni zadatak?</strong><br>
                 Osoba mora da vas doda kao učesnika.<br><br>
                 <strong>Kako da promenim temu?</strong><br>
@@ -3879,7 +3889,7 @@
                 if (isShared) taskClass += ' shared-task';
                 if (isAlarm && !isDone && !isDeleted && !isArchived) taskClass += ' alarm';
                 
-                html += '<div class="' + taskClass + ' cat-' + task.category + '">';
+                html += '<div class="' + taskClass + ' cat-' + escapeHtml(task.category) + '">';
                 
                 if (isAlarm && !isDone && !isDeleted && !isArchived) {
                     html += '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>';
@@ -5454,7 +5464,7 @@
                                    task.lastChangedBy !== currentUser?.uid && 
                                    new Date(task.lastChangedAt).getTime() > lastViewedShared;
                 
-                html += '<div class="task shared-task cat-' + task.category + (task.completed ? ' done' : '') + (isAlarm ? ' alarm' : '') + (shouldBlink ? ' blink-shared' : '') + '">' +
+                html += '<div class="task shared-task cat-' + escapeHtml(task.category) + (task.completed ? ' done' : '') + (isAlarm ? ' alarm' : '') + (shouldBlink ? ' blink-shared' : '') + '">' +
                     (isAlarm ? '<div class="alarm-banner">⏰ VREME JE — ' + displayDate(task.time) + '</div>' : '') +
                     '<div class="task-head"><div>' + emoji + ' ' + catLabel(task.category) + '</div><div>' + (task.time ? displayDate(task.time) : (translations[currentLang] || translations.sr).no_time) + '</div></div>' +
                     '<div style="font-size:11px;color:#1abc9c;margin-bottom:6px;">' + t('participants_label') + ' ' + escapeHtml(parts) + '</div>' +
