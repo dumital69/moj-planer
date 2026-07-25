@@ -1777,6 +1777,39 @@
                 auth2_network_error: '🌐 Proverite internet konekciju.',
                 auth2_weak_password_map: '🔑 Šifra mora imati 6+ karaktera.',
                 auth2_generic_error_prefix: '❌ Greška: ',
+                guide_add_title: '📝 Dodavanje zadatka',
+                guide_add_desc: 'Unesite tekst, izaberite kategoriju, datum/vreme i način ponavljanja, pa kliknite "Sačuvaj".',
+                guide_complete_title: '✅ Završavanje zadatka',
+                guide_complete_desc: 'Kliknite zeleni ✓ na zadatku. Zadatak će se pojaviti u "Završeni" prikazu.',
+                guide_share_title: '📤 Deljenje zadatka',
+                guide_share_desc: 'Kliknite na ikonicu deljenja na zadatku i unesite email ili nadimak osobe sa kojom želite da podelite. Deljeni zadatak se posle toga vidi <strong>samo</strong> u "Deljeni" tabu (kod obe osobe), a ne u običnim kategorijama.',
+                guide_subtasks_title: '📋 Podzadaci',
+                guide_subtasks_desc: 'Kliknite plus ispod zadatka da dodate podzadatke. Svaki podzadatak ima svoju kategoriju. Kliknite na tekst podzadatka da ga izmenite.',
+                guide_calendar_title: '📅 Kalendar',
+                guide_calendar_desc: 'Kliknite na datum u kalendaru da vidite samo zadatke tog dana. Dugmad Mesec/Nedelja prebacuju prikaz. Tačkica ispod broja dana znači da zadatak postoji tog dana.',
+                guide_lang_title: '🌐 Jezik',
+                guide_lang_desc: 'Dugme sa zastavicom menja jezik aplikacije (srpski / engleski / nemački). Podaci ostaju isti, menja se samo prikaz.',
+                guide_alarm_title: '🔔 Alarm',
+                guide_alarm_desc: 'Uključite zvučni alarm za zadatak. Alarm će se oglasiti kada dođe vreme.',
+                guide_trash_title: '🗑️ Smeće i brisanje',
+                guide_trash_desc: 'Zadaci u smeću se automatski brišu nakon 30 dana. RESET dugme traži trostruku potvrdu.',
+                guide_search_title: '🔍 Pretraga i paginacija',
+                guide_search_desc: 'Koristite polje za pretragu da filtrirate zadatke. Prikazuje se 20 zadataka po strani.',
+                guide_export_title: '📦 Eksport/Import',
+                guide_export_desc: 'U statistikama kliknite Izvezi za backup JSON fajl, ili Uvezi da povratite backup.',
+                guide_productivity_title: '📊 Produktivnost',
+                guide_productivity_desc: 'U statistikama kliknite Produktivnost za pregled završenih zadataka po danima.',
+                guide_faq_title: '❓ Česta pitanja',
+                guide_faq_q1: 'Kako da vratim obrisan zadatak?',
+                guide_faq_a1: 'Otvorite Smeće i kliknite na strelicu vraćanja na zadatku.',
+                guide_faq_q2: 'Zašto ne vidim deljeni zadatak u kategoriji (npr. Kupovina)?',
+                guide_faq_a2: 'To je normalno — deljeni zadaci se prikazuju isključivo u Deljeni tabu, radi preglednosti.',
+                guide_faq_q3: 'Zašto ne vidim deljeni zadatak?',
+                guide_faq_a3: 'Osoba mora da vas doda kao učesnika.',
+                guide_faq_q4: 'Kako da promenim temu?',
+                guide_faq_a4: 'Kliknite na ikonicu teme za promenu između tamne, svetle i automatske teme.',
+                guide_faq_q5: 'Šta je arhiviranje?',
+                guide_faq_a5: 'Zadatak možete arhivirati umesto brisanja. Arhivirani zadaci se ne prikazuju u glavnom toku.',
                 categories: {
                     Sve: 'Sve', Kola: 'Kola', Zdravlje: 'Zdravlje', Kupovina: 'Kupovina',
                     Hobi: 'Hobi', Dom: 'Dom', Posao: 'Posao', Razno: 'Razno'
@@ -1989,6 +2022,39 @@
                 auth2_network_error: '🌐 Check your internet connection.',
                 auth2_weak_password_map: '🔑 Password must have 6+ characters.',
                 auth2_generic_error_prefix: '❌ Error: ',
+                guide_add_title: '📝 Adding a task',
+                guide_add_desc: 'Enter text, choose a category, date/time and repeat option, then click "Save".',
+                guide_complete_title: '✅ Completing a task',
+                guide_complete_desc: 'Click the green checkmark on the task. The task will appear in the "Completed" view.',
+                guide_share_title: '📤 Sharing a task',
+                guide_share_desc: 'Click the share icon on the task and enter the email or nickname of the person you want to share with. Afterwards the shared task appears <strong>only</strong> in the "Shared" tab (for both people), not in the regular categories.',
+                guide_subtasks_title: '📋 Subtasks',
+                guide_subtasks_desc: 'Click the plus below the task to add subtasks. Each subtask has its own category. Click the subtask text to edit it.',
+                guide_calendar_title: '📅 Calendar',
+                guide_calendar_desc: 'Click a date in the calendar to see only that day\'s tasks. The Month/Week buttons switch the view. A dot below the day number means a task exists that day.',
+                guide_lang_title: '🌐 Language',
+                guide_lang_desc: 'The flag button changes the app language (Serbian / English / German). Your data stays the same, only the display changes.',
+                guide_alarm_title: '🔔 Alarm',
+                guide_alarm_desc: 'Turn on the sound alarm for a task. The alarm will sound when the time comes.',
+                guide_trash_title: '🗑️ Trash and deletion',
+                guide_trash_desc: 'Tasks in the trash are automatically deleted after 30 days. The RESET button requires triple confirmation.',
+                guide_search_title: '🔍 Search and pagination',
+                guide_search_desc: 'Use the search field to filter tasks. 20 tasks are shown per page.',
+                guide_export_title: '📦 Export/Import',
+                guide_export_desc: 'In statistics, click Export for a backup JSON file, or Import to restore a backup.',
+                guide_productivity_title: '📊 Productivity',
+                guide_productivity_desc: 'In statistics, click Productivity for an overview of completed tasks by day.',
+                guide_faq_title: '❓ FAQ',
+                guide_faq_q1: 'How do I restore a deleted task?',
+                guide_faq_a1: 'Open Trash and click the restore arrow on the task.',
+                guide_faq_q2: 'Why don\'t I see a shared task in a category (e.g. Shopping)?',
+                guide_faq_a2: 'That\'s normal — shared tasks are shown only in the Shared tab, for clarity.',
+                guide_faq_q3: 'Why don\'t I see a shared task at all?',
+                guide_faq_a3: 'The other person needs to add you as a participant.',
+                guide_faq_q4: 'How do I change the theme?',
+                guide_faq_a4: 'Click the theme icon to switch between dark, light and automatic theme.',
+                guide_faq_q5: 'What is archiving?',
+                guide_faq_a5: 'You can archive a task instead of deleting it. Archived tasks are not shown in the main flow.',
                 categories: {
                     Sve: 'All', Kola: 'Car', Zdravlje: 'Health', Kupovina: 'Shopping',
                     Hobi: 'Hobby', Dom: 'Home', Posao: 'Work', Razno: 'Other'
@@ -2201,6 +2267,39 @@
                 auth2_network_error: '🌐 Überprüfen Sie Ihre Internetverbindung.',
                 auth2_weak_password_map: '🔑 Das Passwort muss mindestens 6 Zeichen haben.',
                 auth2_generic_error_prefix: '❌ Fehler: ',
+                guide_add_title: '📝 Aufgabe hinzufügen',
+                guide_add_desc: 'Geben Sie Text ein, wählen Sie Kategorie, Datum/Zeit und Wiederholung, und klicken Sie auf "Speichern".',
+                guide_complete_title: '✅ Aufgabe abschließen',
+                guide_complete_desc: 'Klicken Sie auf das grüne Häkchen bei der Aufgabe. Die Aufgabe erscheint dann unter "Erledigt".',
+                guide_share_title: '📤 Aufgabe teilen',
+                guide_share_desc: 'Klicken Sie auf das Teilen-Symbol bei der Aufgabe und geben Sie die E-Mail oder den Spitznamen der Person ein, mit der Sie teilen möchten. Die geteilte Aufgabe erscheint danach <strong>nur</strong> im Tab "Geteilt" (bei beiden Personen), nicht in den normalen Kategorien.',
+                guide_subtasks_title: '📋 Unteraufgaben',
+                guide_subtasks_desc: 'Klicken Sie auf das Plus unter der Aufgabe, um Unteraufgaben hinzuzufügen. Jede Unteraufgabe hat eine eigene Kategorie. Klicken Sie auf den Text, um ihn zu bearbeiten.',
+                guide_calendar_title: '📅 Kalender',
+                guide_calendar_desc: 'Klicken Sie auf ein Datum im Kalender, um nur die Aufgaben dieses Tages zu sehen. Die Schaltflächen Monat/Woche wechseln die Ansicht. Ein Punkt unter der Tageszahl bedeutet, dass an diesem Tag eine Aufgabe existiert.',
+                guide_lang_title: '🌐 Sprache',
+                guide_lang_desc: 'Die Flaggen-Schaltfläche ändert die App-Sprache (Serbisch / Englisch / Deutsch). Ihre Daten bleiben gleich, nur die Anzeige ändert sich.',
+                guide_alarm_title: '🔔 Alarm',
+                guide_alarm_desc: 'Aktivieren Sie den Signalton für eine Aufgabe. Der Alarm ertönt, wenn die Zeit erreicht ist.',
+                guide_trash_title: '🗑️ Papierkorb und Löschen',
+                guide_trash_desc: 'Aufgaben im Papierkorb werden nach 30 Tagen automatisch gelöscht. Die RESET-Schaltfläche erfordert eine dreifache Bestätigung.',
+                guide_search_title: '🔍 Suche und Seitennavigation',
+                guide_search_desc: 'Verwenden Sie das Suchfeld, um Aufgaben zu filtern. Es werden 20 Aufgaben pro Seite angezeigt.',
+                guide_export_title: '📦 Export/Import',
+                guide_export_desc: 'Klicken Sie in der Statistik auf Exportieren für eine Backup-JSON-Datei oder auf Importieren, um ein Backup wiederherzustellen.',
+                guide_productivity_title: '📊 Produktivität',
+                guide_productivity_desc: 'Klicken Sie in der Statistik auf Produktivität für eine Übersicht der erledigten Aufgaben nach Tagen.',
+                guide_faq_title: '❓ Häufige Fragen',
+                guide_faq_q1: 'Wie stelle ich eine gelöschte Aufgabe wieder her?',
+                guide_faq_a1: 'Öffnen Sie den Papierkorb und klicken Sie bei der Aufgabe auf den Wiederherstellen-Pfeil.',
+                guide_faq_q2: 'Warum sehe ich eine geteilte Aufgabe nicht in einer Kategorie (z. B. Einkauf)?',
+                guide_faq_a2: 'Das ist normal — geteilte Aufgaben werden aus Gründen der Übersichtlichkeit nur im Tab Geteilt angezeigt.',
+                guide_faq_q3: 'Warum sehe ich überhaupt keine geteilte Aufgabe?',
+                guide_faq_a3: 'Die andere Person muss Sie als Teilnehmer hinzufügen.',
+                guide_faq_q4: 'Wie ändere ich das Design?',
+                guide_faq_a4: 'Klicken Sie auf das Design-Symbol, um zwischen dunklem, hellem und automatischem Design zu wechseln.',
+                guide_faq_q5: 'Was bedeutet Archivieren?',
+                guide_faq_a5: 'Sie können eine Aufgabe archivieren, anstatt sie zu löschen. Archivierte Aufgaben werden nicht im Hauptbereich angezeigt.',
                 categories: {
                     Sve: 'Alle', Kola: 'Auto', Zdravlje: 'Gesundheit', Kupovina: 'Einkauf',
                     Hobi: 'Hobby', Dom: 'Zuhause', Posao: 'Arbeit', Razno: 'Sonstiges'
@@ -3201,95 +3300,55 @@
         // ============================================================
         //  KORISNIČKO UPUTSTVO
         // ============================================================
-        const DEFAULT_GUIDE = `
-        <div class="guide-step">
-            <div class="step-title">📝 Dodavanje zadatka</div>
-            <div class="step-desc">Unesite tekst, izaberite kategoriju, datum/vreme i način ponavljanja, pa kliknite "Sačuvaj".</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">✅ Završavanje zadatka</div>
-            <div class="step-desc">Kliknite zeleni ✓ na zadatku. Zadatak će se pojaviti u "Završeni" prikazu.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">📤 Deljenje zadatka</div>
-            <div class="step-desc">Kliknite 📤 na zadatku i unesite email ili nadimak osobe sa kojom želite da podelite. Deljeni zadatak se posle toga vidi <strong>samo</strong> u "Deljeni" tabu (kod obe osobe), a ne u običnim kategorijama.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">📋 Podzadaci</div>
-            <div class="step-desc">Kliknite "+" ispod zadatka da dodate podzadatke. Svaki podzadatak ima svoju kategoriju. Kliknite na tekst podzadatka da ga izmenite.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">📅 Kalendar</div>
-            <div class="step-desc">Kliknite na datum u kalendaru da vidite samo zadatke tog dana. Dugmad "Mesec"/"Nedelja" prebacuju prikaz. Tačkica ispod broja dana znači da zadatak postoji tog dana.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">🌐 Jezik</div>
-            <div class="step-desc">Dugme sa zastavicom menja jezik aplikacije (srpski / engleski / nemački). Podaci ostaju isti, menja se samo prikaz.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">🔔 Alarm</div>
-            <div class="step-desc">Uključite zvučni alarm za zadatak. Alarm će se oglasiti kada dođe vreme.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">🗑️ Smeće i brisanje</div>
-            <div class="step-desc">Zadaci u smeću se automatski brišu nakon 30 dana. RESET dugme traži trostruku potvrdu.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">🔍 Pretraga i paginacija</div>
-            <div class="step-desc">Koristite polje za pretragu da filtrirate zadatke. Prikazuje se 20 zadataka po strani.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">📦 Eksport/Import</div>
-            <div class="step-desc">U statistikama kliknite "Izvezi" za backup JSON fajl, ili "Uvezi" da povratite backup.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">📊 Produktivnost</div>
-            <div class="step-desc">U statistikama kliknite "Produktivnost" za pregled završenih zadataka po danima.</div>
-        </div>
-        <div class="guide-step">
-            <div class="step-title">❓ Česta pitanja</div>
-            <div class="step-desc">
-                <strong>Kako da vratim obrisan zadatak?</strong><br>
-                Otvorite "Smeće" i kliknite ↩ na zadatku.<br><br>
-                <strong>Zašto ne vidim deljeni zadatak u kategoriji (npr. Kupovina)?</strong><br>
-                To je normalno — deljeni zadaci se prikazuju isključivo u "Deljeni" tabu, radi preglednosti.<br><br>
-                <strong>Zašto ne vidim deljeni zadatak?</strong><br>
-                Osoba mora da vas doda kao učesnika.<br><br>
-                <strong>Kako da promenim temu?</strong><br>
-                Kliknite 🌙/☀️/🌓 za promenu između tamne, svetle i automatske teme.<br><br>
-                <strong>Šta je arhiviranje?</strong><br>
-                Zadatak možete arhivirati umesto brisanja. Arhivirani zadaci se ne prikazuju u glavnom toku.
-            </div>
-        </div>
-        `;
+        // Uputstvo se generiše dinamički na trenutnom jeziku (ne čuva se više u bazi
+        // po korisniku, jer je to ranije sprečavalo da izmene/prevodi ikad stignu do
+        // korisnika koji je uputstvo već jednom otvorio).
+        function buildGuideContent() {
+            const sections = [
+                ['guide_add_title', 'guide_add_desc'],
+                ['guide_complete_title', 'guide_complete_desc'],
+                ['guide_share_title', 'guide_share_desc'],
+                ['guide_subtasks_title', 'guide_subtasks_desc'],
+                ['guide_calendar_title', 'guide_calendar_desc'],
+                ['guide_lang_title', 'guide_lang_desc'],
+                ['guide_alarm_title', 'guide_alarm_desc'],
+                ['guide_trash_title', 'guide_trash_desc'],
+                ['guide_search_title', 'guide_search_desc'],
+                ['guide_export_title', 'guide_export_desc'],
+                ['guide_productivity_title', 'guide_productivity_desc']
+            ];
+            
+            let html = sections.map(function(s) {
+                return '<div class="guide-step"><div class="step-title">' + t(s[0]) + '</div><div class="step-desc">' + t(s[1]) + '</div></div>';
+            }).join('\n');
+            
+            const faqPairs = [
+                ['guide_faq_q1', 'guide_faq_a1'],
+                ['guide_faq_q2', 'guide_faq_a2'],
+                ['guide_faq_q3', 'guide_faq_a3'],
+                ['guide_faq_q4', 'guide_faq_a4'],
+                ['guide_faq_q5', 'guide_faq_a5']
+            ];
+            const faqHtml = faqPairs.map(function(p) {
+                return '<strong>' + t(p[0]) + '</strong><br>' + t(p[1]);
+            }).join('<br><br>');
+            
+            html += '<div class="guide-step"><div class="step-title">' + t('guide_faq_title') + '</div><div class="step-desc">' + faqHtml + '</div></div>';
+            
+            return html;
+        }
 
         let guideContent = '';
 
         function loadGuide() {
-            if (!currentUser) return;
-            
-            const guideRef = database.ref('users/' + currentUser.uid + '/userGuide');
-            guideRef.once('value').then(function(snap) {
-                const data = snap.val();
-                if (data && typeof data === 'string') {
-                    guideContent = data;
-                } else {
-                    guideContent = DEFAULT_GUIDE;
-                    guideRef.set(DEFAULT_GUIDE);
-                }
-            }).catch(function(err) {
-                console.log('Greška pri učitavanju uputstva:', err);
-                guideContent = DEFAULT_GUIDE;
-            });
+            guideContent = buildGuideContent();
         }
 
         window.openGuide = function() {
             const modal = document.getElementById('guideModal');
             const content = document.getElementById('guideContent');
             
-            if (!guideContent) {
-                guideContent = DEFAULT_GUIDE;
-            }
+            guideContent = buildGuideContent();
             content.innerHTML = DOMPurify.sanitize(guideContent, purifyConfig);
             modal.style.display = 'flex';
         };
