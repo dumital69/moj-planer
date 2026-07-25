@@ -2912,7 +2912,7 @@
             const lastSummary = parseInt(localStorage.getItem('mp_last_summary') || '0');
             if (now.getTime() - lastSummary > 86400000) {
                 const todayTasks = Object.values(allTasks).filter(function(t) {
-                    return t.time && t.time.startsWith(today) && !t.completed && !t.deleted && !t.archived;
+                    return t.time && t.time.startsWith(today) && !t.completed && !t.deleted && !t.archived && !t.sharedKey;
                 });
                 if (todayTasks.length > 0) {
                     const title = '📋 ' + todayTasks.length + ' zadatak(a) vas čeka danas!';
@@ -3090,7 +3090,7 @@
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateStr = year + '-' + pad(month + 1) + '-' + pad(i);
                 const hasTask = Object.values(allTasks).some(function(task) {
-                    return task.time && task.time.startsWith(dateStr) && !task.completed && !task.deleted && !task.archived;
+                    return task.time && task.time.startsWith(dateStr) && !task.completed && !task.deleted && !task.archived && !task.sharedKey;
                 });
                 const isToday = today === dateStr;
                 const isSelected = filterDate === dateStr;
@@ -3138,7 +3138,7 @@
                 const monthName = getMonths()[date.getMonth()];
                 
                 const dayTasks = Object.values(allTasks).filter(function(task) {
-                    if (!task.time || task.deleted || task.archived) return false;
+                    if (!task.time || task.deleted || task.archived || task.sharedKey) return false;
                     const taskDate = task.time.split('T')[0];
                     return taskDate === dateStr;
                 });
@@ -3307,7 +3307,7 @@
                 const dayName = ['Ned', 'Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub'][d.getDay()];
                 
                 const done = Object.values(allTasks).filter(function(t) {
-                    return t.completed && t.completedAt && t.completedAt.startsWith(key);
+                    return t.completed && t.completedAt && t.completedAt.startsWith(key) && !t.sharedKey;
                 }).length;
                 totalDone += done;
                 
@@ -3341,7 +3341,7 @@
         function updateDailyProgress() {
             const today = getTodayKey();
             const tasks = Object.values(allTasks).filter(function(t) {
-                return t.time && t.time.startsWith(today) && !t.deleted && !t.archived;
+                return t.time && t.time.startsWith(today) && !t.deleted && !t.archived && !t.sharedKey;
             });
             const done = tasks.filter(function(t) { return t.completed; }).length;
             const total = tasks.length;
@@ -3514,7 +3514,7 @@
 
         // ===== STATISTIKA =====
         function updateStats() {
-            const tasks = Object.values(allTasks).filter(t => !t.deleted && !t.archived);
+            const tasks = Object.values(allTasks).filter(t => !t.deleted && !t.archived && !t.sharedKey);
             const total = tasks.length;
             const active = tasks.filter(t => !t.completed).length;
             const done = tasks.filter(t => t.completed).length;
@@ -3526,7 +3526,7 @@
         }
 
         function updateStatsDisplay() {
-            const tasks = Object.values(allTasks).filter(t => !t.deleted && !t.archived);
+            const tasks = Object.values(allTasks).filter(t => !t.deleted && !t.archived && !t.sharedKey);
             const total = tasks.length;
             const active = tasks.filter(t => !t.completed).length;
             const done = tasks.filter(t => t.completed).length;
@@ -3709,7 +3709,7 @@
             
             html += '<button class="chip teal-chip' + (isShared ? ' active-teal' : '') + '" ' + extraStyle + ' onclick="setCat(\'Deljeni\')">🤝 ' + tShared + (sharedCount > 0 ? ' (' + sharedCount + ')' : '') + '</button>';
             
-            const archivedCount = Object.values(allTasks).filter(function(t) { return t.archived && !t.deleted; }).length;
+            const archivedCount = Object.values(allTasks).filter(function(t) { return t.archived && !t.deleted && !t.sharedKey; }).length;
             html += '<button class="chip orange-chip' + (showArchived ? ' active-orange' : '') + '" onclick="toggleArchivedView()">📦 ' + tArchive + (archivedCount > 0 ? ' (' + archivedCount + ')' : '') + '</button>';
             
             container.innerHTML = html;
@@ -3774,6 +3774,12 @@
             let taskKeys = Object.keys(allTasks).filter(function(key) {
                 const task = allTasks[key];
                 if (!task) return false;
+                
+                // Zadaci koji su podeljeni (imaju sharedKey) prikazuju se ISKLJUČIVO u
+                // "Deljeni" tabu (preko sharedTasksData), nikad u običnim kategorijama,
+                // Smeću, Završenim ili Arhivi — čak i ako je privatna kopija iz nekog
+                // razloga ostala u bazi (npr. brisanje nije uspelo zbog mrežnog problema).
+                if (task.sharedKey) return false;
                 
                 if (showTrash && !task.deleted) return false;
                 if (!showTrash && task.deleted) return false;
